@@ -20,8 +20,14 @@ struct ContentView: View {
         
         ZStack {
             
-            Color.black
-                .ignoresSafeArea()
+            Color.black.edgesIgnoringSafeArea(.all)
+            
+            // For creating ICON 
+            /*let width = UIScreen.main.bounds.width
+            
+            RadialGradient(gradient: Gradient(colors: [.black, .background]), center: .center, startRadius: width / 100, endRadius: width * 0.8)
+                .frame(width: width, height: width, alignment: .center)
+                .ignoresSafeArea()*/
             
             ScoreView(data: model.data)
                 .opacity(keyboardManager.isVisible ? 0 : 1)

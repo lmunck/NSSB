@@ -18,7 +18,7 @@ struct CigaretteView: View {
     var sendUpdate: () -> Void
     
     // Cigarette design
-    var height:CGFloat = 100
+    var height:CGFloat = 500
     let glowPercentage:Double = 0.1
     let bodyPercentage:Double = 0.75
     let filterPercentage:Double = 0.25
@@ -50,8 +50,8 @@ struct CigaretteView: View {
                     }
                 
                 CigaretteElementView(element: CigaretteElement.glow)
-                    .shadow(color: .red, radius: 30)
-                    .shadow(color: .orange.opacity(0.5), radius: 5)
+                    .shadow(color: .red, radius: height * 0.04)
+                    .shadow(color: .orange.opacity(0.5), radius: height * 0.02)
                     .overlay(CigaretteGlowDots(height: glowHeight, width: width, color: .red, animated: true))
                     .frame(height: glowHeight)
                 
@@ -76,9 +76,9 @@ struct CigaretteView: View {
             .animation(.linear(duration: breakStarted != nil ? 1 : 0.3), value: breakProgress)
             
         }
-        .padding(15)
+        .padding(height * 0.05)
         .background(
-            Color.accent.blur(radius: height * 0.1)
+            Color.accent.blur(radius: height * 0.15)
         )
         
     }
@@ -203,6 +203,7 @@ struct CigaretteView: View {
 struct CigaretteView_Previews: PreviewProvider {
     static var previews: some View {
         CigaretteView(menu: .constant(.cigarette), completedBreak: {}, sendUpdate: {}, breakStarted: .constant(Date.now))
+            
     }
 }
 
