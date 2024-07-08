@@ -18,6 +18,7 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     @Published var phoneConnected:Bool = false
     @Published var totalBreaks:Int = 0
     @Published var todayBreaks:Int = 0
+    @Published var design:CigDesign = CigDesign()
     
     var session: WCSession
     let functions = DataFunctionsWatch()
@@ -87,7 +88,8 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
                 updated: Date.now,
                 breakStarted: self.breakStarted,
                 totalBreaks: self.totalBreaks,
-                todayBreaks: 0 /// not used
+                todayBreaks: 0, 
+                design: self.design /// not used
             )
             
             // Encode data
@@ -129,6 +131,8 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
                 // Update status if needed
                 if update.breakStarted != self.breakStarted { self.breakStarted = update.breakStarted }
                 
+                // Update design if necessary
+                if update.design != self.design { self.design = update.design }
             }
             
             // Create confirmation reply

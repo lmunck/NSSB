@@ -13,6 +13,7 @@ struct WatchUpdateModel: Codable, Equatable {
     var breakStarted:Date?
     var totalBreaks:Int
     var todayBreaks:Int
+    var design:CigDesign
     
     // traffic control
     var deliveryConfirmed = false

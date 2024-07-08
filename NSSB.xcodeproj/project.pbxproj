@@ -7,6 +7,28 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5C26B0EB2C28AE21000036D5 /* CigDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C26B0EA2C28AE21000036D5 /* CigDesign.swift */; };
+		5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C26B0EA2C28AE21000036D5 /* CigDesign.swift */; };
+		5C3941E52C3C6A3B001E828D /* CigDesignTransferable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E42C3C6A3B001E828D /* CigDesignTransferable.swift */; };
+		5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
+		5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C7692C2F4E75002A5201 /* HueSliderView.swift */; };
+		5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C76B2C2F4E9D002A5201 /* HueSelectorView.swift */; };
+		5C8ACD532C3166C500CCD6E0 /* captainicon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5C8ACD522C3166C400CCD6E0 /* captainicon.ttf */; };
+		5C8ACD542C3166C500CCD6E0 /* captainicon.ttf in Resources */ = {isa = PBXBuildFile; fileRef = 5C8ACD522C3166C400CCD6E0 /* captainicon.ttf */; };
+		5C8ACD562C31675600CCD6E0 /* CaptainIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */; };
+		5C8ACD572C31675600CCD6E0 /* CaptainIconView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */; };
+		5C9C25382C161E9F0025191E /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
+		5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
+		5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253A2C16277E0025191E /* ColorPickerView.swift */; };
+		5C9C253D2C1629560025191E /* SettingsColorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253C2C1629560025191E /* SettingsColorView.swift */; };
+		5C9F187F2C2B458100F96C32 /* RoundedCornerShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */; };
+		5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9F18822C2C713600F96C32 /* ExtColor.swift */; };
+		5C9F18842C2C713600F96C32 /* ExtColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9F18822C2C713600F96C32 /* ExtColor.swift */; };
+		5CCF0DB92C29F4E300D433A3 /* CigaretteGlowDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */; };
+		5CEC10F22C2B380200EAD79C /* CigaretteAshView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEC10F12C2B380200EAD79C /* CigaretteAshView.swift */; };
+		5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */; };
+		5CEC10F42C2B38A000EAD79C /* CigaretteAshView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEC10F12C2B380200EAD79C /* CigaretteAshView.swift */; };
+		5CEC10F62C2B3A9600EAD79C /* RoundedCornerShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */; };
 		68372CB1284A8EA200607600 /* LabelStyleReversed.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CB0284A8EA200607600 /* LabelStyleReversed.swift */; };
 		68372CB4284BE66E00607600 /* NonSmokingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CB3284BE66E00607600 /* NonSmokingData.swift */; };
 		68372CB9284E0B2500607600 /* ScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CB8284E0B2500607600 /* ScoreView.swift */; };
@@ -36,7 +58,6 @@
 		68D2FCEB284361E900529BB1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FCEA284361E900529BB1 /* Preview Assets.xcassets */; };
 		68D2FCEF284361E900529BB1 /* NSSB WatchKit App.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 68D2FCEE284361E900529BB1 /* NSSB WatchKit App.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FCF3284361EC00529BB1 /* Assets.xcassets */; };
-		68D2FCFA284361EC00529BB1 /* NSSB WatchKit Extension.appex in Embed App Extensions */ = {isa = PBXBuildFile; fileRef = 68D2FCF9284361EC00529BB1 /* NSSB WatchKit Extension.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FCFE284361EC00529BB1 /* NSSBApp.swift */; };
 		68D2FD01284361EC00529BB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD00284361EC00529BB1 /* ContentView.swift */; };
 		68D2FD03284361EC00529BB1 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD02284361EC00529BB1 /* NotificationController.swift */; };
@@ -57,27 +78,9 @@
 			remoteGlobalIDString = 68D2FCED284361E900529BB1;
 			remoteInfo = "NSSB WatchKit App";
 		};
-		68D2FCFB284361EC00529BB1 /* PBXContainerItemProxy */ = {
-			isa = PBXContainerItemProxy;
-			containerPortal = 68D2FCD8284361E100529BB1 /* Project object */;
-			proxyType = 1;
-			remoteGlobalIDString = 68D2FCF8284361EC00529BB1;
-			remoteInfo = "NSSB WatchKit Extension";
-		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
-		68D2FD14284361EF00529BB1 /* Embed App Extensions */ = {
-			isa = PBXCopyFilesBuildPhase;
-			buildActionMask = 2147483647;
-			dstPath = "";
-			dstSubfolderSpec = 13;
-			files = (
-				68D2FCFA284361EC00529BB1 /* NSSB WatchKit Extension.appex in Embed App Extensions */,
-			);
-			name = "Embed App Extensions";
-			runOnlyForDeploymentPostprocessing = 0;
-		};
 		68D2FD18284361EF00529BB1 /* Embed Watch Content */ = {
 			isa = PBXCopyFilesBuildPhase;
 			buildActionMask = 2147483647;
@@ -92,6 +95,20 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5C26B0EA2C28AE21000036D5 /* CigDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesign.swift; sourceTree = "<group>"; };
+		5C3941E42C3C6A3B001E828D /* CigDesignTransferable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesignTransferable.swift; sourceTree = "<group>"; };
+		5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCigaretteView.swift; sourceTree = "<group>"; };
+		5C70C7692C2F4E75002A5201 /* HueSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueSliderView.swift; sourceTree = "<group>"; };
+		5C70C76B2C2F4E9D002A5201 /* HueSelectorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueSelectorView.swift; sourceTree = "<group>"; };
+		5C8ACD522C3166C400CCD6E0 /* captainicon.ttf */ = {isa = PBXFileReference; lastKnownFileType = file; path = captainicon.ttf; sourceTree = "<group>"; };
+		5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainIconView.swift; sourceTree = "<group>"; };
+		5C9C25372C161E9F0025191E /* ColorCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCodable.swift; sourceTree = "<group>"; };
+		5C9C253A2C16277E0025191E /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
+		5C9C253C2C1629560025191E /* SettingsColorView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsColorView.swift; sourceTree = "<group>"; };
+		5C9F18822C2C713600F96C32 /* ExtColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtColor.swift; sourceTree = "<group>"; };
+		5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigaretteGlowDots.swift; sourceTree = "<group>"; };
+		5CEC10F12C2B380200EAD79C /* CigaretteAshView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigaretteAshView.swift; sourceTree = "<group>"; };
+		5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = RoundedCornerShape.swift; sourceTree = "<group>"; };
 		68372CB0284A8EA200607600 /* LabelStyleReversed.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LabelStyleReversed.swift; sourceTree = "<group>"; };
 		68372CB3284BE66E00607600 /* NonSmokingData.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonSmokingData.swift; sourceTree = "<group>"; };
 		68372CB8284E0B2500607600 /* ScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreView.swift; sourceTree = "<group>"; };
@@ -116,7 +133,6 @@
 		68D2FCEA284361E900529BB1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		68D2FCEE284361E900529BB1 /* NSSB WatchKit App.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = "NSSB WatchKit App.app"; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D2FCF3284361EC00529BB1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
-		68D2FCF9284361EC00529BB1 /* NSSB WatchKit Extension.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = "NSSB WatchKit Extension.appex"; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D2FCFE284361EC00529BB1 /* NSSBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSSBApp.swift; sourceTree = "<group>"; };
 		68D2FD00284361EC00529BB1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		68D2FD02284361EC00529BB1 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
@@ -149,12 +165,36 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		5C8ACD512C31669700CCD6E0 /* Fonts */ = {
+			isa = PBXGroup;
+			children = (
+				5C8ACD522C3166C400CCD6E0 /* captainicon.ttf */,
+				5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */,
+			);
+			path = Fonts;
+			sourceTree = "<group>";
+		};
+		5CCF0DB52C29F47500D433A3 /* CigaretteViews */ = {
+			isa = PBXGroup;
+			children = (
+				68D2FD1D2843657E00529BB1 /* CigaretteView.swift */,
+				5CEC10F12C2B380200EAD79C /* CigaretteAshView.swift */,
+				5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */,
+			);
+			path = CigaretteViews;
+			sourceTree = "<group>";
+		};
 		68372CAF284A8E7200607600 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5C8ACD512C31669700CCD6E0 /* Fonts */,
 				68372CB0284A8EA200607600 /* LabelStyleReversed.swift */,
 				68A14A6428537E7C00154D84 /* Focus.swift */,
 				68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */,
+				5C9C25372C161E9F0025191E /* ColorCodable.swift */,
+				5C9C253A2C16277E0025191E /* ColorPickerView.swift */,
+				5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */,
+				5C9F18822C2C713600F96C32 /* ExtColor.swift */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -164,6 +204,8 @@
 			children = (
 				68A14A58285207D500154D84 /* AppMenu.swift */,
 				68372CB3284BE66E00607600 /* NonSmokingData.swift */,
+				5C26B0EA2C28AE21000036D5 /* CigDesign.swift */,
+				5C3941E42C3C6A3B001E828D /* CigDesignTransferable.swift */,
 				68A14A7228561D5600154D84 /* WatchUpdateModel.swift */,
 			);
 			path = Models;
@@ -210,6 +252,9 @@
 			children = (
 				68372CBA284E1EF200607600 /* ReminderView.swift */,
 				68A14A7A285CF5FB00154D84 /* SavingsView.swift */,
+				5C9C253C2C1629560025191E /* SettingsColorView.swift */,
+				5C70C76B2C2F4E9D002A5201 /* HueSelectorView.swift */,
+				5C70C7692C2F4E75002A5201 /* HueSliderView.swift */,
 			);
 			path = SettingsSubviews;
 			sourceTree = "<group>";
@@ -230,7 +275,6 @@
 			children = (
 				68D2FCE0284361E200529BB1 /* NSSB.app */,
 				68D2FCEE284361E900529BB1 /* NSSB WatchKit App.app */,
-				68D2FCF9284361EC00529BB1 /* NSSB WatchKit Extension.appex */,
 			);
 			name = Products;
 			sourceTree = "<group>";
@@ -297,9 +341,10 @@
 			children = (
 				68D2FD1F2843659600529BB1 /* SettingsView.swift */,
 				68A14A79285CF5AC00154D84 /* SettingsSubviews */,
-				68D2FD1D2843657E00529BB1 /* CigaretteView.swift */,
+				5CCF0DB52C29F47500D433A3 /* CigaretteViews */,
 				68EE927828474A7500E90BDB /* InfoView.swift */,
 				68372CB8284E0B2500607600 /* ScoreView.swift */,
+				5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -331,34 +376,17 @@
 			buildConfigurationList = 68D2FD15284361EF00529BB1 /* Build configuration list for PBXNativeTarget "NSSB WatchKit App" */;
 			buildPhases = (
 				68D2FCEC284361E900529BB1 /* Resources */,
-				68D2FD14284361EF00529BB1 /* Embed App Extensions */,
+				68D2FCF5284361EC00529BB1 /* Sources */,
+				68D2FCF6284361EC00529BB1 /* Frameworks */,
 			);
 			buildRules = (
 			);
 			dependencies = (
-				68D2FCFC284361EC00529BB1 /* PBXTargetDependency */,
 			);
 			name = "NSSB WatchKit App";
 			productName = "NSSB WatchKit App";
 			productReference = 68D2FCEE284361E900529BB1 /* NSSB WatchKit App.app */;
-			productType = "com.apple.product-type.application.watchapp2";
-		};
-		68D2FCF8284361EC00529BB1 /* NSSB WatchKit Extension */ = {
-			isa = PBXNativeTarget;
-			buildConfigurationList = 68D2FD11284361EF00529BB1 /* Build configuration list for PBXNativeTarget "NSSB WatchKit Extension" */;
-			buildPhases = (
-				68D2FCF5284361EC00529BB1 /* Sources */,
-				68D2FCF6284361EC00529BB1 /* Frameworks */,
-				68D2FCF7284361EC00529BB1 /* Resources */,
-			);
-			buildRules = (
-			);
-			dependencies = (
-			);
-			name = "NSSB WatchKit Extension";
-			productName = "NSSB WatchKit Extension";
-			productReference = 68D2FCF9284361EC00529BB1 /* NSSB WatchKit Extension.appex */;
-			productType = "com.apple.product-type.watchkit2-extension";
+			productType = "com.apple.product-type.application";
 		};
 /* End PBXNativeTarget section */
 
@@ -368,15 +396,12 @@
 			attributes = {
 				BuildIndependentTargetsInParallel = 1;
 				LastSwiftUpdateCheck = 1330;
-				LastUpgradeCheck = 1330;
+				LastUpgradeCheck = 1540;
 				TargetAttributes = {
 					68D2FCDF284361E200529BB1 = {
 						CreatedOnToolsVersion = 13.3;
 					};
 					68D2FCED284361E900529BB1 = {
-						CreatedOnToolsVersion = 13.3;
-					};
-					68D2FCF8284361EC00529BB1 = {
 						CreatedOnToolsVersion = 13.3;
 					};
 				};
@@ -396,7 +421,6 @@
 			targets = (
 				68D2FCDF284361E200529BB1 /* NSSB */,
 				68D2FCED284361E900529BB1 /* NSSB WatchKit App */,
-				68D2FCF8284361EC00529BB1 /* NSSB WatchKit Extension */,
 			);
 		};
 /* End PBXProject section */
@@ -408,6 +432,7 @@
 			files = (
 				68D2FCEB284361E900529BB1 /* Preview Assets.xcassets in Resources */,
 				68D2FCE8284361E900529BB1 /* Assets.xcassets in Resources */,
+				5C8ACD532C3166C500CCD6E0 /* captainicon.ttf in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -415,16 +440,10 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */,
-			);
-			runOnlyForDeploymentPostprocessing = 0;
-		};
-		68D2FCF7284361EC00529BB1 /* Resources */ = {
-			isa = PBXResourcesBuildPhase;
-			buildActionMask = 2147483647;
-			files = (
+				5C8ACD542C3166C500CCD6E0 /* captainicon.ttf in Resources */,
 				68D2FD0C284361EF00529BB1 /* Preview Assets.xcassets in Resources */,
 				68D2FD09284361EF00529BB1 /* Assets.xcassets in Resources */,
+				68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -437,6 +456,8 @@
 			files = (
 				68A14A692853A12100154D84 /* DataFunctionsPhone.swift in Sources */,
 				68A14A812860F21F00154D84 /* Colors.swift in Sources */,
+				5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */,
+				5CCF0DB92C29F4E300D433A3 /* CigaretteGlowDots.swift in Sources */,
 				68D2FCE6284361E200529BB1 /* ContentView.swift in Sources */,
 				68D2FD1E2843657E00529BB1 /* CigaretteView.swift in Sources */,
 				68372CB9284E0B2500607600 /* ScoreView.swift in Sources */,
@@ -444,15 +465,26 @@
 				68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */,
 				68D2FCE4284361E200529BB1 /* NSSBApp.swift in Sources */,
 				68A14A59285207D500154D84 /* AppMenu.swift in Sources */,
+				5C3941E52C3C6A3B001E828D /* CigDesignTransferable.swift in Sources */,
+				5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */,
+				5CEC10F22C2B380200EAD79C /* CigaretteAshView.swift in Sources */,
+				5C9C253D2C1629560025191E /* SettingsColorView.swift in Sources */,
 				68A14A7D285CFE8500154D84 /* KeyboardPublisher.swift in Sources */,
 				68372CB1284A8EA200607600 /* LabelStyleReversed.swift in Sources */,
 				68A14A7B285CF5FB00154D84 /* SavingsView.swift in Sources */,
 				68A14A5D28520E1E00154D84 /* WCSessionPhone.swift in Sources */,
+				5C8ACD562C31675600CCD6E0 /* CaptainIconView.swift in Sources */,
 				68A14A6528537E7C00154D84 /* Focus.swift in Sources */,
+				5CEC10F62C2B3A9600EAD79C /* RoundedCornerShape.swift in Sources */,
+				5C9C25382C161E9F0025191E /* ColorCodable.swift in Sources */,
 				68372CBB284E1EF200607600 /* ReminderView.swift in Sources */,
+				5C26B0EB2C28AE21000036D5 /* CigDesign.swift in Sources */,
+				5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */,
 				68A14A7328561D5600154D84 /* WatchUpdateModel.swift in Sources */,
+				5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */,
 				68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */,
 				68EE927928474A7500E90BDB /* InfoView.swift in Sources */,
+				5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */,
 				68372CB4284BE66E00607600 /* NonSmokingData.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -462,18 +494,25 @@
 			buildActionMask = 2147483647;
 			files = (
 				68A14A5A285207EA00154D84 /* AppMenu.swift in Sources */,
+				5C9F18842C2C713600F96C32 /* ExtColor.swift in Sources */,
 				68A14A822860F2D600154D84 /* Colors.swift in Sources */,
 				68D2FD03284361EC00529BB1 /* NotificationController.swift in Sources */,
 				68A14A61285215BA00154D84 /* WCSessionWatch.swift in Sources */,
+				5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */,
 				68A14A672853844000154D84 /* CigaretteView.swift in Sources */,
 				68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */,
 				68A14A702854AA7B00154D84 /* DataFunctionsWatch.swift in Sources */,
+				5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */,
 				68D2FD01284361EC00529BB1 /* ContentView.swift in Sources */,
+				5C9F187F2C2B458100F96C32 /* RoundedCornerShape.swift in Sources */,
 				68A14A632852319C00154D84 /* NonSmokingData.swift in Sources */,
+				5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */,
 				68A14A6628537EE100154D84 /* Focus.swift in Sources */,
 				68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */,
 				68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */,
 				68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */,
+				5C8ACD572C31675600CCD6E0 /* CaptainIconView.swift in Sources */,
+				5CEC10F42C2B38A000EAD79C /* CigaretteAshView.swift in Sources */,
 				68D2FD05284361EC00529BB1 /* NotificationView.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
@@ -485,11 +524,6 @@
 			isa = PBXTargetDependency;
 			target = 68D2FCED284361E900529BB1 /* NSSB WatchKit App */;
 			targetProxy = 68D2FCF0284361E900529BB1 /* PBXContainerItemProxy */;
-		};
-		68D2FCFC284361EC00529BB1 /* PBXTargetDependency */ = {
-			isa = PBXTargetDependency;
-			target = 68D2FCF8284361EC00529BB1 /* NSSB WatchKit Extension */;
-			targetProxy = 68D2FCFB284361EC00529BB1 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -527,9 +561,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = dwarf;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
 				ENABLE_TESTABILITY = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_DYNAMIC_NO_PIC = NO;
 				GCC_NO_COMMON_BLOCKS = YES;
@@ -585,9 +621,11 @@
 				CLANG_WARN_UNREACHABLE_CODE = YES;
 				CLANG_WARN__DUPLICATE_METHOD_MATCH = YES;
 				COPY_PHASE_STRIP = NO;
+				DEAD_CODE_STRIPPING = YES;
 				DEBUG_INFORMATION_FORMAT = "dwarf-with-dsym";
 				ENABLE_NS_ASSERTIONS = NO;
 				ENABLE_STRICT_OBJC_MSGSEND = YES;
+				ENABLE_USER_SCRIPT_SANDBOXING = YES;
 				GCC_C_LANGUAGE_STANDARD = gnu11;
 				GCC_NO_COMMON_BLOCKS = YES;
 				GCC_WARN_64_TO_32_BIT_CONVERSION = YES;
@@ -603,85 +641,27 @@
 			};
 			name = Release;
 		};
-		68D2FD12284361EF00529BB1 /* Debug */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
-				DEVELOPMENT_ASSET_PATHS = "\"NSSB WatchKit Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = 3JMZLMZVTS;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "NSSB WatchKit Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "NSSB WatchKit Extension";
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = NSSB_WatchKit_Extension.ComplicationController;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp.watchkitextension;
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 8.5;
-			};
-			name = Debug;
-		};
-		68D2FD13284361EF00529BB1 /* Release */ = {
-			isa = XCBuildConfiguration;
-			buildSettings = {
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
-				CODE_SIGN_STYLE = Automatic;
-				CURRENT_PROJECT_VERSION = 5;
-				DEVELOPMENT_ASSET_PATHS = "\"NSSB WatchKit Extension/Preview Content\"";
-				DEVELOPMENT_TEAM = 3JMZLMZVTS;
-				ENABLE_PREVIEWS = YES;
-				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_FILE = "NSSB WatchKit Extension/Info.plist";
-				INFOPLIST_KEY_CFBundleDisplayName = "NSSB WatchKit Extension";
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = NSSB_WatchKit_Extension.ComplicationController;
-				INFOPLIST_KEY_NSHumanReadableCopyright = "";
-				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
-				LD_RUNPATH_SEARCH_PATHS = (
-					"$(inherited)",
-					"@executable_path/Frameworks",
-					"@executable_path/../../Frameworks",
-				);
-				MARKETING_VERSION = 1.0;
-				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp.watchkitextension;
-				PRODUCT_NAME = "${TARGET_NAME}";
-				SDKROOT = watchos;
-				SKIP_INSTALL = YES;
-				SWIFT_EMIT_LOC_STRINGS = YES;
-				SWIFT_VERSION = 5.0;
-				TARGETED_DEVICE_FAMILY = 4;
-				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 8.5;
-			};
-			name = Release;
-		};
 		68D2FD16284361EF00529BB1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 3JMZLMZVTS;
 				GENERATE_INFOPLIST_FILE = YES;
-				IBSC_MODULE = NSSB_WatchKit_Extension;
 				INFOPLIST_KEY_CFBundleDisplayName = "NSSB WatchKit App";
+				INFOPLIST_KEY_CLKComplicationPrincipalClass = "$(PRODUCT_MODULE_NAME).ComplicationController";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.lmunck.NSSB;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -699,15 +679,22 @@
 			buildSettings = {
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
+				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 5;
 				DEVELOPMENT_TEAM = 3JMZLMZVTS;
 				GENERATE_INFOPLIST_FILE = YES;
-				IBSC_MODULE = NSSB_WatchKit_Extension;
 				INFOPLIST_KEY_CFBundleDisplayName = "NSSB WatchKit App";
+				INFOPLIST_KEY_CLKComplicationPrincipalClass = "$(PRODUCT_MODULE_NAME).ComplicationController";
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.lmunck.NSSB;
+				INFOPLIST_KEY_WKRunsIndependentlyOfCompanionApp = YES;
+				LD_RUNPATH_SEARCH_PATHS = (
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
 				MARKETING_VERSION = 1.0;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp;
 				PRODUCT_NAME = "$(TARGET_NAME)";
@@ -740,7 +727,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -774,7 +761,7 @@
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPad = UIInterfaceOrientationPortrait;
 				INFOPLIST_KEY_UISupportedInterfaceOrientations_iPhone = UIInterfaceOrientationPortrait;
-				IPHONEOS_DEPLOYMENT_TARGET = 15.4;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
 				LD_RUNPATH_SEARCH_PATHS = (
 					"$(inherited)",
 					"@executable_path/Frameworks",
@@ -798,15 +785,6 @@
 			buildConfigurations = (
 				68D2FD0F284361EF00529BB1 /* Debug */,
 				68D2FD10284361EF00529BB1 /* Release */,
-			);
-			defaultConfigurationIsVisible = 0;
-			defaultConfigurationName = Release;
-		};
-		68D2FD11284361EF00529BB1 /* Build configuration list for PBXNativeTarget "NSSB WatchKit Extension" */ = {
-			isa = XCConfigurationList;
-			buildConfigurations = (
-				68D2FD12284361EF00529BB1 /* Debug */,
-				68D2FD13284361EF00529BB1 /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

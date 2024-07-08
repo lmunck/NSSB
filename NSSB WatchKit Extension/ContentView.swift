@@ -25,7 +25,8 @@ struct ContentView: View {
                     menu: $menu,
                     completedBreak: { model.completedBreak() },
                     sendUpdate: { model.sendUpdate() } ,
-                    height: geo.size.height,
+                    height: geo.size.height, 
+                    design: model.design,
                     breakStarted: $model.breakStarted)
                 
                 HStack {

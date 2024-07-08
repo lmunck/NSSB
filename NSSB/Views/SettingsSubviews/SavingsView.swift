@@ -27,26 +27,23 @@ struct SavingsView: View {
                 
             VStack(alignment: .leading, spacing: 3) {
                 
-                Text("What would you normally pay for a pack of 20 cigarettes?").font(.body)
+                Text("What would you normally pay for cigarettes?").font(.body)
                     .onTapGesture { returnAction() }
                 
                 HStack {
                     
-                    if costPer20 > 0 {
+                    // Cost
+                    HStack(alignment: .bottom, spacing: 2) {
                         
-                        // Cost
-                        HStack(alignment: .bottom, spacing: 2) {
-                            
-                            Text("\(costPer20, specifier: "%.1f")").foregroundColor(.white)
-                            Text("\(Locale.current.currencyCode ?? "")").font(.footnote)
-                        }
+                        TextField("Cost of a pack of 20", value: $costPer20, format: .number)
+                            .keyboardType(.decimalPad)
+                        
+                        Text("\(Locale.current.currency?.identifier ?? "")").font(.footnote)
                     }
                     
-                    CustomStepper($costPer20, stepSize: stepSize)
-                        
                 }
                 
-                HStack {
+                /*HStack {
                     
                     // Reset
                     Button(action: { costPer20 = 0 }) {
@@ -63,7 +60,7 @@ struct SavingsView: View {
                     }
                     
                 }
-                .opacity(costPer20 != 0 ? 1 : 0)
+                .opacity(costPer20 != 0 ? 1 : 0)*/
                 
                 
             }

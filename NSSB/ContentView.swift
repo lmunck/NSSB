@@ -44,12 +44,13 @@ struct ContentView: View {
                     menu: $menu,
                     completedBreak:{ model.completedBreak() },
                     sendUpdate: { model.sendUpdate() },
-                    height: UIScreen.main.bounds.height / 2,
+                    height: UIScreen.main.bounds.height / 2, 
+                    design: model.data.cigDesign,
                     breakStarted: $model.breakStarted
                 )
                  
                 if menu != .stats {
-                    SettingsView(menu: $menu, costPer20: $model.data.costPer20)
+                    SettingsView(menu: $menu, data: $model.data)
                         .transition(.move(edge: .trailing))
                 }
                 

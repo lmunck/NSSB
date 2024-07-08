@@ -10,7 +10,7 @@ import SwiftUI
 struct SettingsView: View {
     
     @Binding var menu:AppMenu
-    @Binding var costPer20:Double
+    @Binding var data:NonSmokingData
     
     var body: some View {
         
@@ -36,8 +36,10 @@ struct SettingsView: View {
                     
                     ReminderView(returnAction: returnAction)
                     
-                    SavingsView(costPer20: $costPer20, returnAction: returnAction)
+                    SavingsView(costPer20: $data.costPer20, returnAction: returnAction)
                     
+                    SettingsColorView(design: $data.cigDesign, returnAction: returnAction)
+                    //ColorPickerView()
                 }
                 .padding()
                 .transition(.move(edge: .trailing))
@@ -61,7 +63,7 @@ struct SettingsView: View {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(menu: .constant(.settings), costPer20: .constant(0))
+        SettingsView(menu: .constant(.settings), data: .constant(NonSmokingData()))
     }
 }
 

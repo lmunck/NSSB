@@ -15,7 +15,8 @@ class CodingFunctions {
             updated: Date.now,
             breakStarted: nil,
             totalBreaks: 0, 
-            todayBreaks: 0,
+            todayBreaks: 0, 
+            design: CigDesign(),
             deliveryConfirmed: confirmed)
         
         let replyData:Data = encodeUpdate(from: reply) ?? Data()

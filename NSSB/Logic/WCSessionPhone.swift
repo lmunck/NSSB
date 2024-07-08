@@ -133,7 +133,8 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
                 updated: Date.now,
                 breakStarted: self.breakStarted,
                 totalBreaks: self.data.breaksTotal(),
-                todayBreaks: self.data.breaksToday(),
+                todayBreaks: self.data.breaksToday(), 
+                design: self.data.cigDesign,
                 deliveryConfirmed: deliveryConfirmed
             )
             

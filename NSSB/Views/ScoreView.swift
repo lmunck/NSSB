@@ -25,7 +25,7 @@ struct ScoreView: View {
                 
                 VStack(spacing: 0) {
                     
-                    HStack(spacing: 0) {
+                    HStack(spacing: -3) {
                         
                         Text("Today")
                             .frame(width: geo.size.width/3)
@@ -46,19 +46,29 @@ struct ScoreView: View {
                         // Breaks
                         HStack(spacing: 0) {
                             
-                            Text("\(data.breaksToday())")
-                                .frame(width: geo.size.width/3)
+                            VStack(spacing: -3) {
+                                Text("\(data.breaksToday())").foregroundColor(.white)
+                                    .font(.largeTitle)
+                                Text("Breaks")
+                            }
+                            .frame(width: geo.size.width/3)
                             
-                            Text("\(data.breaksDailyAvg(), specifier: "%.1f")")
-                                .frame(width: geo.size.width/3)
+                            VStack(spacing: -3) {
+                                Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                                    .font(.largeTitle)
+                                Text("Breaks")
+                            }
+                            .frame(width: geo.size.width/3)
                             
-                            Text("\(data.breaksTotal())")
-                                .frame(width: geo.size.width/3)
+                            VStack(spacing: -3) {
+                                Text("\(data.breaksTotal())").foregroundColor(.white)
+                                    .font(.largeTitle)
+                                Text("Breaks")
+                            }
+                            .frame(width: geo.size.width/3)
                             
                         }
-                        .font(.largeTitle)
-                        .frame(height: 30)
-                        .foregroundColor(.foregroundActive)
+                        .font(.footnote)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                         
                     } else {
@@ -66,27 +76,29 @@ struct ScoreView: View {
                         // Savings
                         HStack(spacing: 0) {
                             
-                            VStack(spacing: 0) {
+                            VStack(spacing: -3) {
                                 Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
+                                    .font(.largeTitle)
                                 Text("\(Locale.current.currencyCode ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
-                            VStack(spacing: 0) {
+                            VStack(spacing: -3) {
                                 Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                                    .font(.largeTitle)
                                 Text("\(Locale.current.currencyCode ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
-                            VStack(spacing: 0) {
+                            VStack(spacing: -3) {
                                 Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
+                                    .font(.largeTitle)
                                 Text("\(Locale.current.currencyCode ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
                         }
                         .font(.footnote)
-                        .frame(height: 30)
                         .transition(.move(edge: .bottom).combined(with: .opacity))
                         
                     }

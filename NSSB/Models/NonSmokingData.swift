@@ -6,12 +6,24 @@
 //
 
 import Foundation
+import SwiftUI
 
 struct NonSmokingData:Codable, Equatable {
     
     var cigDates:[Date] = []
     
     var costPer20:Double = 0
+    
+    // Accent Color
+    var accentHue:Int? = 220
+    var accentColor:Color {
+        var hue:Int = 220
+        if let accentHue = accentHue { hue = accentHue}
+        return Color(hue: Double(hue)/360, saturation: 0.7, brightness: 1)
+    }
+    
+    // Cigarette Colors
+    var cigDesign:CigDesign = CigDesign()
     
     // Savings
     
@@ -82,3 +94,4 @@ extension Calendar {
         return numberOfDays.day!
     }
 }
+
