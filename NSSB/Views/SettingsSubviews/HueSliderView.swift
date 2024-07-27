@@ -12,20 +12,14 @@ struct HueSliderView: View {
     let title:String
     @Binding var color:Color
     
-    @State private var colorPreview:Color = .clear
-    var previewHSBA:(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
-        colorPreview.getHSBA()
-    }
-    
+    @State private var colorPreview:Color = .white
     
     @State private var hueValue:Double = 0
     
     var body: some View {
         
-        VStack(spacing: 0) {
-            
+        GridRow {
             Text(title)
-            
             HStack {
                 
                 Slider(value: $hueValue, in: (0...1), step: 0.01) { _ in
@@ -36,10 +30,12 @@ struct HueSliderView: View {
                     }
                 
                 Text(Image(systemName: "circle.fill"))
-                    .font(.title)
                     .foregroundStyle(colorPreview)
                 
             }
+        }
+        .onChange(of: self.color) { _ in
+            initSlider()
         }
         .onAppear() {
             initSlider()
@@ -47,15 +43,17 @@ struct HueSliderView: View {
         
     }
     
+    func previewHSBA() -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+        return colorPreview.getHSBA()
+    }
+    
     func initSlider() {
-        
-        // Set preview
-        self.colorPreview = self.color
-        
-        // Set hueValue
-        let hsba = self.color.getHSBA()
-        self.hueValue = hsba.hue
-        
+        if self.colorPreview != self.color {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                self.hueValue = self.color.getHSBA().hue
+                self.colorPreview = self.color
+            }
+        }
     }
     
     func updateColor() {

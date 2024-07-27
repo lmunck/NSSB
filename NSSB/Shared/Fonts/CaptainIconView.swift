@@ -13,9 +13,14 @@ struct CaptainIconView: View {
     
     var body: some View {
         
-        ForEach(item) {
+        ScrollView {
             
-            Text(item).font(Font.custom("captainicon", size: scaledSize, relativeTo: .title))
+            ForEach(items.indices, id: \.self) { index in
+                HStack(spacing:5) {
+                    Text("\(index)")
+                    Text(items[index]).font(Font.custom("captainicon", size: 30, relativeTo: .title))
+                }
+            }
         }
     }
 }

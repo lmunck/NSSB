@@ -99,4 +99,42 @@ class CodingFunctions {
         
     }
     
+    // Date
+    func decodeDate(from data: Data) -> Date? {
+        
+        do {
+            // Create JSON Decoder
+            let decoder = JSONDecoder()
+
+            // Decode Note
+            let loadedData = try decoder.decode(Date?.self, from: data)
+
+            return loadedData
+            
+        } catch {
+            
+            print("Unable to Decode Date (\(error))")
+            return nil
+        }
+    }
+    
+    
+    func encodeDate(from date: Date?) -> Data? {
+        
+        do {
+            // Create JSON Encoder
+            let encoder = JSONEncoder()
+
+            // Encode Note
+            let data = try encoder.encode(date)
+
+            return data
+
+        } catch {
+            
+            print("Unable to Encode Date (\(error))")
+            return nil
+        }
+        
+    }
 }

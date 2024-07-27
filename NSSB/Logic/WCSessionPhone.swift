@@ -11,7 +11,7 @@ import WatchConnectivity
 class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     
     // Cigarette
-    @Published var breakStarted:Date? = nil
+    @Published var breakStarted:Date? = nil { didSet { saveDate() }}
     
     // Session
     @Published var sessionConnected:Bool = false
@@ -32,6 +32,7 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         
         // Load data to local state
         self.loadData()
+        self.loadDate()
     }
     
     
@@ -146,7 +147,6 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         
         print("PHONE R -------------")
         
-        
         // Decode update
         if let update = functions.decodeUpdate(from: updateRaw) {
             
@@ -177,6 +177,18 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         
     }
     
+    // Save if break started
+    private func loadDate() {
+        if let savedDate = functions.loadDate(), savedDate != self.breakStarted {
+            self.breakStarted = savedDate
+        }
+    }
+    
+    private func saveDate() {
+        functions.saveDate(breakStarted)
+    }
+    
+    // Save and load data
     private func loadData() {
         if let loadedData = functions.load() {
             DispatchQueue.main.async {

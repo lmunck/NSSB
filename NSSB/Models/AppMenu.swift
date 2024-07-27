@@ -8,5 +8,5 @@
 import Foundation
 
 enum AppMenu {
-    case stats, cigarette, settings
+    case settings, cigarette, info
 }

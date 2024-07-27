@@ -22,13 +22,10 @@ struct HueSelectorView: View {
         colorAlternative.getHSBA()
     }
     
-    @State private var colorPreview:Color = .clear
-    var previewHSBA:(hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
-        colorPreview.getHSBA()
-    }
+    @State private var colorPreview:Color = .white
     
     var defaultSelected:Bool {
-        previewHSBA.brightness == defHSBA.brightness
+        previewHSBA().brightness == defHSBA.brightness
     }
     
     
@@ -36,22 +33,22 @@ struct HueSelectorView: View {
     
     var body: some View {
         
-        VStack(spacing: 0) {
-            
+        GridRow {
             Text(title)
-            
-            HStack {
+            HStack(spacing: 0) {
                 
                 Slider(value: $hueValue, in: (0...1), step: 0.01) { _ in
                     updateColor()
                 }
                 
                 Text(Image(systemName: "circle.fill"))
-                    .font(.title)
                     .foregroundStyle(colorPreview)
                 
             }
-        } 
+        }
+        .onChange(of: color) { newColor in
+            initSlider()
+        }
         .onChange(of: hueValue) { value in
             updateColorPreview(value)
         }
@@ -62,14 +59,16 @@ struct HueSelectorView: View {
     }
     
     func initSlider() {
-        
-        // Set preview
-        self.colorPreview = self.color
-        
-        // Set hueValue
-        let hsba = self.color.getHSBA()
-        self.hueValue = hsba.hue
-        
+        if self.colorPreview != self.color {
+            withAnimation(.easeInOut(duration: 0.2)) {
+                self.hueValue = self.color.getHSBA().hue
+                self.colorPreview = self.color
+            }
+        }
+    }
+    
+    func previewHSBA() -> (hue: CGFloat, saturation: CGFloat, brightness: CGFloat, alpha: CGFloat) {
+        return colorPreview.getHSBA()
     }
     
     func updateColor() {

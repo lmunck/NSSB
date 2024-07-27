@@ -11,6 +11,24 @@ import Foundation
 
 class DataFunctionsPhone: CodingFunctions {
     
+    func saveDate(_ date: Date?) {
+        if let data = encodeDate(from: date) {
+            UserDefaults.standard.set(data, forKey: "startedSmoking")
+        }
+    }
+    
+    func loadDate() -> Date? {
+        if let loadData = UserDefaults.standard.data(forKey: "startedSmoking") {
+            if let date = decodeDate(from: loadData) {
+                return date
+            } else {
+                return nil
+            }
+        } else {
+            return nil
+        }
+    }
+    
     func save(_ saveArray: NonSmokingData) {
         
         if let data = encodeData(from: saveArray) {

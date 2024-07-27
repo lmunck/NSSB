@@ -46,7 +46,7 @@ struct CigaretteGlowDots:View {
 
 
 #Preview {
-    CigaretteGlowDots(height: 50, width: 50, color: .blue, animated: true)
+    CigaretteGlowDots(height: 50, width: 50, color: .accent, animated: true)
 }
 
 

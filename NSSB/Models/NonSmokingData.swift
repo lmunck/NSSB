@@ -83,7 +83,9 @@ struct NonSmokingData:Codable, Equatable {
 
 // EXTENSION
 
+
 extension Calendar {
+    
     func numberOfDaysBetween(_ from: Date, and to: Date) -> Int {
         let fromDate = startOfDay(for: from) // <1>
         

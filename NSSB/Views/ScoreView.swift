@@ -7,17 +7,92 @@
 
 import SwiftUI
 
-struct ScoreView: View {
+struct ScoreView: View, KeyboardReadable {
     
     var data:NonSmokingData
     
     //@State private var perPack:Double = UserDefaults.standard.double(forKey: "perPackCosts")
     @State private var showAlternate:Bool = false
     
+    @State private var keyboardVisible:Bool = false
     
     var body: some View {
         
-        GeometryReader { geo in
+        Grid(verticalSpacing: -3) {
+            GridRow {
+                
+                Text("Today").frame(maxWidth: .infinity)
+                Text("Daily average").frame(maxWidth: .infinity)
+                Text("All time").frame(maxWidth: .infinity)
+                
+            }
+            
+            if showAlternate {
+                
+                GridRow {
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.breaksToday())").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("Breaks")
+                    }
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("Breaks")
+                    }
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.breaksTotal())").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("Breaks")
+                    }
+                    
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+                
+                
+            } else {
+                
+                GridRow {
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("\(Locale.current.currency?.identifier ?? "")")
+                    }
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("\(Locale.current.currency?.identifier ?? "")")
+                    }
+                    
+                    VStack(spacing: -3) {
+                        Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
+                            .font(.largeTitle)
+                        Text("\(Locale.current.currency?.identifier ?? "")")
+                    }
+                    
+                }
+                .transition(.move(edge: .bottom).combined(with: .opacity))
+            }
+        }
+        .font(.footnote)
+        .animation(.easeInOut(duration: 0.2), value: showAlternate)
+        .contentShape(Rectangle())
+        .opacity(keyboardVisible ? 0 : 1)
+        .onLongPressGesture(minimumDuration: 10, pressing: { inProgress in
+            if inProgress { showAlternate = true } else { showAlternate = false }
+            }) {
+                showAlternate = false
+            }
+        .onReceive(keyboardPublisher) { newIsKeyboardVisible in
+            keyboardVisible = newIsKeyboardVisible
+        }
+        
+        /*GeometryReader { geo in
             
             VStack {
                 
@@ -79,21 +154,21 @@ struct ScoreView: View {
                             VStack(spacing: -3) {
                                 Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
                                     .font(.largeTitle)
-                                Text("\(Locale.current.currencyCode ?? "")")
+                                Text("\(Locale.current.currency?.identifier ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
                             VStack(spacing: -3) {
                                 Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
                                     .font(.largeTitle)
-                                Text("\(Locale.current.currencyCode ?? "")")
+                                Text("\(Locale.current.currency?.identifier ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
                             VStack(spacing: -3) {
                                 Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
                                     .font(.largeTitle)
-                                Text("\(Locale.current.currencyCode ?? "")")
+                                Text("\(Locale.current.currency?.identifier ?? "")")
                             }
                             .frame(width: geo.size.width/3)
                             
@@ -112,13 +187,13 @@ struct ScoreView: View {
                     }
                 
             }
-        }
+        }*/
     }
 }
 
 struct ScoreView_Previews: PreviewProvider {
     static var previews: some View {
-        ScoreView(data: NonSmokingData())
+        ScoreView(data: NonSmokingData()).foregroundStyle(.gray).background(.black)
     }
 }
 

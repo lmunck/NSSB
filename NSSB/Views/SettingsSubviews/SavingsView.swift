@@ -7,14 +7,17 @@
 
 import SwiftUI
 
-struct SavingsView: View {
+struct SavingsView: View, KeyboardReadable {
     
     @Binding var costPer20:Double
     var returnAction: () -> Void
     
+    @State private var keyboardVisible:Bool = false
+    
+    @FocusState private var textfieldFocused: Bool
     //@State var costPerPack:Double = UserDefaults.standard.double(forKey: "perPackCosts")
-    @State var stepSize:Double = UserDefaults.standard.double(forKey: "stepSize")
-    let stepSizeArray:[Double] = [0.1, 1, 10, 100, 1000]
+    //@State var stepSize:Double = UserDefaults.standard.double(forKey: "stepSize")
+    //let stepSizeArray:[Double] = [0.1, 1, 10, 100, 1000]
     
     var body: some View {
         VStack(spacing: 5) {
@@ -26,49 +29,31 @@ struct SavingsView: View {
             
                 
             VStack(alignment: .leading, spacing: 3) {
+                   
+                Text("Cost of 20 cigarettes").font(.footnote)
                 
-                Text("What would you normally pay for cigarettes?").font(.body)
-                    .onTapGesture { returnAction() }
-                
-                HStack {
+                // Cost
+                HStack(alignment: .bottom, spacing: 2) {
                     
-                    // Cost
-                    HStack(alignment: .bottom, spacing: 2) {
+                    TextField("0", value: $costPer20, format: .currency(code: "\(Locale.current.currency?.identifier ?? "")"))
+                        .keyboardType(.decimalPad)
+                        .focused($textfieldFocused)
+                    
+                    if keyboardVisible {
                         
-                        TextField("Cost of a pack of 20", value: $costPer20, format: .number)
-                            .keyboardType(.decimalPad)
+                        Button("Done", action: { textfieldFocused = false })
                         
-                        Text("\(Locale.current.currency?.identifier ?? "")").font(.footnote)
                     }
+                }.foregroundStyle(Color.accent)
                     
-                }
-                
-                /*HStack {
-                    
-                    // Reset
-                    Button(action: { costPer20 = 0 }) {
-                        Label("Reset cost", systemImage: "trash").labelStyle(.iconOnly).foregroundColor(.blue)
-                    }
-                    
-                    Spacer()
-                    
-                    // Stepsize
-                    Picker("x\(stepSize)", selection: $stepSize) {
-                        ForEach(stepSizeArray, id: \.self) {
-                            Text(costPer20 != 0 ? "x \($0, specifier: "%.\($0 == 0.1 ? 1 : 0)f")" : "")
-                        }
-                    }
-                    
-                }
-                .opacity(costPer20 != 0 ? 1 : 0)*/
-                
-                
+            }.onReceive(keyboardPublisher) { newIsKeyboardVisible in
+                keyboardVisible = newIsKeyboardVisible
             }
             
         }
         .frame(maxWidth: .infinity)
         .contentShape(Rectangle())
-        .onAppear { saveStepSize(self.stepSize) }
+        //.onAppear { saveStepSize(self.stepSize) }
     }
     
     func updateCosts(_ perPack: Double) {
@@ -89,7 +74,7 @@ struct SavingsView: View {
         }
     }
     
-    func saveStepSize(_ stepSize: Double) {
+    /*func saveStepSize(_ stepSize: Double) {
         
         // Round to nearest tenth
         //let perPack = round(perPack * 10) / 10.0
@@ -112,7 +97,7 @@ struct SavingsView: View {
             return
             
         }
-    }
+    }*/
 }
 
 struct SavingsView_Previews: PreviewProvider {

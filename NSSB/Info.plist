@@ -6,10 +6,6 @@
 	<array>
 		<string>captainicon.ttf</string>
 	</array>
-	<key>CFBundleIdentifier</key>
-	<array>
-		<string></string>
-	</array>
 	<key>UIApplicationSceneManifest</key>
 	<dict>
 		<key>UIApplicationSupportsMultipleScenes</key>

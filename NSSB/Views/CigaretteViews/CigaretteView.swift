@@ -31,27 +31,53 @@ struct CigaretteView: View {
         
         let glowHeight:CGFloat = breakStarted != nil ? self.height * design.glowPercentage : 0
         let bodyHeight:CGFloat = bodyHeight(height: self.height, progress: breakProgress, glowHeight: glowHeight)
-        let filterHeight:CGFloat = self.height * 0.25
+        let filterHeight:CGFloat = self.height * design.filterPercentage
         
         let width = self.height * design.widthPercentage
         
-        return HStack {
+        return ZStack {
+            
+            Color.clear
+                .onReceive(smokingTimer) { _ in
+                    updateProgress()
+                }
+            /*
+            Color.red.frame(width:80, height: self.height)
+            
+            VStack(alignment: .trailing) {
+                Text("glow: \(glowHeight)")
+                Text("body: \(bodyHeight)")
+                Text("filter: \(filterHeight)")
+                Text("Height: \(self.height)")
+                Text("Progress: \(breakProgress)")
+            }.offset(x: 100, y: 0)
+            */
             
             VStack(spacing: 0) {
                 
-                Color.clear
-                    .onReceive(smokingTimer) { _ in
-                        updateProgress()
+                var spaceHeight:CGFloat {
+                    let elements:CGFloat = (glowHeight + bodyHeight + filterHeight)
+                    
+                    if elements < self.height {
+                        let leftoverHeight:CGFloat = self.height - elements
+                        return leftoverHeight
+                    } else {
+                        return 0
                     }
+                }
                 
-                if breakStarted != nil {
+                Color.clear
+                    .frame(width: width, height: spaceHeight)
+                
+                if glowHeight != 0 {
                     
                     CigaretteAshView(design: design, height: glowHeight, width: width)
+                        .frame(width: width, height: glowHeight)
                     
                 }
                 
                 LinearGradient(gradient: Gradient(colors: design.bodyArray), startPoint: .leading, endPoint: .trailing)
-                    .frame(width: width, height: bodyHeight)
+                .frame(width: width, height: bodyHeight)
                 
                 ZStack {
                     
@@ -60,7 +86,7 @@ struct CigaretteView: View {
                     CigaretteGlowDots(height: filterHeight, width: width, color: design.filterDots, animated: false)
                     
                 }
-                    .frame(width: width, height: filterHeight)
+                .frame(width: width, height: filterHeight)
                 
             }
             .frame(width: width, height: self.height)
@@ -70,16 +96,44 @@ struct CigaretteView: View {
             .onChange(of: breakStarted) { status in
                 receivedUpdate(status)
             }
-            
+            .background {
+                
+                let backWidth = self.height * 0.3
+                
+                design.background
+                    .mask(Ellipse())
+                    .frame(width: backWidth, height: self.height * 1.2)
+                    .blur(radius: backWidth * 0.4)
+                    .edgesIgnoringSafeArea(.all)
+            }
             
             //.animation(.easeOut(duration: 0.3), value: smokingStarted)
             .animation(.linear(duration: breakStarted != nil ? 1 : 0.3), value: breakProgress)
             
+            #if os(iOS)
+                Text(design.title)
+                    .font(.headline)
+                    .fixedSize()
+                    .foregroundStyle(design.filterDark)
+                    .frame(width: self.height, alignment: .trailing)
+                    .rotationEffect(.degrees(90), anchor: .center)
+                    .offset(x: -width / 2 - 10, y: 0)
+                    .frame(width: width)
+                    .opacity(menu == .cigarette ? 1 : 0)
+            
+                ShareCigaretteView(cigarette: design)
+                    .foregroundStyle(design.filter)
+                    .frame(height: self.height, alignment: .bottom)
+                    .offset(x: width / 2 + 22, y: 0)
+                    
+            #endif
+            
+            
+            
         }
-        .padding(self.height * 0.05)
-        .background(
-            design.background.blur(radius: self.height * 0.15)
-        )
+        //.padding(self.height * 0.05)
+        
+        
         
     }
     
@@ -157,7 +211,7 @@ struct CigaretteView: View {
     
     func bodyHeight(height: CGFloat, progress: Double, glowHeight: CGFloat) -> CGFloat {
         
-        let fullHeight:CGFloat = design.bodyPercentage * height - glowHeight
+        let fullHeight:CGFloat = (design.bodyPercentage + design.glowPercentage) * height - glowHeight
         
         var bodyHeight = fullHeight - fullHeight * progress
         
