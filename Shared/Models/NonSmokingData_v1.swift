@@ -1,29 +1,18 @@
 //
-//  NonSmokingData.swift
+//  NonSmokingData_v1.swift
 //  NSSB
 //
-//  Created by Anders Munck on 04/06/2022.
+//  Created by Anders Munck on 19/08/2024.
 //
 
 import Foundation
 import SwiftUI
 
-struct NonSmokingData:Codable, Equatable {
+struct NonSmokingData_v1:Codable, Equatable {
     
     var cigDates:[Date] = []
     
     var costPer20:Double = 0
-    
-    // Accent Color
-    var accentHue:Int? = 220
-    var accentColor:Color {
-        var hue:Int = 220
-        if let accentHue = accentHue { hue = accentHue}
-        return Color(hue: Double(hue)/360, saturation: 0.7, brightness: 1)
-    }
-    
-    // Cigarette Colors
-    var cigDesign:CigDesign = CigDesign()
     
     // Savings
     
@@ -80,20 +69,3 @@ struct NonSmokingData:Codable, Equatable {
     
     
 }
-
-// EXTENSION
-
-
-extension Calendar {
-    
-    func numberOfDaysBetween(_ from: Date, and to: Date) -> Int {
-        let fromDate = startOfDay(for: from) // <1>
-        
-        let toDate = startOfDay(for: to) // <2>
-        
-        let numberOfDays = dateComponents([.day], from: fromDate, to: toDate) // <3>
-        
-        return numberOfDays.day!
-    }
-}
-

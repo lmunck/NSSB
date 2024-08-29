@@ -48,6 +48,7 @@ struct CigDesign:Codable, Equatable, Hashable {
 
 // Encode and Decode
 extension CigDesign {
+    
     func decodeURL(_ url:URL) -> CigDesign? {
         
         var dataString:String = ""
@@ -104,11 +105,7 @@ extension CigDesign {
         urlComponents.path = "/import/"
         urlComponents.queryItems = queryItems
         
-        
-        print("Encoded URL: \(urlComponents.url?.absoluteString ?? "NIL")")
-        
         return urlComponents.url
-        
         
     }
 }

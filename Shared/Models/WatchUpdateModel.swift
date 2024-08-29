@@ -7,15 +7,15 @@
 
 import Foundation
 
-struct WatchUpdateModel: Codable, Equatable {
+/*struct WatchUpdateModel: Codable, Equatable {
     
     var updated:Date
-    var breakStarted:Date?
-    var totalBreaks:Int
-    var todayBreaks:Int
-    var design:CigDesign
+    
+    //var breakStarted:Date?
+    
+    var data:NonSmokingData
     
     // traffic control
     var deliveryConfirmed = false
     
-}
+}*/

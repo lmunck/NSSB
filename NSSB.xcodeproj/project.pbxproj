@@ -7,10 +7,18 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		5C12DEF32C6FCF5800090A71 /* CigNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */; };
+		5C12DEF42C6FD63700090A71 /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
+		5C12DEF62C6FDBD900090A71 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12DEF52C6FD6C900090A71 /* MenuView.swift */; };
 		5C26B0EB2C28AE21000036D5 /* CigDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C26B0EA2C28AE21000036D5 /* CigDesign.swift */; };
 		5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C26B0EA2C28AE21000036D5 /* CigDesign.swift */; };
+		5C35E6FA2C5554B40038574B /* ExtDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6F92C5554B40038574B /* ExtDate.swift */; };
+		5C35E6FC2C5589BB0038574B /* ExtCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */; };
+		5C35E6FD2C5589BE0038574B /* ExtCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */; };
+		5C35E6FE2C558CA70038574B /* ExtDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6F92C5554B40038574B /* ExtDate.swift */; };
 		5C3941E52C3C6A3B001E828D /* CigDesignDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */; };
 		5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
+		5C419BBC2C61233400B2AEE6 /* ScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C419BBB2C61233400B2AEE6 /* ScoreView.swift */; };
 		5C6A3A5E2C3EFC2B0060C4C4 /* CigNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */; };
 		5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C7692C2F4E75002A5201 /* HueSliderView.swift */; };
 		5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C76B2C2F4E9D002A5201 /* HueSelectorView.swift */; };
@@ -23,9 +31,12 @@
 		5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
 		5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253A2C16277E0025191E /* ColorPickerView.swift */; };
 		5C9C253D2C1629560025191E /* SettingsDesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253C2C1629560025191E /* SettingsDesignView.swift */; };
+		5C9C83472C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */; };
+		5C9C83482C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */; };
 		5C9F187F2C2B458100F96C32 /* RoundedCornerShape.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */; };
 		5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9F18822C2C713600F96C32 /* ExtColor.swift */; };
 		5C9F18842C2C713600F96C32 /* ExtColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9F18822C2C713600F96C32 /* ExtColor.swift */; };
+		5CA7C2E62C7BB57D004120A9 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C2E52C7BB57D004120A9 /* MenuView.swift */; };
 		5CBF16792C45A4130011FC18 /* ExtString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF16782C45A4130011FC18 /* ExtString.swift */; };
 		5CBF167A2C45A5990011FC18 /* ExtString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF16782C45A4130011FC18 /* ExtString.swift */; };
 		5CCF0DB92C29F4E300D433A3 /* CigaretteGlowDots.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */; };
@@ -100,9 +111,13 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		5C12DEF52C6FD6C900090A71 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		5C26B0EA2C28AE21000036D5 /* CigDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesign.swift; sourceTree = "<group>"; };
+		5C35E6F92C5554B40038574B /* ExtDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtDate.swift; sourceTree = "<group>"; };
+		5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtCalendar.swift; sourceTree = "<group>"; };
 		5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesignDocument.swift; sourceTree = "<group>"; };
 		5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCigaretteView.swift; sourceTree = "<group>"; };
+		5C419BBB2C61233400B2AEE6 /* ScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreView.swift; sourceTree = "<group>"; };
 		5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNamer.swift; sourceTree = "<group>"; };
 		5C6B9E5C2C42C1340064C16E /* NSSB.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NSSB.entitlements; sourceTree = "<group>"; };
 		5C70C7692C2F4E75002A5201 /* HueSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueSliderView.swift; sourceTree = "<group>"; };
@@ -113,7 +128,9 @@
 		5C9C25372C161E9F0025191E /* ColorCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCodable.swift; sourceTree = "<group>"; };
 		5C9C253A2C16277E0025191E /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
 		5C9C253C2C1629560025191E /* SettingsDesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDesignView.swift; sourceTree = "<group>"; };
+		5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonSmokingData_v1.swift; sourceTree = "<group>"; };
 		5C9F18822C2C713600F96C32 /* ExtColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtColor.swift; sourceTree = "<group>"; };
+		5CA7C2E52C7BB57D004120A9 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		5CBF16782C45A4130011FC18 /* ExtString.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtString.swift; sourceTree = "<group>"; };
 		5CCF0DB82C29F4E300D433A3 /* CigaretteGlowDots.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigaretteGlowDots.swift; sourceTree = "<group>"; };
 		5CE064792C3DC92F003B05DC /* DragToSelect.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DragToSelect.swift; sourceTree = "<group>"; };
@@ -189,6 +206,8 @@
 			isa = PBXGroup;
 			children = (
 				5CBF16782C45A4130011FC18 /* ExtString.swift */,
+				5C35E6F92C5554B40038574B /* ExtDate.swift */,
+				5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -206,7 +225,6 @@
 		68372CAF284A8E7200607600 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
-				5CBF16772C45A3FF0011FC18 /* Extensions */,
 				5C8ACD512C31669700CCD6E0 /* Fonts */,
 				68372CB0284A8EA200607600 /* LabelStyleReversed.swift */,
 				68A14A6428537E7C00154D84 /* Focus.swift */,
@@ -225,6 +243,7 @@
 			children = (
 				68A14A58285207D500154D84 /* AppMenu.swift */,
 				68372CB3284BE66E00607600 /* NonSmokingData.swift */,
+				5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */,
 				5C26B0EA2C28AE21000036D5 /* CigDesign.swift */,
 				5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */,
 				68A14A7228561D5600154D84 /* WatchUpdateModel.swift */,
@@ -238,7 +257,6 @@
 				68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */,
 				68372CBC284E6DC400607600 /* ReminderRepository.swift */,
 				68A14A682853A12100154D84 /* DataFunctionsPhone.swift */,
-				5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -255,7 +273,10 @@
 		68A14A6B2854AA0C00154D84 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				5CBF16772C45A3FF0011FC18 /* Extensions */,
+				5CCF0DB52C29F47500D433A3 /* CigaretteViews */,
 				68A14A6C2854AA1100154D84 /* Logic */,
+				68372CB2284BE5BA00607600 /* Models */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -264,6 +285,7 @@
 			isa = PBXGroup;
 			children = (
 				68A14A6D2854AA3000154D84 /* CodingFunctions.swift */,
+				5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */,
 				68A14A802860F21F00154D84 /* Colors.swift */,
 			);
 			path = Logic;
@@ -311,7 +333,6 @@
 				68D2FD1C2843656700529BB1 /* Views */,
 				68372CAF284A8E7200607600 /* Shared */,
 				68372CB5284BE74D00607600 /* Logic */,
-				68372CB2284BE5BA00607600 /* Models */,
 				68D2FCE7284361E900529BB1 /* Assets.xcassets */,
 				68D2FCE9284361E900529BB1 /* Preview Content */,
 			);
@@ -340,6 +361,8 @@
 				68A14A5F285215AC00154D84 /* Logic */,
 				68D2FCFE284361EC00529BB1 /* NSSBApp.swift */,
 				68D2FD00284361EC00529BB1 /* ContentView.swift */,
+				5C419BBB2C61233400B2AEE6 /* ScoreView.swift */,
+				5C12DEF52C6FD6C900090A71 /* MenuView.swift */,
 				68D2FD02284361EC00529BB1 /* NotificationController.swift */,
 				68D2FD04284361EC00529BB1 /* NotificationView.swift */,
 				68D2FD06284361EC00529BB1 /* ComplicationController.swift */,
@@ -364,10 +387,10 @@
 			children = (
 				68D2FD1F2843659600529BB1 /* SettingsView.swift */,
 				68A14A79285CF5AC00154D84 /* SettingsSubviews */,
-				5CCF0DB52C29F47500D433A3 /* CigaretteViews */,
 				68EE927828474A7500E90BDB /* InfoView.swift */,
 				68372CB8284E0B2500607600 /* ScoreView.swift */,
 				5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */,
+				5CA7C2E52C7BB57D004120A9 /* MenuView.swift */,
 			);
 			path = Views;
 			sourceTree = "<group>";
@@ -486,10 +509,12 @@
 				68372CB9284E0B2500607600 /* ScoreView.swift in Sources */,
 				68D2FD202843659600529BB1 /* SettingsView.swift in Sources */,
 				68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */,
+				5C35E6FC2C5589BB0038574B /* ExtCalendar.swift in Sources */,
 				68D2FCE4284361E200529BB1 /* NSSBApp.swift in Sources */,
 				5CBF16792C45A4130011FC18 /* ExtString.swift in Sources */,
 				68A14A59285207D500154D84 /* AppMenu.swift in Sources */,
 				5C3941E52C3C6A3B001E828D /* CigDesignDocument.swift in Sources */,
+				5C9C83472C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */,
 				5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */,
 				5CEC10F22C2B380200EAD79C /* CigaretteAshView.swift in Sources */,
 				5C9C253D2C1629560025191E /* SettingsDesignView.swift in Sources */,
@@ -500,6 +525,7 @@
 				5C8ACD562C31675600CCD6E0 /* CaptainIconView.swift in Sources */,
 				68A14A6528537E7C00154D84 /* Focus.swift in Sources */,
 				5CE0647A2C3DC92F003B05DC /* DragToSelect.swift in Sources */,
+				5CA7C2E62C7BB57D004120A9 /* MenuView.swift in Sources */,
 				5CEC10F62C2B3A9600EAD79C /* RoundedCornerShape.swift in Sources */,
 				5C9C25382C161E9F0025191E /* ColorCodable.swift in Sources */,
 				68372CBB284E1EF200607600 /* ReminderView.swift in Sources */,
@@ -508,6 +534,7 @@
 				5C6A3A5E2C3EFC2B0060C4C4 /* CigNamer.swift in Sources */,
 				5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */,
 				68A14A7328561D5600154D84 /* WatchUpdateModel.swift in Sources */,
+				5C35E6FA2C5554B40038574B /* ExtDate.swift in Sources */,
 				5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */,
 				68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */,
 				68EE927928474A7500E90BDB /* InfoView.swift in Sources */,
@@ -524,18 +551,25 @@
 				5C9F18842C2C713600F96C32 /* ExtColor.swift in Sources */,
 				68A14A822860F2D600154D84 /* Colors.swift in Sources */,
 				68D2FD03284361EC00529BB1 /* NotificationController.swift in Sources */,
+				5C419BBC2C61233400B2AEE6 /* ScoreView.swift in Sources */,
+				5C12DEF32C6FCF5800090A71 /* CigNamer.swift in Sources */,
 				68A14A61285215BA00154D84 /* WCSessionWatch.swift in Sources */,
 				5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */,
 				68A14A672853844000154D84 /* CigaretteView.swift in Sources */,
 				68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */,
 				68A14A702854AA7B00154D84 /* DataFunctionsWatch.swift in Sources */,
 				5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */,
+				5C35E6FD2C5589BE0038574B /* ExtCalendar.swift in Sources */,
 				5CBF167A2C45A5990011FC18 /* ExtString.swift in Sources */,
 				68D2FD01284361EC00529BB1 /* ContentView.swift in Sources */,
 				5C9F187F2C2B458100F96C32 /* RoundedCornerShape.swift in Sources */,
 				68A14A632852319C00154D84 /* NonSmokingData.swift in Sources */,
+				5C12DEF42C6FD63700090A71 /* ShareCigaretteView.swift in Sources */,
+				5C35E6FE2C558CA70038574B /* ExtDate.swift in Sources */,
+				5C9C83482C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */,
 				5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */,
 				68A14A6628537EE100154D84 /* Focus.swift in Sources */,
+				5C12DEF62C6FDBD900090A71 /* MenuView.swift in Sources */,
 				68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */,
 				68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */,
 				68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */,
@@ -697,7 +731,7 @@
 				SWIFT_EMIT_LOC_STRINGS = YES;
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
-				WATCHOS_DEPLOYMENT_TARGET = 8.5;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Debug;
 		};
@@ -730,7 +764,7 @@
 				SWIFT_VERSION = 5.0;
 				TARGETED_DEVICE_FAMILY = 4;
 				VALIDATE_PRODUCT = YES;
-				WATCHOS_DEPLOYMENT_TARGET = 8.5;
+				WATCHOS_DEPLOYMENT_TARGET = 9.0;
 			};
 			name = Release;
 		};

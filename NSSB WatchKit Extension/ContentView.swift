@@ -12,7 +12,6 @@ struct ContentView: View {
     @State private var menu:AppMenu = .cigarette
     @ObservedObject var model = WCSessionWatch()
     
-    
     var body: some View {
         
         GeometryReader { geo in
@@ -23,31 +22,19 @@ struct ContentView: View {
                 
                 CigaretteView(
                     menu: $menu,
-                    completedBreak: { model.completedBreak() },
-                    sendUpdate: { model.sendUpdate() } ,
-                    height: geo.size.height, 
-                    design: model.design,
-                    breakStarted: $model.breakStarted)
+                    height: geo.size.height,
+                    data: $model.data
+                )
                 
-                HStack {
-                    
-                    VStack(spacing: 0) {
-                        Text("Today").font(.footnote)
-                        
-                        Text("\(model.todayBreaks)").font(.largeTitle)
-                    }
-                    
-                    Spacer()
-                    
-                    
-                    VStack(spacing: 0) {
-                        Text("All time").font(.footnote)
-                        
-                        Text("\(model.totalBreaks)").font(.largeTitle)
-                    }
+                ScoreView(data: model.data)
+                
+                if #available(watchOS 10.0, *) {
+                    MenuView(data: $model.data)
                 }
+                
             }
-            .foregroundColor(Color.white.opacity(0.5))
+            .foregroundStyle(Color.foregroundInactive)
+            
         }
     }
     

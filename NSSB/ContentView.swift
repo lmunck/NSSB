@@ -11,76 +11,82 @@ import SwiftUI
 struct ContentView: View {
     
     @State var menu:AppMenu = .cigarette
+    @State private var progress:Double = 0
+    @State private var offset:CGFloat = .zero
     
     @EnvironmentObject var model:WCSessionPhone
     
-    @State private var offset:CGFloat = 0
-    
     var body: some View {
         
-        ZStack {
+        GeometryReader { geo in
             
-            let cigHeight = UIScreen.main.bounds.height * 0.5
-            
-            Color.black.edgesIgnoringSafeArea(.all)
-            
-            VStack(spacing: 0) {
+            ZStack {
                 
-                HStack {
+                let cigHeight = geo.size.height * 0.7
+                let cigWidth = geo.size.width * 0.2
+                
+                let viewWidth = geo.size.width * 0.8
+                let pageViewWidth = geo.size.width * 0.4
+                
+                var infoOpacity:CGFloat {
+                    let infoOpacity = self.offset/pageViewWidth
+                    return min(max(infoOpacity, 0), 1)
+                }
+                
+                var settingsOpacity:CGFloat {
+                    let setOpacity = -self.offset/pageViewWidth
+                    return min(max(setOpacity, 0), 1)
+                }
+                
+                var cigOpacity:CGFloat {
+                    return 1 - max(settingsOpacity, infoOpacity)
+                }
+                
+                Color.black.edgesIgnoringSafeArea(.all)
+                
+                
+                
+                VStack(spacing: 5) {
                     
-                    if menu != .info {
+                    MenuView(menu: $menu)
+                    
+                    HStack(spacing: 0) {
+                        
                         InfoView(menu: $menu, data: model.data)
-                            .zIndex(1)
-                            .transition(.move(edge: .leading))
-                    }
-                    
-                    ZStack(alignment: .bottom) {
+                            .opacity(infoOpacity)
+                            .offset(x: self.offset - (1 - infoOpacity) * cigWidth, y: 0)
+                            .frame(width: viewWidth)
                         
                         CigaretteView(
                             menu: $menu,
-                            completedBreak:{ model.completedBreak() },
-                            sendUpdate: { model.sendUpdate() },
+                            cigOpacity: cigOpacity,
                             height: cigHeight,
-                            design: model.data.cigDesign,
-                            breakStarted: $model.breakStarted
+                            data: $model.data
                         )
-                        .dragToSelect(menu: $menu)
-                        .frame(width: UIScreen.main.bounds.height * 0.1, height: cigHeight)
+                        .dragToSelect(menu: $menu, progress: $progress, offset: $offset, snapOffset: pageViewWidth)
+                        .frame(width: cigWidth, height: cigHeight)
+                        //.offset(x: viewOffset, y: 0)
+                        .ignoresSafeArea(.keyboard)
+                           
                         
-                        /*if menu == .cigarette {
-                            
-                            let shareOffset = cigHeight * model.data.cigDesign.widthPercentage * 0.5 + 20
-                            
-                            ShareCigaretteView(cigarette: model.data.cigDesign)
-                                .offset(x: shareOffset, y: 0)
-                                .transition(.move(edge: .trailing).combined(with: .opacity))
-                        }*/
-                        
-                    }
-                    
-                     
-                    if menu != .settings {
                         SettingsView(menu: $menu, data: $model.data)
-                            .transition(.move(edge: .trailing))
+                            .opacity(settingsOpacity)
+                            .frame(width: viewWidth)
+                            .offset(x: self.offset + (1 - settingsOpacity) * cigWidth, y: 0)
+                        
                     }
-                    
-                }
-            
-                ScoreView(data: model.data)
-                    .frame(height: 80)
-            }
-            .animation(.easeInOut(duration: 0.2), value: menu)
+                    .frame(width: geo.size.width)
                 
-            
-            
+                    ScoreView(data: model.data)
+                        .frame(height: 80)
+                }
+                .animation(.easeInOut(duration: 0.2), value: menu)
+                
+                
+            }
+            .foregroundColor(Color.foregroundInactive)
         }
-        .foregroundColor(Color.foregroundInactive)
-        
-        
     }
-    
-    
-    
 }
 
 struct ContentView_Previews: PreviewProvider {
@@ -89,3 +95,5 @@ struct ContentView_Previews: PreviewProvider {
             .environmentObject(WCSessionPhone())
     }
 }
+
+

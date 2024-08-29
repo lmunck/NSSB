@@ -19,6 +19,8 @@ struct SavingsView: View, KeyboardReadable {
     //@State var stepSize:Double = UserDefaults.standard.double(forKey: "stepSize")
     //let stepSizeArray:[Double] = [0.1, 1, 10, 100, 1000]
     
+    @State private var tempCost:Double = 0
+    
     var body: some View {
         VStack(spacing: 5) {
             
@@ -35,18 +37,36 @@ struct SavingsView: View, KeyboardReadable {
                 // Cost
                 HStack(alignment: .bottom, spacing: 2) {
                     
-                    TextField("0", value: $costPer20, format: .currency(code: "\(Locale.current.currency?.identifier ?? "")"))
+                    TextField("0", value: $tempCost, format: .currency(code: "\(Locale.current.currency?.identifier ?? "")"))
                         .keyboardType(.decimalPad)
+                        .onSubmit {
+                            self.costPer20 = tempCost
+                        }
                         .focused($textfieldFocused)
                     
                     if keyboardVisible {
                         
-                        Button("Done", action: { textfieldFocused = false })
+                        Button("Done", action: {
+                            self.costPer20 = tempCost
+                            textfieldFocused = false
+                        })
                         
                     }
-                }.foregroundStyle(Color.accent)
+                }
+                .foregroundStyle(Color.accent)
+                .padding(3)
+                .background( Rectangle().fill(.black).cornerRadius(3))
                     
-            }.onReceive(keyboardPublisher) { newIsKeyboardVisible in
+            }
+            .onChange(of: self.costPer20) { newCost in
+                if self.tempCost != costPer20 {
+                    self.tempCost = costPer20
+                }
+            }
+            .onAppear {
+                self.tempCost = costPer20
+            }
+            .onReceive(keyboardPublisher) { newIsKeyboardVisible in
                 keyboardVisible = newIsKeyboardVisible
             }
             
@@ -56,76 +76,12 @@ struct SavingsView: View, KeyboardReadable {
         //.onAppear { saveStepSize(self.stepSize) }
     }
     
-    func updateCosts(_ perPack: Double) {
-        
-        // Round to nearest tenth
-        //let perPack = round(perPack * 10) / 10.0
-        
-        // If value changed
-        if perPack != UserDefaults.standard.double(forKey: "perPackCosts") {
-            
-            // Save new value
-            UserDefaults.standard.set(perPack, forKey: "perPackCosts")
-            
-        } else {
-            
-            return
-            
-        }
-    }
     
-    /*func saveStepSize(_ stepSize: Double) {
-        
-        // Round to nearest tenth
-        //let perPack = round(perPack * 10) / 10.0
-        
-        // Check if stepSize too small
-        var stepSize = stepSize
-        if stepSize <= 0 {
-            stepSize = 1
-            self.stepSize = stepSize
-        }
-        
-        // If value changed
-        if stepSize != UserDefaults.standard.double(forKey: "stepSize") {
-            
-            // Save new value
-            UserDefaults.standard.set(stepSize, forKey: "stepSize")
-            
-        } else {
-            
-            return
-            
-        }
-    }*/
+    
 }
 
 struct SavingsView_Previews: PreviewProvider {
     static var previews: some View {
         SavingsView(costPer20: .constant(20), returnAction: {})
-    }
-}
-
-
-struct CustomStepper: View {
-    
-    @Binding var perPack:Double
-    let stepSize:Double
-    //var editingChanged: (Bool) -> Void
-    
-    init(_ perPack: Binding<Double>, stepSize: Double) {
-        
-        self._perPack = perPack
-        self.stepSize = stepSize
-        //self.editingChanged = editingChanged
-        
-        // Custom icons so I can control color with foregroundcolor
-            UIStepper.appearance().setDecrementImage(UIImage(systemName: "minus"), for: .normal)
-            UIStepper.appearance().setIncrementImage(UIImage(systemName: "plus"), for: .normal)
-        
-    }
-    
-    var body: some View {
-        Stepper("", value: $perPack, in: 0...1000000, step: stepSize)
     }
 }

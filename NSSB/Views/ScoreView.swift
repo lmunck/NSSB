@@ -27,24 +27,24 @@ struct ScoreView: View, KeyboardReadable {
                 
             }
             
-            if showAlternate {
+            if showAlternate || data.costPer20 == 0 {
                 
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksToday())").foregroundColor(.white)
+                        Text("\(data.breaksToday)").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.breaksDailyAvg, specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksTotal())").foregroundColor(.white)
+                        Text("\(data.breaksTotal)").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
@@ -58,19 +58,19 @@ struct ScoreView: View, KeyboardReadable {
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.savingsToday, specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.savingsDailyAvg, specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
+                        Text("\(data.savingsTotal, specifier: "%.0f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
@@ -91,109 +91,16 @@ struct ScoreView: View, KeyboardReadable {
         .onReceive(keyboardPublisher) { newIsKeyboardVisible in
             keyboardVisible = newIsKeyboardVisible
         }
+        .onChange(of: data.breaksToday, perform: { value in
+            print("Breaks today \(value)")
+        })
         
-        /*GeometryReader { geo in
-            
-            VStack {
-                
-                Spacer()
-                
-                VStack(spacing: 0) {
-                    
-                    HStack(spacing: -3) {
-                        
-                        Text("Today")
-                            .frame(width: geo.size.width/3)
-                        
-                        
-                        Text("Daily average")
-                            .frame(width: geo.size.width/3)
-                        
-                        
-                        Text("All time")
-                            .frame(width: geo.size.width/3)
-                        
-                    }
-                    .font(.footnote)
-                    
-                    if showAlternate == (data.costPer20 != 0) || data.costPer20 == 0 {
-                        
-                        // Breaks
-                        HStack(spacing: 0) {
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.breaksToday())").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("Breaks")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("Breaks")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.breaksTotal())").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("Breaks")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                        }
-                        .font(.footnote)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        
-                    } else {
-                        
-                        // Savings
-                        HStack(spacing: 0) {
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("\(Locale.current.currency?.identifier ?? "")")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("\(Locale.current.currency?.identifier ?? "")")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                            VStack(spacing: -3) {
-                                Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
-                                    .font(.largeTitle)
-                                Text("\(Locale.current.currency?.identifier ?? "")")
-                            }
-                            .frame(width: geo.size.width/3)
-                            
-                        }
-                        .font(.footnote)
-                        .transition(.move(edge: .bottom).combined(with: .opacity))
-                        
-                    }
-                }
-                .animation(.easeInOut(duration: 0.2), value: showAlternate)
-                .contentShape(Rectangle())
-                .onLongPressGesture(minimumDuration: 10, pressing: { inProgress in
-                    if inProgress { showAlternate = true } else { showAlternate = false }
-                    }) {
-                        showAlternate = false
-                    }
-                
-            }
-        }*/
     }
 }
 
 struct ScoreView_Previews: PreviewProvider {
     static var previews: some View {
-        ScoreView(data: NonSmokingData()).foregroundStyle(.gray).background(.black)
+        ScoreView(data: NonSmokingData.example).foregroundStyle(.gray).background(.black)
     }
 }
 

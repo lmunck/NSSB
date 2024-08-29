@@ -9,4 +9,5 @@ import Foundation
 
 enum AppMenu {
     case settings, cigarette, info
+    
 }

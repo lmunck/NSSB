@@ -14,62 +14,37 @@ struct SettingsView: View {
     
     var body: some View {
         
+        VStack(spacing: 10) {
             
-            VStack(spacing: 10) {
+            ScrollView(.vertical) {
                 
-                HStack {
+                VStack(spacing:30) {
                     
-                    Spacer()
+                    ReminderView(returnAction: returnAction)
                     
-                    Label("Settings", systemImage: menu == .info ? "gearshape.fill" : "gearshape")
-                        .labelStyle(.iconOnly)
-                        .font(.largeTitle)
-                        .foregroundColor(.accent)
-                        //.padding()
-                        .contentShape(Rectangle())
-                        .onTapGesture { returnAction() }
+                    SavingsView(costPer20: $data.costPer20, returnAction: returnAction)
                     
+                    SettingsDesignView(design: $data.cigDesign, returnAction: returnAction)
                 }
-                
-                
-                if menu == .info {
-                    
-                    ScrollView(.vertical) {
-                        
-                        VStack(spacing:30) {
-                            
-                            ReminderView(returnAction: returnAction)
-                            
-                            SavingsView(costPer20: $data.costPer20, returnAction: returnAction)
-                            
-                            SettingsDesignView(design: $data.cigDesign, returnAction: returnAction)
-                            //ColorPickerView()
-                        }
-                        
-                    }
-                    .transition(.move(edge: .trailing))
-                    
-                }
-                
-                Spacer()
-                    .onTapGesture {
-                        returnAction()
-                    }
                 
             }
-        
+            
+            Spacer()
+            
+        }
         
     }
     
     func returnAction() {
-        if menu == .info { menu = .cigarette } else { menu = .info }
+        menu = .cigarette
     }
+    
     
 }
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(menu: .constant(.info), data: .constant(NonSmokingData()))
+        SettingsView(menu: .constant(.info), data: .constant(NonSmokingData.example))
     }
 }
 

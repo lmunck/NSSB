@@ -64,32 +64,25 @@ struct SettingsDesignView: View {
                 }
             }
             
-            
-            
-            
-            ZStack {
-                
-                Text(Image(systemName: "wand.and.stars"))
-                    .font(.title2)
-                    .foregroundStyle(Color.accent)
+            // PRESET MENU
+            HStack {
+                Text("Randomize")
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             self.design = getRandom()
                         }
                     }
-                
-                HStack {
-                    
-                    Spacer()
-                    Text(Image(systemName: "trash.fill"))
-                        .font(.title2)
-                        .onTapGesture {
-                            withAnimation(.easeInOut(duration: 0.5)) {
-                                self.design = standard
-                            }
+                Spacer()
+                Text("Default")
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.5)) {
+                            self.design = standard
                         }
-                }
+                    }
             }
+            .padding(.top, 10)
+            .foregroundStyle(Color.accent)
+            
         }
         
     }
@@ -121,7 +114,7 @@ struct TitleTextFieldView:View {
                 .padding(3)
                 .foregroundStyle(Color.accent)
             
-            Text(Image(systemName: "xmark.circle"))
+            Text(Image(systemName: "xmark.circle.fill"))
                 .onTapGesture {
                     self.tempTitle = ""
                     self.title = ""

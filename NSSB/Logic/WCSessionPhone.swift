@@ -10,17 +10,16 @@ import WatchConnectivity
 
 class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     
-    // Cigarette
-    @Published var breakStarted:Date? = nil { didSet { saveDate() }}
+    // Cigrette
+    @Published var data:NonSmokingData = NonSmokingData() { didSet { sendUpdate() }}
+    @Published var lastData:NonSmokingData = NonSmokingData()
     
     // Session
-    @Published var sessionConnected:Bool = false
-    @Published var data:NonSmokingData = NonSmokingData() { didSet { saveData() }}
-    @Published var pendingUpload:Bool = false
+    @Published var connected:Bool = false
     
-    let functions = DataFunctionsPhone()
-    
+    // Dependencies
     var session: WCSession
+    let functions = CodingFunctions()
     
     init(session: WCSession = .default){
         
@@ -30,213 +29,156 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         self.session.delegate = self
         session.activate()
         
-        // Load data to local state
-        self.loadData()
-        self.loadDate()
+        // Load data
+        if let loadedData = functions.load() {
+            DispatchQueue.main.async {
+                print("Loaded data")
+                self.lastData = loadedData
+                self.data = loadedData
+            }
+        }
     }
     
     
     // MARK: Session
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        print(error ?? "no error")
-        
-        DispatchQueue.main.async {
-            self.sessionConnected = true
-        }
-    }
-    
-    func sessionDidBecomeInactive(_ session: WCSession) {
-        DispatchQueue.main.async {
-            self.sessionConnected = false
-        }
-    }
-    
-    func sessionDidDeactivate(_ session: WCSession) {
-        DispatchQueue.main.async {
-            self.sessionConnected = false
-        }
+        if let error = error { print("Session - ActivationDidComplete - \(error.localizedDescription)") }
     }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
-        print(session.isReachable ? "Watch is reachable" : "Watch is not reachable")
+        print("Session - sessionReachabilityDidChange  \(session.isReachable ? "ACTIVE" : "INACTIVE")")
+        self.connectionUpdate(session.isReachable)
         sendUpdate()
     }
     
-    // Receive data from Watch
     func session(_ session: WCSession, didReceiveMessageData messageData: Data, replyHandler: @escaping (Data) -> Void) {
         
-        // If new data is received, merge it with existing
-        receivedUpdate(messageData) { replyData in
+        print("Session - didReceiveMessageData")
+        self.receivedUpdate(messageData) { replyData in
+            print("Session - replyHandler")
             replyHandler(replyData)
         }
         
     }
     
-    // MARK: Public functions
     
-    
-    // Let watch know that smoking started
-    
-    func completedBreak() {
-        
-        addCigarette()
-        sendUpdate()
-        
+    // MARK: Only Phone
+    func sessionDidBecomeInactive(_ session: WCSession) {
+        connectionUpdate(session.isReachable)
     }
     
-    // MARK: Private
+    func sessionDidDeactivate(_ session: WCSession) {
+        connectionUpdate(session.isReachable)
+    }
     
-    private func addCigarette(_ missingBreaks: Int = 1) {
-        
-        DispatchQueue.main.async {
-            for _ in (1...missingBreaks) {
-                print("Added cigarette")
-                self.data.cigDates.append(Date.now)
+    
+    
+    func connectionUpdate(_ newState: Bool) {
+        if self.connected != newState {
+            DispatchQueue.main.async {
+                self.connected = newState
             }
         }
-        
     }
     
+    // Send new total to watch
     func sendUpdate() {
         
-        // Check if watch is connected
-        if session.isReachable {
+        if self.data != self.lastData {
             
-            // Encode data
-            if let updateData:Data = createUpdateData() {
-                
-                print("PHONE S - Created data to send")
-                
-                // Send data
-                session.sendMessageData(updateData) { replyData in
-                    
-                    print("PHONE S - Data sent")
-                    
-                    // Check if new total on watch is received back
-                    if let replyUpdate:WatchUpdateModel = self.functions.decodeUpdate(from: replyData) {
-                        
-                        print("PHONE S - reply data received")
-                        
-                        // Check if delivery was confirmed
-                        if replyUpdate.deliveryConfirmed {
-                            print("PHONE S - delivery confirmation received")
-                        }
-                    }
-                }
+            print("sendUpdate() - Found changes")
+            let saveData = self.data
+            
+            // Save update
+            self.functions.save(saveData)
+            DispatchQueue.main.async {
+                self.lastData = saveData
             }
-        }
-        
-        func createUpdateData(_ deliveryConfirmed: Bool = false) -> Data? {
             
-            // Prepare update
-            let update = WatchUpdateModel(
-                updated: Date.now,
-                breakStarted: self.breakStarted,
-                totalBreaks: self.data.breaksTotal(),
-                todayBreaks: self.data.breaksToday(), 
-                design: self.data.cigDesign,
-                deliveryConfirmed: deliveryConfirmed
-            )
+            // Check if watch is connected
+            if session.isReachable {
+                
+                print("sendUpdate() - Encoding data")
+                
+                // Encode data
+                if let updateData:Data = functions.encodeData(from: saveData) {
+                    
+                    print("sendUpdate() - Sending data")
+                    
+                    // Send data
+                    session.sendMessageData(updateData, replyHandler: { confirmationData in
+                        
+                        print("sendUpdate() - Received confirmation")
+                        
+                        if let confirmationObject = self.functions.decodeData(from: confirmationData) {
+                            
+                            print("sendUpdate() - Confirmation decoded")
+                            
+                            if confirmationObject == saveData {
+                                print("sendUpdate() - Confirmation checks out")
+                            } else {
+                                print("sendUpdate() - Local data is not the same \n\n\(saveData)\nvs\n\(confirmationObject)")
+                            }
+                        } else {
+                            print("sendUpdate() - Confirmation not decoded")
+                        }
+                        
+                        
+                    })
+                }
+            } else {
+                print("sendUpdate() - Device not reachable")
+            }
             
-            return functions.encodeUpdate(from: update)
+        } else {
+            print("SendUpdate() - No changes")
         }
     }
     
-    private func receivedUpdate(_ updateRaw:Data, completion:(Data) -> Void) {
+    func receivedUpdate(_ updateRaw:Data, completion:(Data) -> Void) {
         
-        print("PHONE R -------------")
+        print("receivedUpdate()")
         
         // Decode update
-        if let update = functions.decodeUpdate(from: updateRaw) {
+        if let receivedObject:NonSmokingData = functions.decodeData(from: updateRaw) {
             
-            print("PHONE R - decoded update: \(update)")
-            print("PHONE R - Local data: breakStarted = \(String(describing: self.breakStarted))")
-            print("PHONE R - Local data: totalBreaks = \(self.data.breaksTotal())")
+            print("receivedUpdate() - decoded update")
             
-            // Update smoking if needed
-            if update.breakStarted != self.breakStarted {
-                DispatchQueue.main.async {
-                    self.breakStarted = update.breakStarted
+            if receivedObject != self.data {
+                
+                // Merge received object with local object
+                if let mergedObject = self.data.merge(from: receivedObject) {
+                    print("receivedUpdate() - merged and updated")
+                    
+                    // Save data
+                    self.functions.save(mergedObject)
+                    
+                    // Schedule update of self
+                    DispatchQueue.main.async {
+                        self.lastData = mergedObject
+                        self.data = mergedObject
+                    }
+                    
+                    // Confirm delivery
+                    if let confirmationData = self.functions.encodeData(from: mergedObject) {
+                        completion(confirmationData)
+                    } else {
+                        completion(updateRaw)
+                    }
+                    
+                } else {
+                    print("receivedUpdate() - unable to merge")
+                    completion(updateRaw)
                 }
+            } else {
+                completion(updateRaw)
             }
             
-            // Update totals if needed
-            if update.totalBreaks > self.data.breaksTotal() {
-                
-                let missingBreaks = update.totalBreaks - self.data.breaksTotal()
-                
-                print("PHONE R - added \(missingBreaks) break(s)")
-                self.addCigarette(missingBreaks)
-                
-            }
-        }
-        
-        // Return confirmation data
-        completion(functions.replyData(confirmed: true))
-        
-    }
-    
-    // Save if break started
-    private func loadDate() {
-        if let savedDate = functions.loadDate(), savedDate != self.breakStarted {
-            self.breakStarted = savedDate
-        }
-    }
-    
-    private func saveDate() {
-        functions.saveDate(breakStarted)
-    }
-    
-    // Save and load data
-    private func loadData() {
-        if let loadedData = functions.load() {
-            DispatchQueue.main.async {
-                self.data = loadedData
-            }
-        }
-    }
-    
-    private func saveData() {
-        functions.save(self.data)
-    }
-    /*
-    private func syncData(_ receivedRaw: Data?) {
-        
-        // Is there a live session to sync through
-        if session.isWatchAppInstalled && session.isReachable {
-            
-            // Did we receive data
-            if let receivedData = functions.mergeData(receivedRaw, with: self.data) {
-                
-                
-                
-            }
-            
-            
-            
-            
+        } else {
+            print("receivedUpdate() - unable to Decode")
+            completion(updateRaw)
         }
         
     }
-    */
-    /*func sendData(_ data:NonSmokingData) {
-        
-        let encodedData:Data? = functions.encode(from: self.data)
-        
-        if let encodedData = encodedData {
-            
-            session.sendMessageData(encodedData) { reply in
-                
-                let updatedData = self.functions.mergeData(reply, with: self.data)
-                
-                if let updatedData = updatedData {
-                    self.data = updatedData
-                }
-                
-            }
-        }
-    }
-    */
-    
 }

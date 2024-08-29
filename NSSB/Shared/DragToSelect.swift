@@ -9,8 +9,8 @@ import SwiftUI
 
 extension View {
     
-    func dragToSelect(menu: Binding<AppMenu>) -> some View {
-        self.modifier(DragToSelect(menu: menu))
+    func dragToSelect(menu: Binding<AppMenu>, progress: Binding<Double>, offset: Binding<CGFloat>, snapOffset: CGFloat = 100) -> some View {
+        self.modifier(DragToSelect(menu: menu, snapProgress: progress, offset: offset, snapOffset: snapOffset))
     }
         
 }
@@ -18,35 +18,40 @@ extension View {
 struct DragToSelect: ViewModifier {
     
     @Binding var menu: AppMenu
+    @Binding var snapProgress:Double
+    @Binding var offset:CGFloat
     
-    @State private var offset = CGSize.zero
+    //@State private var offset = CGSize.zero
+    
+    let snapOffset:CGFloat
+    
+    
     
     func body(content: Content) -> some View {
         content
-            .offset(offset)
-            .gesture(
-                DragGesture()
+            .offset(x: offset, y: 0)
+            .highPriorityGesture(
+                DragGesture(minimumDistance: 1)
                     .onChanged { gesture in
-                        //if abs(gesture.translation.width) < 100 {
-                            offset.width = gesture.translation.width
-                        //checkIfSelect(gesture: gesture)
-                        //}
+                        self.offset = gesture.translation.width + initOffset()
+                        self.snapProgress = min(abs(gesture.translation.width/(snapOffset/2)), 1)
                     }
                     .onEnded { gesture in
-                        
                         checkIfSelect(gesture: gesture)
-                        
                     }
             )
+            .onChange(of: self.menu) { newValue in
+                withAnimation(.easeOut(duration: 0.3)) {
+                    self.offset = initOffset()
+                }
+            }
             
     }
     
     func checkIfSelect(gesture: DragGesture.Value) {
-        if abs(gesture.translation.width) > 100 {
+        if abs(gesture.translation.width) > snapOffset/2 {
            
             let dragRight = gesture.translation.width > 0
-            
-            print("DragRight: \(gesture.translation.width)")
             
             if dragRight {
                 if menu == .info {
@@ -70,8 +75,15 @@ struct DragToSelect: ViewModifier {
     }
     
     func resetOffset() {
-        //withAnimation(.easeInOut(duration: 0.4)) {
-            offset = .zero
-        //}
+        snapProgress = 0
+        self.offset = initOffset()
+    }
+    
+    func initOffset() -> CGFloat {
+        switch self.menu {
+        case .cigarette:    return 0
+        case .info:         return -self.snapOffset
+        case .settings:     return self.snapOffset
+        }
     }
 }
