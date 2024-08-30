@@ -9,7 +9,7 @@ import Foundation
 
 extension Date {
     
-    static var breakLength:Double = 10
+    static var breakLength:Double = 300
     
     var elapsedTime: Double {
         return abs(self.timeIntervalSinceNow)

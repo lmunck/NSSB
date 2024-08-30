@@ -80,7 +80,7 @@ struct ContentView: View {
                     ScoreView(data: model.data)
                         .frame(height: 80)
                 }
-                .animation(.easeInOut(duration: 0.2), value: menu)
+                .animation(.easeOut(duration: 0.2), value: menu)
                 
                 
             }

@@ -76,7 +76,9 @@ struct DragToSelect: ViewModifier {
     
     func resetOffset() {
         snapProgress = 0
-        self.offset = initOffset()
+        withAnimation(.easeOut(duration: 0.2)) {
+            self.offset = initOffset()
+        }
     }
     
     func initOffset() -> CGFloat {
