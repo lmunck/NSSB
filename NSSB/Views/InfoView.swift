@@ -14,9 +14,6 @@ struct InfoView: View {
     var data:NonSmokingData
     
     var body: some View {
-        
-        VStack(alignment: .leading, spacing: 10) {
-            
             ScrollView(.vertical) {
                 
                 VStack(alignment: .leading, spacing: 30) {
@@ -48,16 +45,15 @@ struct InfoView: View {
                         
                     }
                 }
-                
+                .onTapGesture {
+                    menu = .cigarette
+                }
                 .font(.body)
             }
             
-            Spacer()
             
-        }
-        .onTapGesture {
-            menu = .cigarette
-        }
+        
+        
     }
 }
 

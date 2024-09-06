@@ -149,35 +149,48 @@ struct CigaretteView: View {
     
     func updateSmokebreak(animated: Bool = true) {
         
-        if let startDate = self.data.breakStarted, startDate.breakIsActive {
+        if let startDate = self.data.breakStarted {
             
-            // Update progress
-            self.secondsLeft = startDate.breakSecondsLeft()
-            withAnimation(animated ? .linear(duration: 1) : .none) {
-                if secondsLeft == 0 {
-                    breakProgress = 1
-                } else {
-                    self.breakProgress = startDate.breakProgress()
+            if startDate.breakIsActive {
+                
+                // Break is still active, so update progress
+                self.secondsLeft = startDate.breakSecondsLeft()
+                withAnimation(animated ? .linear(duration: 1) : .none) {
+                    if secondsLeft == 0 {
+                        breakProgress = 1
+                    } else {
+                        self.breakProgress = startDate.breakProgress()
+                    }
+                }
+            } else {
+                
+                // Break is no longer active, so save break
+                if let startDate = self.data.breakStarted {
+                    var temp = self.data
+                    temp.breaks.append(startDate)
+                    temp.breakStarted = nil
+                    self.data = temp
+                }
+                
+                // Reset Vars
+                if self.breakProgress != nil {
+                    self.breakProgress = nil
+                }
+                if self.secondsLeft != 0 {
+                    self.secondsLeft = 0
                 }
             }
                 
         } else {
             
-            // Add cigarette to breaks
-            if let startDate = self.data.breakStarted {
-                var temp = self.data
-                temp.breaks.append(startDate)
-                temp.breakStarted = nil
-                self.data = temp
-            }
-            
-            // Reset Vars
+            // Break is nill, so reset any local vars that are not reset
             if self.breakProgress != nil {
                 self.breakProgress = nil
             }
             if self.secondsLeft != 0 {
                 self.secondsLeft = 0
             }
+            
         }
     }
     

@@ -46,7 +46,7 @@ struct ContentView: View {
                 
                 
                 
-                VStack(spacing: 5) {
+                VStack(spacing: 10) {
                     
                     MenuView(menu: $menu)
                     
@@ -78,7 +78,6 @@ struct ContentView: View {
                     .frame(width: geo.size.width)
                 
                     ScoreView(data: model.data)
-                        .frame(height: 80)
                 }
                 .animation(.easeOut(duration: 0.2), value: menu)
                 

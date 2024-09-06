@@ -13,26 +13,18 @@ struct SettingsView: View {
     @Binding var data:NonSmokingData
     
     var body: some View {
-        
-        VStack(spacing: 10) {
+        ScrollView(.vertical) {
             
-            ScrollView(.vertical) {
+            VStack(spacing:30) {
                 
-                VStack(spacing:30) {
-                    
-                    ReminderView(returnAction: returnAction)
-                    
-                    SavingsView(costPer20: $data.costPer20, returnAction: returnAction)
-                    
-                    SettingsDesignView(design: $data.cigDesign, returnAction: returnAction)
-                }
+                ReminderView(returnAction: returnAction)
                 
+                SavingsView(costPer20: $data.costPer20, returnAction: returnAction)
+                
+                SettingsDesignView(design: $data.cigDesign, returnAction: returnAction)
             }
             
-            Spacer()
-            
         }
-        
     }
     
     func returnAction() {

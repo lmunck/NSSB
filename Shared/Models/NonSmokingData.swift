@@ -29,6 +29,15 @@ struct NonSmokingData:Codable, Equatable {
     var cigDesign:CigDesign = CigDesign() /// Variable
     
     // Calculations
+    var lastUpdated: Date? {
+        if let startedBreak = self.breakStarted {
+            return startedBreak
+        } else if let lastBreak = breaks.last {
+            return lastBreak
+        } else {
+            return nil
+        }
+    }
     
     // Savings
     var savingsToday:Double {
@@ -84,38 +93,105 @@ struct NonSmokingData:Codable, Equatable {
 // Functions
 extension NonSmokingData {
     
-    func merge(from newData:NonSmokingData, onWatch:Bool = false) -> NonSmokingData? {
+    func compare(to: NonSmokingData) {
         
-        if newData != self {
+        print("DIFFERENCES:")
+        if self.breaks != to.breaks {
+            print(".breaks")
+            var receivedDif:[Date] = []
+            for receivedBreak in to.breaks {
+                if self.breaks.contains(receivedBreak) == false {
+                    receivedDif.append(receivedBreak)
+                }
+            }
+            var localDif:[Date] = []
+            for lcocalBreak in self.breaks {
+                if to.breaks.contains(lcocalBreak) == false {
+                    localDif.append(lcocalBreak)
+                }
+            }
+            print("loc: \(localDif)")
+            print("rem: \(receivedDif)")
+        }
+        if self.breakStarted != to.breakStarted {
+            print(".breakStarted")
+            print("loc: \(String(describing: self.breakStarted?.description))")
+            print("rem: \(String(describing: to.breakStarted?.description))")
+        }
+        if self.costPer20 != to.costPer20 {
+            print(".costPer20")
+            print("loc: \(self.costPer20)")
+            print("rem: \n \(to.costPer20)")
+        }
+        if self.accentHue != to.accentHue {
+            print(".accentHue")
+            print("loc: \(self.accentHue ?? -1)")
+            print("rem: \n \(to.accentHue ?? -1)")
+        }
+        if self.cigDesign != to.cigDesign {
+            print(".cigDesign")
+        }
+        print("")
+    }
+    
+    func merge(from receivedObject:NonSmokingData) -> NonSmokingData? {
+        
+        if receivedObject != self {
             
-            var newSelf = self
+            print("merge() - Received different from self ")
+            self.compare(to: receivedObject)
+            
+            var selfObject = self
             
             // Merge breaks
-            for receivedBreak in newData.breaks {
-                if newSelf.breaks.contains(receivedBreak) == false {
-                    newSelf.breaks.append(receivedBreak)
+            for receivedBreak in receivedObject.breaks {
+                if selfObject.breaks.contains(receivedBreak) == false {
+                    selfObject.breaks.append(receivedBreak)
+                    print("merge() - Added break")
                 }
             }
             
-            // Update other data
-            newSelf.breakStarted = newData.breakStarted
-            
-            if onWatch {
-                newSelf.costPer20 = newData.costPer20
-                newSelf.accentHue = newData.accentHue
+            // If both have an lastUpdated value and the received is newer, update local
+            if let selfUpdated = self.lastUpdated {
+                if let receivedUpdated = receivedObject.lastUpdated {
+                    if receivedUpdated > selfUpdated {
+                        print("merge() - Both had lastUpdated value, but the received is newer, so updating locally")
+                        selfObject.cigDesign = receivedObject.cigDesign
+                        selfObject.costPer20 = receivedObject.costPer20
+                        selfObject.breakStarted = receivedObject.breakStarted
+                        selfObject.accentHue = receivedObject.accentHue
+                    }
+                }
+                
+                
+            // If only the received has a lastUpdated value, update local
+            } else if self.lastUpdated == nil && receivedObject.lastUpdated != nil {
+                selfObject.cigDesign = receivedObject.cigDesign
+                selfObject.costPer20 = receivedObject.costPer20
+                selfObject.breakStarted = receivedObject.breakStarted
+                selfObject.accentHue = receivedObject.accentHue
+                
+                
+                print("merge() - Only the received had last updated, so updating locallly")
+                
+            } else {
+                
+                
+                print("merge() - No LastUpdated values or lastUpdated values are equal: self.\(String(describing: self.lastUpdated?.description)) vs received:\(String(describing: receivedObject.lastUpdated?.description))")
             }
             
-            newSelf.cigDesign = newData.cigDesign
-            
             // Apply changes
-            return newSelf
+            return selfObject
             
         } else {
-            return nil
+            
+            print("merge() - No change detected")
+            return self
         }
         
+        
+        
     }
-    
     
     
     /*func mergeData(from newData: NonSmokingData) -> NonSmokingData {
