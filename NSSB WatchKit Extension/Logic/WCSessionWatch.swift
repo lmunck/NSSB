@@ -11,7 +11,7 @@ import WatchConnectivity
 class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     
     // Cigarette
-    @Published var data:NonSmokingData = NonSmokingData() { didSet { sendUpdate() }}
+    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) { didSet { sendUpdate() }}
     var lastUpdate:NonSmokingData? = nil
     
     // Session
@@ -39,6 +39,7 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error { print("Session - ActivationDidComplete - \(error.localizedDescription)") }
+        connectionUpdate(session.isReachable)
     }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
@@ -66,40 +67,30 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     }
     
     // Send new total to watch
-    private func updateData(to: NonSmokingData) {
-        if lastUpdate == nil {
-            self.lastUpdate = to
-            DispatchQueue.main.async {
-                self.data = to
-            }
-        } else if to != lastUpdate {
-            self.lastUpdate = to
-            self.functions.save(to)
-            DispatchQueue.main.async {
-                self.data = to
-            }
+    private func updateData(to update: NonSmokingData) {
+        self.functions.save(update)
+        DispatchQueue.main.async {
+            self.data = update
         }
     }
     
     // Send new total to watch
     func sendUpdate() {
         
-        let sendObject = self.data
-        
-        // Save update
-        self.functions.save(sendObject)
+        var sendObject = self.data
+        sendObject.lastUpdate = Date.now
         
         // Check if watch is connected
         if session.isReachable {
-            print("sendUpdate() - Encoding data")
+            print("sendUpdate() - Session.isReachable = TRUE")
             
             // Encode data
             if let sendData:Data = functions.encodeData(from: sendObject) {
-                print("sendUpdate() - Sending data")
+                print("sendUpdate() - Data encoded - SUCCESS")
                 
                 // Send data
                 session.sendMessageData(sendData, replyHandler: { confirmationData in
-                    print("sendUpdate() - Received confirmation")
+                    print("sendUpdate() - Confirmation received")
                     
                     if let confirmationObject = self.functions.decodeData(from: confirmationData) {
                         print("sendUpdate() - Confirmation decoded")
@@ -107,16 +98,19 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
                         if confirmationObject == sendObject {
                             print("sendUpdate() - Confirmation checks out")
                         } else {
-                            print("sendUpdate() - Local data is not the same: '\(sendObject.cigDesign.title)' vs '\(confirmationObject.cigDesign.title)'")
+                            print("sendUpdate() - Confirmation failed:")
+                            confirmationObject.compare(to: sendObject)
                         }
                     } else {
                         print("sendUpdate() - Confirmation not decoded")
                     }
                     
                 })
+            } else {
+                print("sendUpdate() - Data encoded - FAIL")
             }
         } else {
-            print("sendUpdate() - Device not reachable")
+            print("sendUpdate() - Session.isReachable = FALSE")
         }
          
     }
@@ -128,39 +122,41 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         // Decode update
         if let receivedObject:NonSmokingData = functions.decodeData(from: updateRaw) {
             
-            print("receivedUpdate() - decoded update")
+            print("receivedUpdate() - update decoded")
             
             if receivedObject != self.data {
+                
+                print("receivedUpdate() - change detected")
                 
                 // Merge received object with local object
                 if let mergedObject = self.data.merge(from: receivedObject) {
                     
-                    print("receivedUpdate() - merged")
+                    print("receivedUpdate() - update merged")
                     
                     self.updateData(to: mergedObject)
                     
-                    print("receivedUpdate() - saved and updated")
+                    print("receivedUpdate() - update updated")
                     
                     // Confirm delivery
                     if let confirmationData = self.functions.encodeData(from: mergedObject) {
-                        print("receivedUpdate() - encoded confirmation")
+                        print("receivedUpdate() - confirmation encoded")
                         completion(confirmationData)
                     } else {
-                        print("receivedUpdate() - unable to encode confirmation")
+                        print("receivedUpdate() - confirmation encoding FAIL")
                         completion(updateRaw)
                     }
                     
                 } else {
-                    print("receivedUpdate() - unable to merge")
+                    print("receivedUpdate() - update merge FAIL")
                     completion(updateRaw)
                 }
             } else {
-                print("receivedUpdate() - unable to detect changes")
+                print("receivedUpdate() - no change detected")
                 completion(updateRaw)
             }
             
         } else {
-            print("receivedUpdate() - unable to Decode")
+            print("receivedUpdate() - update decoded FAIL")
             completion(updateRaw)
         }
         

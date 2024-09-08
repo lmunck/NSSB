@@ -42,7 +42,7 @@ class CodingFunctions {
                 
                 if let object = decodeLegacy(from: loadData) {
                     
-                    var newData = NonSmokingData()
+                    var newData = NonSmokingData(lastUpdate: Date.distantPast)
                     newData.breaks = object.cigDates
                     newData.costPer20 = object.costPer20
                     

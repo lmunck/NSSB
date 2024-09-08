@@ -29,15 +29,7 @@ struct NonSmokingData:Codable, Equatable {
     var cigDesign:CigDesign = CigDesign() /// Variable
     
     // Calculations
-    var lastUpdated: Date? {
-        if let startedBreak = self.breakStarted {
-            return startedBreak
-        } else if let lastBreak = breaks.last {
-            return lastBreak
-        } else {
-            return nil
-        }
-    }
+    var lastUpdate: Date
     
     // Savings
     var savingsToday:Double {
@@ -134,9 +126,70 @@ extension NonSmokingData {
         print("")
     }
     
+    func older(than receivedObject:NonSmokingData) -> Bool {
+        return self.lastUpdate < receivedObject.lastUpdate
+    }
+    
     func merge(from receivedObject:NonSmokingData) -> NonSmokingData? {
         
-        if receivedObject != self {
+        print("MERGE")
+        var selfObject = self
+        var wasUpdated = false
+        
+        let isOlder:Bool = selfObject.older(than: receivedObject)
+        print("merge() should update: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
+        
+        if selfObject.breaks != receivedObject.breaks {
+            print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
+            for receivedBreak in receivedObject.breaks {
+                if selfObject.breaks.contains(receivedBreak) == false {
+                    selfObject.breaks.append(receivedBreak)
+                    if wasUpdated != true { wasUpdated = true }
+                }
+            }
+            print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
+            selfObject.breaks = selfObject.breaks.sorted()
+        }
+        
+        if selfObject.breakStarted != receivedObject.breakStarted {
+            if isOlder {
+                print("merge().breakStarted: \(String(describing: selfObject.breakStarted?.description)) -> \(String(describing: receivedObject.breakStarted?.description))")
+                if wasUpdated != true { wasUpdated = true }
+                selfObject.breakStarted = receivedObject.breakStarted
+            }
+        }
+        
+        if selfObject.costPer20 != receivedObject.costPer20 {
+            if isOlder {
+                print("merge().costPer20: \(selfObject.costPer20) -> \(receivedObject.costPer20)")
+                if wasUpdated != true { wasUpdated = true }
+                selfObject.costPer20 = receivedObject.costPer20
+            }
+        }
+        
+        if selfObject.accentHue != receivedObject.accentHue {
+            if isOlder {
+                print("merge().accentHue: \(String(describing: selfObject.accentHue)) -> \(String(describing: receivedObject.accentHue))")
+                if wasUpdated != true { wasUpdated = true }
+                selfObject.accentHue = receivedObject.accentHue
+            }
+        }
+        
+        if selfObject.cigDesign != receivedObject.cigDesign {
+            if isOlder {
+                print("merge().cigDesign: \(selfObject.cigDesign.title) -> \(receivedObject.cigDesign.title)")
+                if wasUpdated != true { wasUpdated = true }
+                selfObject.cigDesign = receivedObject.cigDesign
+            }
+        }
+        
+        if wasUpdated {
+            print("merge().lastUpdate: \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
+            selfObject.lastUpdate = receivedObject.lastUpdate
+        } else {
+            print("merge() No updates")
+        }
+        /*if receivedObject != self {
             
             print("merge() - Received different from self ")
             self.compare(to: receivedObject)
@@ -188,9 +241,9 @@ extension NonSmokingData {
             print("merge() - No change detected")
             return self
         }
+        */
         
-        
-        
+        return selfObject
     }
     
     
@@ -254,5 +307,5 @@ extension NonSmokingData {
 
 extension NonSmokingData {
     
-    static var example:NonSmokingData = NonSmokingData(breaks: [], costPer20: 10, accentHue: nil, cigDesign: CigDesign.standard)
+    static var example:NonSmokingData = NonSmokingData(breaks: [], costPer20: 10, accentHue: nil, cigDesign: CigDesign.standard, lastUpdate: Date.now)
 }

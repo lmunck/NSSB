@@ -136,6 +136,9 @@ struct CigaretteView: View {
             #endif
             
         }
+        .onChange(of: data.breakStarted, perform: { _ in
+            updateSmokebreak()
+        })
         .onReceive(timer, perform: { _ in
            updateSmokebreak()
         })

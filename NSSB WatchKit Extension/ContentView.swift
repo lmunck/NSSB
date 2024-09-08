@@ -32,6 +32,9 @@ struct ContentView: View {
                     MenuView(data: $model.data)
                 }
                 
+                Image(systemName: "circle.fill")
+                    .foregroundStyle(model.connected ? Color.green : Color.red)
+                    .frame(maxWidth: .infinity, maxHeight:.infinity, alignment: .topLeading)
             }
             .foregroundStyle(Color.foregroundInactive)
             
