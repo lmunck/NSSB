@@ -66,14 +66,14 @@ struct SettingsDesignView: View {
             
             // PRESET MENU
             HStack {
-                Text("Randomize")
+                Label("Randomize", systemImage: "wand.and.stars")
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             self.design = getRandom()
                         }
                     }
                 Spacer()
-                Text("Default")
+                Label("Default", systemImage: "trash")
                     .onTapGesture {
                         withAnimation(.easeInOut(duration: 0.5)) {
                             self.design = standard
