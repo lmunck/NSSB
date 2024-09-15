@@ -32,19 +32,19 @@ struct ScoreView: View, KeyboardReadable {
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksToday)").foregroundColor(.white)
+                        Text("\(data.breaksToday())").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksDailyAvg, specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksTotal)").foregroundColor(.white)
+                        Text("\(data.breaksTotal())").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
@@ -58,19 +58,19 @@ struct ScoreView: View, KeyboardReadable {
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsToday, specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsDailyAvg, specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsTotal, specifier: "%.0f")").foregroundColor(.white)
+                        Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
@@ -80,20 +80,15 @@ struct ScoreView: View, KeyboardReadable {
             }
         }
         .font(.footnote)
-        .animation(.easeInOut(duration: 0.2), value: showAlternate)
+        .animation(.easeInOut(duration: 0.4), value: showAlternate)
         .contentShape(Rectangle())
         .opacity(keyboardVisible ? 0 : 1)
-        .onLongPressGesture(minimumDuration: 10, pressing: { inProgress in
-            if inProgress { showAlternate = true } else { showAlternate = false }
-            }) {
-                showAlternate = false
-            }
+        .onTapGesture {
+            showAlternate.toggle()
+        }
         .onReceive(keyboardPublisher) { newIsKeyboardVisible in
             keyboardVisible = newIsKeyboardVisible
         }
-        .onChange(of: data.breaksToday, perform: { value in
-            print("Breaks today \(value)")
-        })
         
     }
 }

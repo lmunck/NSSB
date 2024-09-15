@@ -19,11 +19,7 @@ struct NonSmokingData:Codable, Equatable {
     
     // Accent Color
     var accentHue:Int? = 220 /// Variable
-    var accentColor:Color {
-        var hue:Int = 220
-        if let accentHue = accentHue { hue = accentHue}
-        return Color(hue: Double(hue)/360, saturation: 0.7, brightness: 1)
-    }
+    
     
     // Cigarette Colors
     var cigDesign:CigDesign = CigDesign() /// Variable
@@ -31,28 +27,39 @@ struct NonSmokingData:Codable, Equatable {
     // Calculations
     var lastUpdate: Date
     
+}
+
+// Calculated values
+extension NonSmokingData {
+    
+    func accentColor() -> Color {
+        var hue:Int = 220
+        if let accentHue = accentHue { hue = accentHue}
+        return Color(hue: Double(hue)/360, saturation: 0.7, brightness: 1)
+    }
+    
     // Savings
-    var savingsToday:Double {
-        return Double(self.breaksToday) * costPer20 / 20
+    func savingsToday() -> Double {
+        return Double(self.breaksToday()) * costPer20 / 20
     }
-    var savingsDailyAvg:Double {
-        return Double(self.breaksDailyAvg) * costPer20 / 20
+    func savingsDailyAvg() -> Double {
+        return Double(self.breaksDailyAvg()) * costPer20 / 20
     }
-    var savingsTotal:Double {
-        return Double(self.breaksTotal) * costPer20 / 20
+    func savingsTotal() -> Double {
+        return Double(self.breaksTotal()) * costPer20 / 20
     }
     
     // Breaks
-    var breaksToday:Int {
+    func breaksToday() -> Int {
         // Find todays cigarettes
         let todayData = breaks.filter { NSCalendar.current.isDateInToday($0) && $0.breakIsActive == false }
         
         return todayData.count
     }
     
-    var breaksDailyAvg:Double {
+    func breaksDailyAvg() -> Double {
         
-        let totalBreaks = breaksTotal
+        let totalBreaks = breaksTotal()
         
         if let firstDate = breaks.min(by: { $0 < $1 }) {
             
@@ -67,61 +74,62 @@ struct NonSmokingData:Codable, Equatable {
                 }
                 
             } else {
-                return Double(breaksToday)
+                return Double(breaksToday())
             }
         } else {
-            return Double(breaksToday)
+            return Double(breaksToday())
         }
         
     }
     
-    var breaksTotal: Int {
+    func breaksTotal() -> Int {
         return breaks.filter { $0.breakIsActive == false }.count
     }
-    
     
 }
 
 // Functions
 extension NonSmokingData {
     
-    func compare(to: NonSmokingData) {
+    func compare(to other: NonSmokingData) {
         
-        print("DIFFERENCES:")
-        if self.breaks != to.breaks {
+        let local = self
+        
+        print("COMPARE:")
+        if local.breaks != other.breaks {
             print(".breaks")
             var receivedDif:[Date] = []
-            for receivedBreak in to.breaks {
-                if self.breaks.contains(receivedBreak) == false {
+            for receivedBreak in other.breaks {
+                if local.breaks.contains(receivedBreak) == false {
                     receivedDif.append(receivedBreak)
                 }
             }
             var localDif:[Date] = []
-            for lcocalBreak in self.breaks {
-                if to.breaks.contains(lcocalBreak) == false {
+            for lcocalBreak in local.breaks {
+                if other.breaks.contains(lcocalBreak) == false {
                     localDif.append(lcocalBreak)
                 }
             }
-            print("loc: \(localDif)")
-            print("rem: \(receivedDif)")
+            print("loc: \(localDif) .count(\(self.breaks.count))")
+            print("rem: \(receivedDif) .count(\(other.breaks.count))")
         }
-        if self.breakStarted != to.breakStarted {
+        if self.breakStarted != other.breakStarted {
             print(".breakStarted")
-            print("loc: \(String(describing: self.breakStarted?.description))")
-            print("rem: \(String(describing: to.breakStarted?.description))")
+            print("loc: \(String(describing: local.breakStarted?.description))")
+            print("rem: \(String(describing: other.breakStarted?.description))")
         }
-        if self.costPer20 != to.costPer20 {
+        if local.costPer20 != other.costPer20 {
             print(".costPer20")
-            print("loc: \(self.costPer20)")
-            print("rem: \n \(to.costPer20)")
+            print("loc: \(local.costPer20)")
+            print("rem: \n \(other.costPer20)")
         }
-        if self.accentHue != to.accentHue {
+        if local.accentHue != other.accentHue {
             print(".accentHue")
-            print("loc: \(self.accentHue ?? -1)")
-            print("rem: \n \(to.accentHue ?? -1)")
+            print("loc: \(local.accentHue ?? -1)")
+            print("rem: \n \(other.accentHue ?? -1)")
         }
-        if self.cigDesign != to.cigDesign {
-            print(".cigDesign")
+        if self.cigDesign != other.cigDesign {
+            local.cigDesign.compare(to: other.cigDesign)
         }
         print("")
     }
@@ -137,17 +145,19 @@ extension NonSmokingData {
         var wasUpdated = false
         
         let isOlder:Bool = selfObject.older(than: receivedObject)
-        print("merge() should update: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
+        print("merge() should check for updates: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
         
         if selfObject.breaks != receivedObject.breaks {
             print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
             for receivedBreak in receivedObject.breaks {
+                print("merge().receivedBreak:\(receivedBreak) - contains?\(selfObject.breaks.contains(receivedBreak)) - selfObject.breaks:\(selfObject.breaks)")
                 if selfObject.breaks.contains(receivedBreak) == false {
+                    print("merge().breaks: Added \(receivedBreak)")
                     selfObject.breaks.append(receivedBreak)
                     if wasUpdated != true { wasUpdated = true }
                 }
             }
-            print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
+            selfObject.breaks = selfObject.breaks.uniqued()
             selfObject.breaks = selfObject.breaks.sorted()
         }
         
@@ -184,10 +194,11 @@ extension NonSmokingData {
         }
         
         if wasUpdated {
-            print("merge().lastUpdate: \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
             selfObject.lastUpdate = receivedObject.lastUpdate
+            return selfObject
         } else {
             print("merge() No updates")
+            return nil
         }
         /*if receivedObject != self {
             
@@ -243,7 +254,6 @@ extension NonSmokingData {
         }
         */
         
-        return selfObject
     }
     
     

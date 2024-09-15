@@ -37,11 +37,11 @@ struct InfoView: View {
                         
                         Text("Thankyouthankyouthankyou for all your downloads and great feedback!")
                         
-                        Text("This version let's you create custom smokes and share them with friends, gets rid of some pesky bugs and just looks cooler.")
+                        Text("New features include creating custom non-smokes and sharing them with friends, but I've also gotten rid of a few pesky bugs and hopefully made everything just a bit cooler.")
                         
-                        Text("If you want to support, support a good cause, or learn to code or just give me a hand. I can be reached at nssb@nulkommafire.com.")
+                        Text("If you want to support, support a good cause, learn to code and give me a hand, or just scratch a dog behind the ear. I can be reached at nssb@nulkommafire.com.")
                         
-                        Text("High fives and fist-bumps all you non-smoking smoke breaking rock-stars.")
+                        Text("High fives, hip-bumps, and great breaks to all you non-smoking smoke breaking rock-stars.")
                         
                     }
                 }

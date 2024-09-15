@@ -34,7 +34,7 @@ struct CigaretteGlowDots:View {
                     
                     CigaretteGlowDot(color: color, animated: animated)
                         .frame(width: dotWidth, height: dotWidth)
-                        .blur(radius: 2)
+                        .blur(radius: dotWidth * 0.4)
                         .offset(x: CGFloat.random(in: -offsetWidth...offsetWidth), y: CGFloat.random(in: -offsetHeight...offsetHeight))
                         
                     

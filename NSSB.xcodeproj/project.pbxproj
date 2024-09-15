@@ -19,6 +19,8 @@
 		5C3941E52C3C6A3B001E828D /* CigDesignDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */; };
 		5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
 		5C419BBC2C61233400B2AEE6 /* ScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C419BBB2C61233400B2AEE6 /* ScoreView.swift */; };
+		5C5F75FF2C958DC900DBD113 /* ExtSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */; };
+		5C5F76002C958DC900DBD113 /* ExtSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */; };
 		5C6A3A5E2C3EFC2B0060C4C4 /* CigNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */; };
 		5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C7692C2F4E75002A5201 /* HueSliderView.swift */; };
 		5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C70C76B2C2F4E9D002A5201 /* HueSelectorView.swift */; };
@@ -58,9 +60,7 @@
 		68A14A6528537E7C00154D84 /* Focus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6428537E7C00154D84 /* Focus.swift */; };
 		68A14A6628537EE100154D84 /* Focus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6428537E7C00154D84 /* Focus.swift */; };
 		68A14A672853844000154D84 /* CigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1D2843657E00529BB1 /* CigaretteView.swift */; };
-		68A14A692853A12100154D84 /* DataFunctionsPhone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A682853A12100154D84 /* DataFunctionsPhone.swift */; };
 		68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
-		68A14A702854AA7B00154D84 /* DataFunctionsWatch.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6F2854AA7B00154D84 /* DataFunctionsWatch.swift */; };
 		68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
 		68A14A7328561D5600154D84 /* WatchUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7228561D5600154D84 /* WatchUpdateModel.swift */; };
 		68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7228561D5600154D84 /* WatchUpdateModel.swift */; };
@@ -118,6 +118,7 @@
 		5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesignDocument.swift; sourceTree = "<group>"; };
 		5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCigaretteView.swift; sourceTree = "<group>"; };
 		5C419BBB2C61233400B2AEE6 /* ScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreView.swift; sourceTree = "<group>"; };
+		5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtSequence.swift; sourceTree = "<group>"; };
 		5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNamer.swift; sourceTree = "<group>"; };
 		5C6B9E5C2C42C1340064C16E /* NSSB.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NSSB.entitlements; sourceTree = "<group>"; };
 		5C70C7692C2F4E75002A5201 /* HueSliderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HueSliderView.swift; sourceTree = "<group>"; };
@@ -145,9 +146,7 @@
 		68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionPhone.swift; sourceTree = "<group>"; };
 		68A14A60285215BA00154D84 /* WCSessionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionWatch.swift; sourceTree = "<group>"; };
 		68A14A6428537E7C00154D84 /* Focus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Focus.swift; sourceTree = "<group>"; };
-		68A14A682853A12100154D84 /* DataFunctionsPhone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataFunctionsPhone.swift; sourceTree = "<group>"; };
 		68A14A6D2854AA3000154D84 /* CodingFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingFunctions.swift; sourceTree = "<group>"; };
-		68A14A6F2854AA7B00154D84 /* DataFunctionsWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DataFunctionsWatch.swift; sourceTree = "<group>"; };
 		68A14A7228561D5600154D84 /* WatchUpdateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchUpdateModel.swift; sourceTree = "<group>"; };
 		68A14A75285A5FD500154D84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		68A14A7A285CF5FB00154D84 /* SavingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsView.swift; sourceTree = "<group>"; };
@@ -208,6 +207,7 @@
 				5CBF16782C45A4130011FC18 /* ExtString.swift */,
 				5C35E6F92C5554B40038574B /* ExtDate.swift */,
 				5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */,
+				5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */,
 			);
 			path = Extensions;
 			sourceTree = "<group>";
@@ -256,7 +256,6 @@
 			children = (
 				68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */,
 				68372CBC284E6DC400607600 /* ReminderRepository.swift */,
-				68A14A682853A12100154D84 /* DataFunctionsPhone.swift */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -265,7 +264,6 @@
 			isa = PBXGroup;
 			children = (
 				68A14A60285215BA00154D84 /* WCSessionWatch.swift */,
-				68A14A6F2854AA7B00154D84 /* DataFunctionsWatch.swift */,
 			);
 			path = Logic;
 			sourceTree = "<group>";
@@ -500,10 +498,10 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				68A14A692853A12100154D84 /* DataFunctionsPhone.swift in Sources */,
 				68A14A812860F21F00154D84 /* Colors.swift in Sources */,
 				5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */,
 				5CCF0DB92C29F4E300D433A3 /* CigaretteGlowDots.swift in Sources */,
+				5C5F75FF2C958DC900DBD113 /* ExtSequence.swift in Sources */,
 				68D2FCE6284361E200529BB1 /* ContentView.swift in Sources */,
 				68D2FD1E2843657E00529BB1 /* CigaretteView.swift in Sources */,
 				68372CB9284E0B2500607600 /* ScoreView.swift in Sources */,
@@ -557,7 +555,6 @@
 				5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */,
 				68A14A672853844000154D84 /* CigaretteView.swift in Sources */,
 				68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */,
-				68A14A702854AA7B00154D84 /* DataFunctionsWatch.swift in Sources */,
 				5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */,
 				5C35E6FD2C5589BE0038574B /* ExtCalendar.swift in Sources */,
 				5CBF167A2C45A5990011FC18 /* ExtString.swift in Sources */,
@@ -571,6 +568,7 @@
 				68A14A6628537EE100154D84 /* Focus.swift in Sources */,
 				5C12DEF62C6FDBD900090A71 /* MenuView.swift in Sources */,
 				68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */,
+				5C5F76002C958DC900DBD113 /* ExtSequence.swift in Sources */,
 				68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */,
 				68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */,
 				5C8ACD572C31675600CCD6E0 /* CaptainIconView.swift in Sources */,

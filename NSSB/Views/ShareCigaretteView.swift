@@ -22,7 +22,7 @@ struct ShareCigaretteView: View {
                 //let preview = SharePreview(cigarette.title, icon: Image(systemName: "pencil"))
                 
                 ShareLink(item: cigURL, subject: Text("Try my custom non-smoke"), message: Text("Have a non-smoking smoke break with my custom non-smoking smoke\(cigarette.title.isEmpty ? "." : ": \(cigarette.title)")"), label: {
-                    Text(Image(systemName: "person.2.fill"))
+                    Text(Image(systemName: "square.and.arrow.up"))
                         .font(.title)
                 })
                 

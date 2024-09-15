@@ -49,6 +49,38 @@ struct CigDesign:Codable, Equatable, Hashable {
 // Encode and Decode
 extension CigDesign {
     
+    func compare(to other: CigDesign) {
+        print("COMPARE.cigDesign")
+        let local = self
+        if local.title != other.title {
+            print(".title \(local.title) -> \(other.title)")
+        }
+        if local.widthPercentage != other.widthPercentage {
+            print(".widthPercentage \(local.widthPercentage) -> \(other.widthPercentage)")
+        }
+        if local.glowPercentage != other.glowPercentage {
+            print(".glowPercentage \(local.glowPercentage) -> \(other.glowPercentage)")
+        }
+        if local.filterPercentage != other.filterPercentage {
+            print(".filterPercentage \(local.filterPercentage) -> \(other.filterPercentage)")
+        }
+        if local.filter != other.filter {
+            print(".filter \(local.filter) -> \(other.filter)")
+        }
+        if local.body != other.body {
+            print(".body \(local.body) -> \(other.body)")
+        }
+        if local.ash != other.ash {
+            print(".ash \(local.ash) -> \(other.ash)")
+        }
+        if local.glow != other.glow {
+            print(".glow \(local.glow) -> \(other.glow)")
+        }
+        if local.background != other.background {
+            print(".background \(local.background) -> \(other.background)")
+        }
+    }
+    
     func decodeURL(_ url:URL) -> CigDesign? {
         
         var dataString:String = ""

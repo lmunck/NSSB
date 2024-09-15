@@ -8,8 +8,6 @@
 import SwiftUI
 import UserNotifications
 
-
-
 struct CigaretteView: View {
     
     // Menu
@@ -104,8 +102,9 @@ struct CigaretteView: View {
             }
             .background {
                 
+                let wave:CGFloat = sin((breakProgress ?? 0) * 300) * 0.5 + 0.5
                 let backWidth = self.height * 0.3
-                let backOpacity = 0.5 + (self.cigOpacity * 0.5)
+                let backOpacity = 0.5 * wave + (self.cigOpacity * 0.5)
                 
                 design.background
                     .mask(Ellipse())
@@ -205,18 +204,18 @@ struct CigaretteView: View {
             if self.data.breakStarted != nil {
                 self.breakProgress = nil
                 self.data.breakStarted = nil
-                setReminderForBreakEnded()
+                removeNotifications()
             } else {
                 self.data.breakStarted = Date.now
                 self.breakProgress = 0
-                removeNotifications()
+                setNotification()
             }
             //sendUpdate()
             
         }
     }
     
-    func setReminderForBreakEnded() {
+    func setNotification() {
         
         if let secondsLeft:Int = self.data.breakStarted?.breakSecondsLeft() {
             

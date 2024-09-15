@@ -46,15 +46,14 @@ struct MenuView: View {
                     if let cigURL = data.cigDesign.encodeURL() {
                         
                         ShareLink(item: cigURL, subject: Text("Try my custom non-smoke"), message: Text("Have a non-smoking smoke break with my custom non-smoking smoke\(data.cigDesign.title.isEmpty ? "." : ": \(data.cigDesign.title)")"), label: {
-                            Text(Image(systemName: "person.2.fill"))
-                                .font(.title3)
+                            Text(Image(systemName: "square.and.arrow.up"))
                         }).frame(width: buttonSize, height: buttonSize)
                     } else {
                         EmptyView().frame(width: buttonSize, height: buttonSize)
                     }
                 }
                 
-            }
+            }.foregroundStyle(Color.accent)
             
         }
         

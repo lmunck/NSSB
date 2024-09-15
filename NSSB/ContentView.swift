@@ -82,9 +82,9 @@ struct ContentView: View {
                 .animation(.easeOut(duration: 0.2), value: menu)
                 
                 
-                Image(systemName: "circle.fill")
+                /*Image(systemName: "circle.fill")
                     .foregroundStyle(model.connected ? Color.green : Color.red)
-                    .frame(maxWidth: .infinity, maxHeight:.infinity, alignment: .topLeading)
+                    .frame(maxWidth: .infinity, maxHeight:.infinity, alignment: .topLeading)*/
                 
                 
                 

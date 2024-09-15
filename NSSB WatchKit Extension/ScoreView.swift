@@ -21,14 +21,14 @@ struct ScoreView: View {
                 
                 if data.costPer20 == 0 || showAlternate == false {
                     VStack(alignment: .leading, spacing: -5) {
-                        Text("\(data.breaksToday)")
+                        Text("\(data.breaksToday())")
                             .font(.largeTitle).foregroundColor(.white)
                         Text("Breaks")
                     }
                     .transition(.move(edge: .leading).combined(with: .opacity))
                 } else {
                     VStack(alignment: .leading, spacing: -5) {
-                        Text("\(data.savingsToday, specifier: "%.0f")")
+                        Text("\(data.savingsToday(), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
                         if #available(watchOS 9, *) {
                             Text("\(Locale.current.currency?.identifier ?? "")")
@@ -43,11 +43,9 @@ struct ScoreView: View {
             }
             .background()
             .contentShape(Rectangle())
-            .onLongPressGesture(minimumDuration: 10, pressing: { inProgress in
-                if inProgress { showAlternate = true } else { showAlternate = false }
-                }) {
-                    showAlternate = false
-                }
+            .onTapGesture {
+                showAlternate.toggle()
+            }
             
             Spacer()
             
@@ -56,14 +54,14 @@ struct ScoreView: View {
                 
                 if data.costPer20 == 0 || showAlternate == false {
                     VStack(alignment: .trailing, spacing: -5) {
-                        Text("\(data.breaksTotal)")
+                        Text("\(data.breaksTotal())")
                             .font(.largeTitle).foregroundColor(.white)
                         Text("Breaks")
                     }
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
                     VStack(alignment: .trailing, spacing: -5) {
-                        Text("\(data.savingsTotal, specifier: "%.0f")")
+                        Text("\(data.savingsTotal(), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
                         if #available(watchOS 9, *) {
                             Text("\(Locale.current.currency?.identifier ?? "")")
@@ -84,7 +82,7 @@ struct ScoreView: View {
         }
         .font(.footnote)
         .animation(.easeInOut(duration: 0.4), value: showAlternate)
-        .onChange(of: data.breaksToday, perform: { value in
+        .onChange(of: data.breaksToday(), perform: { value in
             print("Breaks today \(value)")
         })
         
