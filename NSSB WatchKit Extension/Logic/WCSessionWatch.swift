@@ -31,9 +31,7 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         
         // Load data
         if let loadedData = functions.load() {
-            self.updateData(to: loadedData) {
-                
-            }
+            self.data = loadedData
         }
     }
     

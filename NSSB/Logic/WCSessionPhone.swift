@@ -31,9 +31,10 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         
         // Load data
         if let loadedData = functions.load() {
-            self.updateData(to: loadedData) {
-                
-            }
+            print("Loaded data \(loadedData.breaks.count)")
+            self.data = loadedData
+        } else {
+            print("Load failed")
         }
     }
     

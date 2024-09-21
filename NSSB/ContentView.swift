@@ -77,10 +77,9 @@ struct ContentView: View {
                     }
                     .frame(width: geo.size.width)
                 
-                    ScoreView(data: model.data)
+                    ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)
                 }
                 .animation(.easeOut(duration: 0.2), value: menu)
-                
                 
                 /*Image(systemName: "circle.fill")
                     .foregroundStyle(model.connected ? Color.green : Color.red)

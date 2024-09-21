@@ -22,6 +22,7 @@ class CodingFunctions {
     
     func load() -> NonSmokingData? {
         
+        
         if let fileURL = getURL() {
             
             do {
@@ -38,9 +39,16 @@ class CodingFunctions {
         }
         
         func legacyLoad() -> NonSmokingData? {
+            
+            print("Legacy load")
+            
             if let loadData = UserDefaults.standard.data(forKey: "smokeData") {
                 
+                print("legacyLoad() - Found save data")
+                
                 if let object = decodeLegacy(from: loadData) {
+                    
+                    print("legacyLoad() - Decoded successfully")
                     
                     var newData = NonSmokingData(lastUpdate: Date.distantPast)
                     newData.breaks = object.cigDates
@@ -48,10 +56,15 @@ class CodingFunctions {
                     
                     return newData
                 } else {
+                    
+                    print("legacyLoad() - Decode failed")
                     return nil
                 }
                 
             } else {
+                
+                print("legacyLoad() - Save not found")
+                
                 return nil
             }
         }

@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ScoreView: View {
     
-    let data:NonSmokingData
+    let breaks:[Date]
+    let costPer20:Double
     
     @State private var showAlternate:Bool = false
     
@@ -19,16 +20,16 @@ struct ScoreView: View {
             VStack(alignment: .leading, spacing: -5) {
                 Text("Today")
                 
-                if data.costPer20 == 0 || showAlternate == false {
+                if costPer20 == 0 || showAlternate == false {
                     VStack(alignment: .leading, spacing: -5) {
-                        Text("\(data.breaksToday())")
+                        Text("\(breaks.breaksToday())")
                             .font(.largeTitle).foregroundColor(.white)
                         Text("Breaks")
                     }
                     .transition(.move(edge: .leading).combined(with: .opacity))
                 } else {
                     VStack(alignment: .leading, spacing: -5) {
-                        Text("\(data.savingsToday(), specifier: "%.0f")")
+                        Text("\(breaks.savingsToday(costPer20: costPer20), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
                         if #available(watchOS 9, *) {
                             Text("\(Locale.current.currency?.identifier ?? "")")
@@ -52,16 +53,16 @@ struct ScoreView: View {
             VStack(alignment: .trailing, spacing: -5) {
                 Text("Total")
                 
-                if data.costPer20 == 0 || showAlternate == false {
+                if costPer20 == 0 || showAlternate == false {
                     VStack(alignment: .trailing, spacing: -5) {
-                        Text("\(data.breaksTotal())")
+                        Text("\(breaks.breaksTotal())")
                             .font(.largeTitle).foregroundColor(.white)
                         Text("Breaks")
                     }
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 } else {
                     VStack(alignment: .trailing, spacing: -5) {
-                        Text("\(data.savingsTotal(), specifier: "%.0f")")
+                        Text("\(breaks.savingsTotal(costPer20: costPer20), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
                         if #available(watchOS 9, *) {
                             Text("\(Locale.current.currency?.identifier ?? "")")
@@ -82,13 +83,10 @@ struct ScoreView: View {
         }
         .font(.footnote)
         .animation(.easeInOut(duration: 0.4), value: showAlternate)
-        .onChange(of: data.breaksToday(), perform: { value in
-            print("Breaks today \(value)")
-        })
         
     }
 }
 
 #Preview {
-    ScoreView(data: NonSmokingData.example)
+    ScoreView(breaks: NonSmokingData.example.breaks, costPer20: NonSmokingData.example.costPer20)
 }

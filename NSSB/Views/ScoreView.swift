@@ -9,7 +9,8 @@ import SwiftUI
 
 struct ScoreView: View, KeyboardReadable {
     
-    var data:NonSmokingData
+    let breaks: [Date]
+    let costPer20: Double
     
     //@State private var perPack:Double = UserDefaults.standard.double(forKey: "perPackCosts")
     @State private var showAlternate:Bool = false
@@ -27,24 +28,24 @@ struct ScoreView: View, KeyboardReadable {
                 
             }
             
-            if showAlternate || data.costPer20 == 0 {
+            if showAlternate || costPer20 == 0 {
                 
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksToday())").foregroundColor(.white)
+                        Text("\(breaks.breaksToday())").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(breaks.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.breaksTotal())").foregroundColor(.white)
+                        Text("\(breaks.count)").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
@@ -58,19 +59,19 @@ struct ScoreView: View, KeyboardReadable {
                 GridRow {
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsToday(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(breaks.savingsToday(costPer20: costPer20), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
+                        Text("\(breaks.savingsDailyAvg(costPer20: costPer20), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(data.savingsTotal(), specifier: "%.0f")").foregroundColor(.white)
+                        Text("\(breaks.savingsTotal(costPer20: costPer20), specifier: "%.0f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
@@ -91,11 +92,14 @@ struct ScoreView: View, KeyboardReadable {
         }
         
     }
+    
+    
+    
 }
 
 struct ScoreView_Previews: PreviewProvider {
     static var previews: some View {
-        ScoreView(data: NonSmokingData.example).foregroundStyle(.gray).background(.black)
+        ScoreView(breaks: NonSmokingData.example.breaks, costPer20: NonSmokingData.example.costPer20).foregroundStyle(.gray).background(.black)
     }
 }
 

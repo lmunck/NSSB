@@ -26,7 +26,7 @@ struct ContentView: View {
                     data: $model.data
                 )
                 
-                ScoreView(data: model.data)
+                ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)
                 
                 if #available(watchOS 10.0, *) {
                     MenuView(data: $model.data)

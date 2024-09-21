@@ -9,7 +9,7 @@ import Foundation
 
 extension Date {
     
-    static var breakLength:Double = 300
+    static var breakLength:Double = 5
     
     var elapsedTime: Double {
         return abs(self.timeIntervalSinceNow)
@@ -55,34 +55,56 @@ extension Date {
 
 extension [Date] {
     
-    /*
-     func getActiveBreakDate() -> Date? {
-        return self.first(where: { $0.breakIsActive })
+    // Savings
+    func savingsToday(costPer20: Double) -> Double {
+        return Double(self.breaksToday()) * costPer20 / 20
+    }
+    func savingsDailyAvg(costPer20: Double) -> Double {
+        return Double(self.breaksDailyAvg()) * costPer20 / 20
+    }
+    func savingsTotal(costPer20: Double) -> Double {
+        return Double(self.breaksTotal()) * costPer20 / 20
     }
     
-    func getBreakProgress() -> Double? { /// 0 = just started, 1 = ended
+    // Breaks
+    func breaksToday() -> Int {
+        // Find todays cigarettes
+        let todayData = self.filter { NSCalendar.current.isDateInToday($0) }
         
-        if let index = self.firstIndex(where: { $0.breakIsActive }) {
-            let progress = self[index].breakProgress()
-            print("BreakProgress: \(progress)")
-            return progress
-        } else {
-            return nil
-        }
+        return todayData.count
     }
     
-    func getBreakSecondsLeft() -> Int? {
+    func breaksDailyAvg() -> Double {
         
-        if let index = self.firstIndex(where: { $0.breakIsActive }) {
-            let secondsLeft = self[index].breakSecondsLeft()
-            print("SecondsLeft: \(secondsLeft)")
-            return secondsLeft
+        let totalBreaks = breaksTotal()
+        
+        if let firstDate = self.min(by: { $0 < $1 }) {
+            
+            if let lastDate  = self.max(by: { $0 < $1 }) {
+                
+                let totalDays = Calendar(identifier: .gregorian).numberOfDaysBetween(firstDate, and: lastDate) + 1
+                
+                if totalDays != 0 {
+                    return Double(totalBreaks)/Double(totalDays)
+                } else {
+                    return -1
+                }
+                
+            } else {
+                return Double(breaksToday())
+            }
         } else {
-            return nil
+            return Double(breaksToday())
         }
         
     }
-     */
+    
+    func breaksTotal() -> Int {
+        return self.filter { $0.breakIsActive == false }.count
+    }
+    
+    
+    
     
     mutating func getNewDates(from newDateArray: [Date]) {
         
