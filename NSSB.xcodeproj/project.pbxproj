@@ -16,7 +16,6 @@
 		5C35E6FC2C5589BB0038574B /* ExtCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */; };
 		5C35E6FD2C5589BE0038574B /* ExtCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */; };
 		5C35E6FE2C558CA70038574B /* ExtDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6F92C5554B40038574B /* ExtDate.swift */; };
-		5C3941E52C3C6A3B001E828D /* CigDesignDocument.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */; };
 		5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
 		5C419BBC2C61233400B2AEE6 /* ScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C419BBB2C61233400B2AEE6 /* ScoreView.swift */; };
 		5C5F75FF2C958DC900DBD113 /* ExtSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */; };
@@ -62,8 +61,6 @@
 		68A14A672853844000154D84 /* CigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1D2843657E00529BB1 /* CigaretteView.swift */; };
 		68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
 		68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
-		68A14A7328561D5600154D84 /* WatchUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7228561D5600154D84 /* WatchUpdateModel.swift */; };
-		68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7228561D5600154D84 /* WatchUpdateModel.swift */; };
 		68A14A7B285CF5FB00154D84 /* SavingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7A285CF5FB00154D84 /* SavingsView.swift */; };
 		68A14A7D285CFE8500154D84 /* KeyboardPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */; };
 		68A14A812860F21F00154D84 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A802860F21F00154D84 /* Colors.swift */; };
@@ -115,7 +112,6 @@
 		5C26B0EA2C28AE21000036D5 /* CigDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesign.swift; sourceTree = "<group>"; };
 		5C35E6F92C5554B40038574B /* ExtDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtDate.swift; sourceTree = "<group>"; };
 		5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtCalendar.swift; sourceTree = "<group>"; };
-		5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesignDocument.swift; sourceTree = "<group>"; };
 		5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ShareCigaretteView.swift; sourceTree = "<group>"; };
 		5C419BBB2C61233400B2AEE6 /* ScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreView.swift; sourceTree = "<group>"; };
 		5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtSequence.swift; sourceTree = "<group>"; };
@@ -147,7 +143,6 @@
 		68A14A60285215BA00154D84 /* WCSessionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionWatch.swift; sourceTree = "<group>"; };
 		68A14A6428537E7C00154D84 /* Focus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Focus.swift; sourceTree = "<group>"; };
 		68A14A6D2854AA3000154D84 /* CodingFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingFunctions.swift; sourceTree = "<group>"; };
-		68A14A7228561D5600154D84 /* WatchUpdateModel.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WatchUpdateModel.swift; sourceTree = "<group>"; };
 		68A14A75285A5FD500154D84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		68A14A7A285CF5FB00154D84 /* SavingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsView.swift; sourceTree = "<group>"; };
 		68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardPublisher.swift; sourceTree = "<group>"; };
@@ -245,8 +240,6 @@
 				68372CB3284BE66E00607600 /* NonSmokingData.swift */,
 				5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */,
 				5C26B0EA2C28AE21000036D5 /* CigDesign.swift */,
-				5C3941E42C3C6A3B001E828D /* CigDesignDocument.swift */,
-				68A14A7228561D5600154D84 /* WatchUpdateModel.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -511,7 +504,6 @@
 				68D2FCE4284361E200529BB1 /* NSSBApp.swift in Sources */,
 				5CBF16792C45A4130011FC18 /* ExtString.swift in Sources */,
 				68A14A59285207D500154D84 /* AppMenu.swift in Sources */,
-				5C3941E52C3C6A3B001E828D /* CigDesignDocument.swift in Sources */,
 				5C9C83472C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */,
 				5C70C76C2C2F4E9D002A5201 /* HueSelectorView.swift in Sources */,
 				5CEC10F22C2B380200EAD79C /* CigaretteAshView.swift in Sources */,
@@ -531,7 +523,6 @@
 				5C964EE52C3EC2E8004A94D6 /* AppFonts.swift in Sources */,
 				5C6A3A5E2C3EFC2B0060C4C4 /* CigNamer.swift in Sources */,
 				5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */,
-				68A14A7328561D5600154D84 /* WatchUpdateModel.swift in Sources */,
 				5C35E6FA2C5554B40038574B /* ExtDate.swift in Sources */,
 				5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */,
 				68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */,
@@ -554,7 +545,6 @@
 				68A14A61285215BA00154D84 /* WCSessionWatch.swift in Sources */,
 				5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */,
 				68A14A672853844000154D84 /* CigaretteView.swift in Sources */,
-				68A14A74285628E800154D84 /* WatchUpdateModel.swift in Sources */,
 				5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */,
 				5C35E6FD2C5589BE0038574B /* ExtCalendar.swift in Sources */,
 				5CBF167A2C45A5990011FC18 /* ExtString.swift in Sources */,
@@ -792,7 +782,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;
@@ -828,7 +818,7 @@
 					"$(inherited)",
 					"@executable_path/Frameworks",
 				);
-				MARKETING_VERSION = 1.2;
+				MARKETING_VERSION = 1.3;
 				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB;
 				PRODUCT_NAME = "$(TARGET_NAME)";
 				SDKROOT = iphoneos;

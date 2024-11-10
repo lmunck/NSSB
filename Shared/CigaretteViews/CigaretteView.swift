@@ -102,7 +102,7 @@ struct CigaretteView: View {
             }
             .background {
                 
-                let wave:CGFloat = sin((breakProgress ?? 0) * 300) * 0.5 + 0.5
+                let wave:CGFloat = sin((breakProgress ?? 0) * Date.breakLength) * 0.5 + 0.5
                 let backWidth = self.height * 0.3
                 let backOpacity = 0.5 * wave + (self.cigOpacity * 0.5)
                 

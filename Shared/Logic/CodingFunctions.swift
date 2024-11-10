@@ -10,6 +10,7 @@ import Foundation
 class CodingFunctions {
     
     func save(_ saveData: NonSmokingData) {
+        
         if let fileURL = getURL() {
             do {
                 let data = try JSONEncoder().encode(saveData)
@@ -80,44 +81,6 @@ class CodingFunctions {
             return nil
         }
     }
-    
-    // Coding and Decoding
-    /*func decodeUpdate(from receivedData: Data) -> WatchUpdateModel? {
-        
-        do {
-            // Create JSON Decoder
-            let decoder = JSONDecoder()
-
-            // Decode Note
-            let loadedData = try decoder.decode(WatchUpdateModel.self, from: receivedData)
-
-            return loadedData
-            
-        } catch {
-            
-            print("Unable to Decode Data (\(error))")
-            return nil
-        }
-    }
-    
-    func encodeUpdate(from object: WatchUpdateModel) -> Data {
-        
-        do {
-            // Create JSON Encoder
-            let encoder = JSONEncoder()
-
-            // Encode Note
-            let data = try encoder.encode(object)
-
-            return data
-
-        } catch {
-            
-            print("Unable to Encode Array (\(error))")
-            return Data()
-        }
-        
-    }*/
     
     func decodeData(from data: Data) -> NonSmokingData? {
         

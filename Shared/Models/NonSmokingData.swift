@@ -8,7 +8,7 @@
 import Foundation
 import SwiftUI
 
-struct NonSmokingData:Codable, Equatable {
+struct NonSmokingData:Codable {
     
     // Breaks
     var breaks:[Date] = [] /// Variable
@@ -27,6 +27,20 @@ struct NonSmokingData:Codable, Equatable {
     // Calculations
     var lastUpdate: Date
     
+}
+
+extension NonSmokingData: Equatable {
+    static func ==(lhs: NonSmokingData, rhs: NonSmokingData) -> Bool {
+        
+        let lastUpdatesAreEqual = Calendar.current.isDate(lhs.lastUpdate, equalTo: rhs.lastUpdate, toGranularity: .second)
+        
+        return lhs.breaks == rhs.breaks &&
+        lhs.breakStarted == rhs.breakStarted &&
+        lhs.costPer20 == rhs.costPer20 &&
+        lhs.accentHue == rhs.accentHue &&
+        lhs.cigDesign == rhs.cigDesign &&
+        lastUpdatesAreEqual
+    }
 }
 
 // Calculated values
@@ -134,186 +148,93 @@ extension NonSmokingData {
         print("")
     }
     
+    
     func older(than receivedObject:NonSmokingData) -> Bool {
-        return self.lastUpdate < receivedObject.lastUpdate
+        let isSame:Bool = Calendar.current.isDate(self.lastUpdate, equalTo: receivedObject.lastUpdate, toGranularity: .second)
+        
+        if isSame { return false } else {
+            return self.lastUpdate < receivedObject.lastUpdate
+        }
     }
     
     func merge(from receivedObject:NonSmokingData) -> NonSmokingData? {
         
-        print("MERGE")
-        var selfObject = self
-        var wasUpdated = false
-        
-        let isOlder:Bool = selfObject.older(than: receivedObject)
-        print("merge() should check for updates: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
-        
-        if selfObject.breaks != receivedObject.breaks {
-            print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
-            for receivedBreak in receivedObject.breaks {
-                print("merge().receivedBreak:\(receivedBreak) - contains?\(selfObject.breaks.contains(receivedBreak)) - selfObject.breaks:\(selfObject.breaks)")
-                if selfObject.breaks.contains(receivedBreak) == false {
-                    print("merge().breaks: Added \(receivedBreak)")
-                    selfObject.breaks.append(receivedBreak)
+        if self != receivedObject {
+            
+            print("MERGE")
+            var selfObject = self
+            var wasUpdated = false
+            
+            let isOlder:Bool = selfObject.older(than: receivedObject)
+            print("merge() should check for updates: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
+            
+            if selfObject.breaks != receivedObject.breaks {
+                print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
+                for receivedBreak in receivedObject.breaks {
+                    print("merge().receivedBreak:\(receivedBreak) - contains?\(selfObject.breaks.contains(receivedBreak)) - selfObject.breaks:\(selfObject.breaks)")
+                    if selfObject.breaks.contains(receivedBreak) == false {
+                        print("merge().breaks: Added \(receivedBreak)")
+                        selfObject.breaks.append(receivedBreak)
+                        if wasUpdated != true { wasUpdated = true }
+                    }
+                }
+                selfObject.breaks = selfObject.breaks.uniqued()
+                selfObject.breaks = selfObject.breaks.sorted()
+            }
+            
+            if selfObject.breakStarted != receivedObject.breakStarted {
+                if isOlder {
+                    print("merge().breakStarted: \(String(describing: selfObject.breakStarted?.description)) -> \(String(describing: receivedObject.breakStarted?.description))")
                     if wasUpdated != true { wasUpdated = true }
+                    selfObject.breakStarted = receivedObject.breakStarted
                 }
             }
-            selfObject.breaks = selfObject.breaks.uniqued()
-            selfObject.breaks = selfObject.breaks.sorted()
-        }
-        
-        if selfObject.breakStarted != receivedObject.breakStarted {
-            if isOlder {
-                print("merge().breakStarted: \(String(describing: selfObject.breakStarted?.description)) -> \(String(describing: receivedObject.breakStarted?.description))")
-                if wasUpdated != true { wasUpdated = true }
-                selfObject.breakStarted = receivedObject.breakStarted
+            
+            if selfObject.costPer20 != receivedObject.costPer20 {
+                if isOlder {
+                    print("merge().costPer20: \(selfObject.costPer20) -> \(receivedObject.costPer20)")
+                    if wasUpdated != true { wasUpdated = true }
+                    selfObject.costPer20 = receivedObject.costPer20
+                }
             }
-        }
-        
-        if selfObject.costPer20 != receivedObject.costPer20 {
-            if isOlder {
-                print("merge().costPer20: \(selfObject.costPer20) -> \(receivedObject.costPer20)")
-                if wasUpdated != true { wasUpdated = true }
-                selfObject.costPer20 = receivedObject.costPer20
+            
+            if selfObject.accentHue != receivedObject.accentHue {
+                if isOlder {
+                    print("merge().accentHue: \(String(describing: selfObject.accentHue)) -> \(String(describing: receivedObject.accentHue))")
+                    if wasUpdated != true { wasUpdated = true }
+                    selfObject.accentHue = receivedObject.accentHue
+                }
             }
-        }
-        
-        if selfObject.accentHue != receivedObject.accentHue {
-            if isOlder {
-                print("merge().accentHue: \(String(describing: selfObject.accentHue)) -> \(String(describing: receivedObject.accentHue))")
-                if wasUpdated != true { wasUpdated = true }
-                selfObject.accentHue = receivedObject.accentHue
+            
+            if selfObject.cigDesign != receivedObject.cigDesign {
+                if isOlder {
+                    print("merge().cigDesign: \(selfObject.cigDesign.title) -> \(receivedObject.cigDesign.title)")
+                    if wasUpdated != true { wasUpdated = true }
+                    selfObject.cigDesign = receivedObject.cigDesign
+                }
             }
-        }
-        
-        if selfObject.cigDesign != receivedObject.cigDesign {
-            if isOlder {
-                print("merge().cigDesign: \(selfObject.cigDesign.title) -> \(receivedObject.cigDesign.title)")
-                if wasUpdated != true { wasUpdated = true }
-                selfObject.cigDesign = receivedObject.cigDesign
+            
+            if wasUpdated {
+                selfObject.lastUpdate = receivedObject.lastUpdate
+                
+                return selfObject
+            } else {
+                
+                print("merge() No updates")
+                return nil
             }
-        }
-        
-        if wasUpdated {
-            selfObject.lastUpdate = receivedObject.lastUpdate
-            return selfObject
+            
         } else {
+            
             print("merge() No updates")
             return nil
         }
-        /*if receivedObject != self {
-            
-            print("merge() - Received different from self ")
-            self.compare(to: receivedObject)
-            
-            var selfObject = self
-            
-            // Merge breaks
-            for receivedBreak in receivedObject.breaks {
-                if selfObject.breaks.contains(receivedBreak) == false {
-                    selfObject.breaks.append(receivedBreak)
-                    print("merge() - Added break")
-                }
-            }
-            
-            // If both have an lastUpdated value and the received is newer, update local
-            if let selfUpdated = self.lastUpdated {
-                if let receivedUpdated = receivedObject.lastUpdated {
-                    if receivedUpdated > selfUpdated {
-                        print("merge() - Both had lastUpdated value, but the received is newer, so updating locally")
-                        selfObject.cigDesign = receivedObject.cigDesign
-                        selfObject.costPer20 = receivedObject.costPer20
-                        selfObject.breakStarted = receivedObject.breakStarted
-                        selfObject.accentHue = receivedObject.accentHue
-                    }
-                }
-                
-                
-            // If only the received has a lastUpdated value, update local
-            } else if self.lastUpdated == nil && receivedObject.lastUpdated != nil {
-                selfObject.cigDesign = receivedObject.cigDesign
-                selfObject.costPer20 = receivedObject.costPer20
-                selfObject.breakStarted = receivedObject.breakStarted
-                selfObject.accentHue = receivedObject.accentHue
-                
-                
-                print("merge() - Only the received had last updated, so updating locallly")
-                
-            } else {
-                
-                
-                print("merge() - No LastUpdated values or lastUpdated values are equal: self.\(String(describing: self.lastUpdated?.description)) vs received:\(String(describing: receivedObject.lastUpdated?.description))")
-            }
-            
-            // Apply changes
-            return selfObject
-            
-        } else {
-            
-            print("merge() - No change detected")
-            return self
-        }
-        */
         
     }
-    
-    
-    /*func mergeData(from newData: NonSmokingData) -> NonSmokingData {
-        
-        let oldData = self
-        var mergedData = self
-        
-        if newData.cigDesign != oldData.cigDesign {
-            mergedData.cigDesign = newData.cigDesign
-        }
-        
-        let newBreaks = self.getNewBreaks(from: newData)
-        if newBreaks.isEmpty == false {
-            mergedData.breaks.append(contentsOf: newBreaks)
-        }
-        
-        return mergedData
-    }
-    
-    
-    func newBreaks(from data: NonSmokingData) -> [Date] {
-        
-        var newBreaks:[Date] = []
-        
-        
-        if self.breaks != data.breaks {
-            
-            // Check if new and not too close to existing break
-            for receivedBreak in data.breaks {
-                if self.breaks.contains(receivedBreak) == false {
-                    newBreaks.append(receivedBreak)
-                }
-            }
-            
-            print("newBreaks() - Found \(newBreaks.count)")
-            return newBreaks
-            
-        } else {
-            
-            print("newBreaks() - No changes")
-            return []
-        }
-    }*/
     
     
 }
 
-
-extension NonSmokingData {
-    
-    static func ==(lhs: NonSmokingData, rhs: NonSmokingData) -> Bool {
-        return lhs.breakStarted == rhs.breakStarted &&
-        lhs.breaks == rhs.breaks &&
-        lhs.costPer20 == rhs.costPer20 &&
-        lhs.accentHue == rhs.accentHue &&
-        lhs.cigDesign == rhs.cigDesign
-    }
-    
-}
 
 extension NonSmokingData {
     

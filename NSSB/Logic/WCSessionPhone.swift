@@ -30,6 +30,11 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         session.activate()
         
         // Load data
+        load()
+        
+    }
+    
+    func load() {
         if let loadedData = functions.load() {
             print("Loaded data \(loadedData.breaks.count)")
             self.data = loadedData
@@ -38,6 +43,9 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         }
     }
     
+    func save() {
+        functions.save(self.data)
+    }
     
     // MARK: Session
 
