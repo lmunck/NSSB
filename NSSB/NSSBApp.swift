@@ -17,6 +17,8 @@ struct NSSBApp: App {
     var body: some Scene {
         WindowGroup {
             ContentView()
+            
+            // Receive custom cigarette design from other user
                 .onOpenURL { url in
                    print("URL received: \(url)")
                     if let design:CigDesign = CigDesign().decodeURL(url) {
@@ -26,6 +28,8 @@ struct NSSBApp: App {
                         }
                     }
                 }
+            
+            // Save status if app moves to background
                 .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         model.load()
@@ -35,6 +39,8 @@ struct NSSBApp: App {
                         model.save()
                     }
                 }
+            
+            // Add model to environment for entire app
                 .environmentObject(model)
                 
         }

@@ -28,19 +28,3 @@ extension KeyboardReadable {
         .eraseToAnyPublisher()
     }
 }
-
-/*
- struct ContentView: View, KeyboardReadable {
-     
-     @State private var text: String = ""
-     @State private var isKeyboardVisible = false
-     
-     var body: some View {
-         TextField("Text", text: $text)
-             .onReceive(keyboardPublisher) { newIsKeyboardVisible in
-                 print("Is keyboard visible? ", newIsKeyboardVisible)
-                 isKeyboardVisible = newIsKeyboardVisible
-             }
-     }
- }
- */

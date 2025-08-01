@@ -5,6 +5,8 @@
 //  Created by Anders Munck on 25/06/2024.
 //
 
+// Extension for rounding corners on views
+
 import SwiftUI
 
 extension View {

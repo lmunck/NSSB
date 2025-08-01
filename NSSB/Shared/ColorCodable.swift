@@ -5,6 +5,8 @@
 //  Created by Anders Munck on 09/06/2024.
 //
 
+// Extension for making colors comply with Codable protocol so they can be stored as Data
+
 import Foundation
 import SwiftUI
 

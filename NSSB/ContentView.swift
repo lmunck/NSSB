@@ -18,10 +18,12 @@ struct ContentView: View {
     
     var body: some View {
         
+        // read screen geometry, size, scale, etc.
         GeometryReader { geo in
             
             ZStack {
                 
+                // View geometry
                 let cigHeight = geo.size.height * 0.7
                 let cigWidth = geo.size.width * 0.2
                 
@@ -42,20 +44,25 @@ struct ContentView: View {
                     return 1 - max(settingsOpacity, infoOpacity)
                 }
                 
+                // Background view
                 Color.black.edgesIgnoringSafeArea(.all)
                 
-                
-                
+                // Main view
                 VStack(spacing: 10) {
                     
+                    // Top menu
                     MenuView(menu: $menu)
                     
+                    // Center view
                     HStack(spacing: 0) {
+                        
                         
                         InfoView(menu: $menu, data: model.data)
                             .opacity(infoOpacity)
-                            .offset(x: self.offset - (1 - infoOpacity) * cigWidth, y: 0)
                             .frame(width: viewWidth)
+                        
+                        // offset when transparent
+                            .offset(x: self.offset - (1 - infoOpacity) * cigWidth, y: 0)
                         
                         CigaretteView(
                             menu: $menu,
@@ -72,19 +79,17 @@ struct ContentView: View {
                         SettingsView(menu: $menu, data: $model.data)
                             .opacity(settingsOpacity)
                             .frame(width: viewWidth)
+                        
+                        // offset when transparent
                             .offset(x: self.offset + (1 - settingsOpacity) * cigWidth, y: 0)
                         
                     }
                     .frame(width: geo.size.width)
                 
+                    // Score view
                     ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)
                 }
                 .animation(.easeOut(duration: 0.2), value: menu)
-                
-                /*Image(systemName: "circle.fill")
-                    .foregroundStyle(model.connected ? Color.green : Color.red)
-                    .frame(maxWidth: .infinity, maxHeight:.infinity, alignment: .topLeading)*/
-                
                 
                 
             }

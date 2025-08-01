@@ -5,6 +5,9 @@
 //  Created by Anders Munck on 09/06/2022.
 //
 
+// Main view-controller with logic for maintaining connection to Apple Watch and storing data
+// Complying with WCSessionDelegate is what allows Watch Connection and the Session functions, and the "only phone" section is because the other parts can be used on the watch as well
+
 import Foundation
 import WatchConnectivity
 

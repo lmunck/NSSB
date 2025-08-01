@@ -5,6 +5,8 @@
 //  Created by Anders Munck on 06/06/2022.
 //
 
+// Logic for managing reminders
+
 import Foundation
 import NotificationCenter
 

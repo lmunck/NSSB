@@ -5,6 +5,8 @@
 //  Created by Anders Munck on 09/07/2024.
 //
 
+// View extension for dragging views to update Binding. Used for main menu, where you drag cigarette to change menu state.
+
 import SwiftUI
 
 extension View {

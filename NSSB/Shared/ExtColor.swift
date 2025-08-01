@@ -5,6 +5,8 @@
 //  Created by Anders Munck on 26/06/2024.
 //
 
+// Extension for conversting between different color formats (Apple uses System Colors, but also RGB and HSB)
+
 import SwiftUI
 
 extension Color {

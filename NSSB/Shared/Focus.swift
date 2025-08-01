@@ -5,8 +5,9 @@
 //  Created by Anders Munck on 10/06/2022.
 //
 
-import SwiftUI
+// Custom view extension for animating views that are in focus
 
+import SwiftUI
 
 extension View {
     
@@ -75,12 +76,8 @@ struct FocusAnimation:AnimatableModifier {
     
     func startAnimation(_ active: Bool) {
         
-        //let animType = getAnimation().repeatForever()
-        
         if active {
-            //withAnimation(animType) {
                 animation = true
-            //}
             if duration != 0 {
                 DispatchQueue.main.asyncAfter(deadline: .now() + duration) {
                     withAnimation(.easeIn) {

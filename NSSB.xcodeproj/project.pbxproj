@@ -30,7 +30,6 @@
 		5C964EE52C3EC2E8004A94D6 /* AppFonts.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C964EE42C3EC2E8004A94D6 /* AppFonts.swift */; };
 		5C9C25382C161E9F0025191E /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
 		5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
-		5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253A2C16277E0025191E /* ColorPickerView.swift */; };
 		5C9C253D2C1629560025191E /* SettingsDesignView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C253C2C1629560025191E /* SettingsDesignView.swift */; };
 		5C9C83472C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */; };
 		5C9C83482C73CA1D0055A1CA /* NonSmokingData_v1.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */; };
@@ -123,7 +122,6 @@
 		5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CaptainIconView.swift; sourceTree = "<group>"; };
 		5C964EE42C3EC2E8004A94D6 /* AppFonts.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppFonts.swift; sourceTree = "<group>"; };
 		5C9C25372C161E9F0025191E /* ColorCodable.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorCodable.swift; sourceTree = "<group>"; };
-		5C9C253A2C16277E0025191E /* ColorPickerView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ColorPickerView.swift; sourceTree = "<group>"; };
 		5C9C253C2C1629560025191E /* SettingsDesignView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsDesignView.swift; sourceTree = "<group>"; };
 		5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NonSmokingData_v1.swift; sourceTree = "<group>"; };
 		5C9F18822C2C713600F96C32 /* ExtColor.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtColor.swift; sourceTree = "<group>"; };
@@ -225,7 +223,6 @@
 				68A14A6428537E7C00154D84 /* Focus.swift */,
 				68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */,
 				5C9C25372C161E9F0025191E /* ColorCodable.swift */,
-				5C9C253A2C16277E0025191E /* ColorPickerView.swift */,
 				5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */,
 				5C9F18822C2C713600F96C32 /* ExtColor.swift */,
 				5CE064792C3DC92F003B05DC /* DragToSelect.swift */,
@@ -524,7 +521,6 @@
 				5C6A3A5E2C3EFC2B0060C4C4 /* CigNamer.swift in Sources */,
 				5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */,
 				5C35E6FA2C5554B40038574B /* ExtDate.swift in Sources */,
-				5C9C253B2C16277E0025191E /* ColorPickerView.swift in Sources */,
 				68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */,
 				68EE927928474A7500E90BDB /* InfoView.swift in Sources */,
 				5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */,
