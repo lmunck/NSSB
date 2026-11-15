@@ -7,6 +7,7 @@
 
 import SwiftUI
 import UserNotifications
+import Combine
 
 struct CigaretteView: View {
     
@@ -206,7 +207,21 @@ struct CigaretteView: View {
                 self.data.breakStarted = nil
                 removeNotifications()
             } else {
-                self.data.breakStarted = Date.now
+                
+                // A cigarette needs a name before it can stand in the
+                // courtyard, and plenty of people never open Customize. Roll
+                // one here rather than publishing a nameless cigarette.
+                //
+                // Set in the same mutation as breakStarted, so the name is
+                // already in place by the time anything observes the break
+                // starting - otherwise presence publishes the empty title.
+                var temp = self.data
+                if temp.cigDesign.title.isEmpty {
+                    temp.cigDesign.title = randomCigaretteName()
+                }
+                temp.breakStarted = Date.now
+                self.data = temp
+                
                 self.breakProgress = 0
                 setNotification()
             }
