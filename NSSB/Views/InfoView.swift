@@ -59,7 +59,7 @@ struct InfoView: View {
 
 struct InfoView_Previews: PreviewProvider {
     static var previews: some View {
-        InfoView(menu: .constant(.settings), data: NonSmokingData.example)
+        InfoView(menu: .constant(.info), data: NonSmokingData.example)
     }
 }
 

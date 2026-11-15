@@ -56,17 +56,17 @@ struct DragToSelect: ViewModifier {
             let dragRight = gesture.translation.width > 0
             
             if dragRight {
-                if menu == .info {
-                    menu = .cigarette
-                } else if menu == .cigarette {
-                    menu = .settings
-                }
-                resetOffset()
-            } else {
                 if menu == .settings {
                     menu = .cigarette
                 } else if menu == .cigarette {
                     menu = .info
+                }
+                resetOffset()
+            } else {
+                if menu == .info {
+                    menu = .cigarette
+                } else if menu == .cigarette {
+                    menu = .settings
                 }
                 resetOffset()
             }
@@ -86,8 +86,8 @@ struct DragToSelect: ViewModifier {
     func initOffset() -> CGFloat {
         switch self.menu {
         case .cigarette:    return 0
-        case .info:         return -self.snapOffset
-        case .settings:     return self.snapOffset
+        case .settings:         return -self.snapOffset
+        case .info:     return self.snapOffset
         }
     }
 }

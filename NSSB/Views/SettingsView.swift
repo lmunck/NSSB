@@ -36,7 +36,7 @@ struct SettingsView: View {
 
 struct SettingsView_Previews: PreviewProvider {
     static var previews: some View {
-        SettingsView(menu: .constant(.info), data: .constant(NonSmokingData.example))
+        SettingsView(menu: .constant(.settings), data: .constant(NonSmokingData.example))
     }
 }
 

@@ -15,24 +15,24 @@ struct MenuView: View {
         
         HStack {
             
-            Label("Info", systemImage: menu == .settings ? "info.circle.fill" : "info.circle")
-                .labelStyle(.iconOnly)
-                .font(.largeTitle)
-                .foregroundColor(.accent)
-                .contentShape(Rectangle())
-                .onTapGesture {
-                    if menu == .settings { menu = .cigarette } else { menu = .settings }
-                }
-            
-            Spacer()
-            
-            Label("Settings", systemImage: menu == .info ? "gearshape.fill" : "gearshape")
+            Label("Info", systemImage: menu == .info ? "info.circle.fill" : "info.circle")
                 .labelStyle(.iconOnly)
                 .font(.largeTitle)
                 .foregroundColor(.accent)
                 .contentShape(Rectangle())
                 .onTapGesture {
                     if menu == .info { menu = .cigarette } else { menu = .info }
+                }
+            
+            Spacer()
+            
+            Label("Settings", systemImage: menu == .settings ? "gearshape.fill" : "gearshape")
+                .labelStyle(.iconOnly)
+                .font(.largeTitle)
+                .foregroundColor(.accent)
+                .contentShape(Rectangle())
+                .onTapGesture {
+                    if menu == .settings { menu = .cigarette } else { menu = .settings }
                 }
             
         }
