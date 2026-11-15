@@ -48,6 +48,18 @@ struct InfoView: View {
                     
                     VStack(alignment: .leading, spacing: 10) {
                         
+                        Text("Got a light?").font(.headline)
+                        
+                        Text("Before you light up, you can ask the courtyard for a light. The ask goes out to everyone whose cigarette is burning - never to one person, so nobody is singled out and nobody has to turn anybody down.")
+                        
+                        Text("Whoever answers first lights your cigarette, and the two tips touch. If nobody answers within eight seconds, you light your own, which is what happens most times in real life anyway.")
+                        
+                        Text("While you are lit you will see anyone out there standing with an unlit cigarette, waiting. Giving them a light costs you nothing, takes nothing off your own cigarette, and tells them no more about you than the courtyard already does. There is still no way to reach anybody, before or afterwards.")
+                    }
+                    
+                    
+                    VStack(alignment: .leading, spacing: 10) {
+                        
                         Text("v1.2 Update").font(.headline)
                         
                         Text("Thankyouthankyouthankyou for all your downloads and great feedback!")

@@ -58,6 +58,14 @@ final class PresenceRepository: ObservableObject {
     /// answers, so a light that arrives at 7.9 seconds is not thrown away.
     private var askTimeout: Task<Void, Never>?
     
+    /// The handoff is an animation, and an animation can be interrupted - the
+    /// app backgrounded, the view torn down. The gift was still given, so
+    /// this moves the state on by itself if nothing told it the ceremony
+    /// finished. Comfortably longer than the animation, which is about two
+    /// and a half seconds.
+    private var handoffNet: Task<Void, Never>?
+    private var offerNet: Task<Void, Never>?
+    
     /// Survives being killed mid-break. Without it, a relaunch publishes a
     /// second document for the same cigarette and the user appears twice in
     /// their own courtyard until the first one times out.
@@ -402,6 +410,7 @@ final class PresenceRepository: ObservableObject {
         
         print("Presence - \(giver.name) gave you a light")
         self.ask = .lit(by: giver)
+        armHandoffNet(giver: giver)
         
         // Answered means finished. Nothing is left behind, and nobody else
         // can offer a light to an ask that has already been granted.
@@ -437,7 +446,24 @@ final class PresenceRepository: ObservableObject {
     
     /// The handoff has played out. From here the cigarette is just lit.
     func handoffFinished() {
+        handoffNet?.cancel()
+        handoffNet = nil
         guard case .lit(let giver) = ask else { return }
+        self.ask = .done(givenBy: giver)
+    }
+    
+    private func armHandoffNet(giver: AskGiver) {
+        handoffNet?.cancel()
+        handoffNet = Task { [weak self] in
+            try? await Task.sleep(nanoseconds: 6_000_000_000)
+            guard Task.isCancelled == false else { return }
+            self?.forceHandoffFinished(giver: giver)
+        }
+    }
+    
+    private func forceHandoffFinished(giver: AskGiver) {
+        guard case .lit = ask else { return }
+        print("Presence - the handoff never finished, moving on without it")
         self.ask = .done(givenBy: giver)
     }
     
@@ -492,6 +518,15 @@ final class PresenceRepository: ObservableObject {
             print("Presence - gave \(wanted.name) a light")
             self.giving = wanted
             
+            // Same net as the asking side: an interrupted animation must not
+            // leave you unable to give anybody else a light.
+            offerNet?.cancel()
+            offerNet = Task { [weak self] in
+                try? await Task.sleep(nanoseconds: 6_000_000_000)
+                guard Task.isCancelled == false else { return }
+                self?.offerFinished()
+            }
+            
         } catch {
             // Somebody was quicker, or the ask expired between the tap and
             // the write. Either way it is no longer there to answer.
@@ -502,6 +537,8 @@ final class PresenceRepository: ObservableObject {
     
     /// Their cigarette caught and the handoff is over.
     func offerFinished() {
+        offerNet?.cancel()
+        offerNet = nil
         self.giving = nil
     }
 }

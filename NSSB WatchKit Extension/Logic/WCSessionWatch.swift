@@ -7,6 +7,7 @@
 
 import Foundation
 import WatchConnectivity
+import WatchKit
 
 class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     
@@ -69,6 +70,25 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         
     }
     
+    
+    /// Somebody in the courtyard gave the phone a light.
+    ///
+    /// The courtyard itself is phone-only and should stay that way - there is
+    /// no room on a watch for a room full of people, and a glance at your
+    /// wrist is not the moment for one. But a stranger lighting your
+    /// cigarette is worth a tap on the wrist, so that is all that crosses.
+    func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
+        
+        guard message[WatchEventKeys.key] as? String == WatchEventKeys.litByStranger else {
+            print("Session - unknown message, ignored")
+            return
+        }
+        
+        print("Session - somebody gave us a light")
+        DispatchQueue.main.async {
+            WKInterfaceDevice.current().play(.notification)
+        }
+    }
     
     func connectionUpdate(_ newState: Bool) {
         if self.connected != newState {
@@ -185,4 +205,12 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         }
         
     }
+}
+
+/// The phone's side of this lives in WCSessionPhone.WatchEvent. Two constants
+/// rather than a shared file, because WCSessionPhone is not built for the
+/// watch and a shared type for one string each way would be the wrong trade.
+enum WatchEventKeys {
+    static let key = "event"
+    static let litByStranger = "litByStranger"
 }

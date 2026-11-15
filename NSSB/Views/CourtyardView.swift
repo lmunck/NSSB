@@ -22,6 +22,12 @@ struct CourtyardView: View {
     /// nothing on screen claims someone is present who is not.
     let echoes: [BreakPresence]
     
+    /// People standing out here with an unlit cigarette, asking.
+    ///
+    /// Drawn last, over everyone else, because an ask is the one thing in
+    /// this courtyard that wants answering.
+    let asks: [BreakAsk]
+    
     /// The height of your own cigarette, which everything else is sized
     /// against so the courtyard scales with the screen.
     let referenceHeight: CGFloat
@@ -32,6 +38,10 @@ struct CourtyardView: View {
     private let clock = Timer.publish(every: 2, on: .main, in: .common).autoconnect()
     
     @Binding var selected: BreakPresence?
+    
+    /// The ask you tapped, if any. Separate from `selected`, because an ask
+    /// opens a card with a button on it rather than a card you only read.
+    @Binding var selectedAsk: BreakAsk?
     
     var body: some View {
         
@@ -82,11 +92,99 @@ struct CourtyardView: View {
                     }
                     .transition(.opacity)
                 }
+                
+                // Filtered by the clock as well as by the query. The
+                // courtyard listener's range was fixed when it attached, so
+                // an ask whose owner never came back to delete it would
+                // otherwise stand there asking forever; this way it goes out
+                // within a tick of its eight seconds either way.
+                ForEach(asks.filter { $0.isOpen(at: now) }) { ask in
+                    
+                    let spot = Courtyard.position(for: ask.id)
+                    
+                    AskingCigaretteView(
+                        ask: ask,
+                        height: referenceHeight * (0.17 + spot.depth * 0.25)
+                    )
+                    .position(
+                        x: geo.size.width * spot.x,
+                        y: geo.size.height * spot.y
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            selectedAsk = (selectedAsk?.id == ask.id) ? nil : ask
+                        }
+                    }
+                    .transition(.opacity)
+                }
             }
             .animation(.easeInOut(duration: 0.6), value: others.map(\.id))
+            .animation(.easeInOut(duration: 0.4), value: asks.map(\.id))
         }
         .allowsHitTesting(true)
         .onReceive(clock) { now = $0 }
+    }
+}
+
+/// Somebody standing out here with an unlit cigarette.
+///
+/// A dark cigarette in a dark courtyard is almost nothing to look at, which
+/// is the problem: it has eight seconds to be noticed. So it breathes - a
+/// halo in their own accent colour, widening and fading, the way you notice
+/// somebody shifting their weight across a car park rather than the way you
+/// notice an alarm.
+///
+/// Nothing warm anywhere near the tip. Their cigarette is not lit, and the
+/// whole point of the next few seconds is that it could be.
+struct AskingCigaretteView: View {
+    
+    let ask: BreakAsk
+    let height: CGFloat
+    
+    @State private var breath: Double = 0
+    
+    /// Runs down with the ask itself, so the halo is at its most visible the
+    /// moment the question is asked and has almost nothing left by the time
+    /// it goes unanswered. Driven by the document's own expiresAt rather than
+    /// by a timer, so it is honest about how long is actually left.
+    @State private var left: Double = 1
+    
+    var body: some View {
+        
+        ZStack {
+            
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [ask.design.background.opacity(0.5), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: height * 0.42
+                    )
+                )
+                .frame(width: height * 0.9, height: height * 0.9)
+                .scaleEffect(0.8 + breath * 0.35)
+                .opacity((0.45 + breath * 0.55) * left)
+                .blur(radius: height * 0.05)
+            
+            DistantCigaretteView(
+                design: ask.design,
+                progress: 0,
+                height: height,
+                lit: false
+            )
+            // Dimmer than a lit stranger, because there is no ember to carry
+            // it - but never so dim that it is a smudge.
+            .opacity(0.45 + 0.3 * left)
+        }
+        .onAppear {
+            withAnimation(.easeInOut(duration: 0.9).repeatForever(autoreverses: true)) {
+                breath = 1
+            }
+            withAnimation(.easeIn(duration: max(ask.expiresAt.timeIntervalSinceNow, 0.2))) {
+                left = 0
+            }
+        }
     }
 }
 
@@ -166,7 +264,7 @@ struct CourtyardDetailView: View {
     }
 }
 
-extension BreakPresence {
+extension CourtyardStranger {
     
     /// A flag from the region code, never from GPS. Nil when they chose not
     /// to say, or when the code is not a region we can render.

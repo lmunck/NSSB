@@ -27,7 +27,34 @@ enum BreakOwner {
     }
 }
 
-struct BreakPresence: Codable, Equatable, Identifiable {
+/// What anybody in the courtyard is ever told about somebody else: a rolled
+/// name, a region code they may have withheld, and an offset from GMT. Never a
+/// city, never a distance, never GPS.
+///
+/// Shared by a live break and an ask for a light, because both stand in the
+/// same courtyard and are told the same way.
+protocol CourtyardStranger {
+    var name: String { get }
+    var country: String? { get }
+    var tzOffset: Int { get }
+}
+
+extension CourtyardStranger {
+    
+    /// "06:41" where they are. The cheapest detail in the whole feature and
+    /// the one that does the most work.
+    func localTimeString(at now: Date = .now) -> String {
+        
+        var calendar = Calendar(identifier: .gregorian)
+        calendar.timeZone = TimeZone(secondsFromGMT: tzOffset) ?? .gmt
+        
+        let parts = calendar.dateComponents([.hour, .minute], from: now)
+        
+        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
+    }
+}
+
+struct BreakPresence: Codable, Equatable, Identifiable, CourtyardStranger {
     
     /// Identifies the break, never the person. A new one every time, so two
     /// breaks by the same user cannot be linked together by anyone reading.
@@ -113,15 +140,4 @@ extension BreakPresence {
         now < endsAt
     }
     
-    /// "06:41" where they are. The cheapest detail in the whole feature and
-    /// the one that does the most work.
-    func localTimeString(at now: Date = .now) -> String {
-        
-        var calendar = Calendar(identifier: .gregorian)
-        calendar.timeZone = TimeZone(secondsFromGMT: tzOffset) ?? .gmt
-        
-        let parts = calendar.dateComponents([.hour, .minute], from: now)
-        
-        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
-    }
 }

@@ -18,7 +18,7 @@
 
 import Foundation
 
-struct BreakAsk: Codable, Equatable, Identifiable {
+struct BreakAsk: Codable, Equatable, Identifiable, CourtyardStranger {
     
     let id: String
     

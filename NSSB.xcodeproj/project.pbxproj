@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		C0117A00000000000000000D /* HandoffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000C /* HandoffView.swift */; };
+		C0117A00000000000000000B /* AskForALightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000A /* AskForALightView.swift */; };
 		DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000005 /* AskStateMachineTests.swift */; };
 		DEC0DE100000000000000004 /* AskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000003 /* AskTests.swift */; };
 		CD0FACE0000000000000000B /* BreakAsk.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE0000000000000000A /* BreakAsk.swift */; };
@@ -133,6 +135,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		C0117A00000000000000000C /* HandoffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandoffView.swift; sourceTree = "<group>"; };
+		C0117A00000000000000000A /* AskForALightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskForALightView.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000005 /* AskStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskStateMachineTests.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000003 /* AskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskTests.swift; sourceTree = "<group>"; };
 		CD0FACE0000000000000000A /* BreakAsk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakAsk.swift; sourceTree = "<group>"; };
@@ -452,6 +456,8 @@
 		68D2FD1C2843656700529BB1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C0117A00000000000000000C /* HandoffView.swift */,
+				C0117A00000000000000000A /* AskForALightView.swift */,
 				C0117A000000000000000003 /* CourtyardView.swift */,
 				C0117A000000000000000001 /* DistantCigaretteView.swift */,
 				C0A17A000000000000000001 /* CourtyardCountView.swift */,
@@ -634,6 +640,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				C0117A00000000000000000D /* HandoffView.swift in Sources */,
+				C0117A00000000000000000B /* AskForALightView.swift in Sources */,
 				CD0FACE0000000000000000B /* BreakAsk.swift in Sources */,
 				68A14A812860F21F00154D84 /* Colors.swift in Sources */,
 				5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */,

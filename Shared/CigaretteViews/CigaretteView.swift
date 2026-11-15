@@ -14,6 +14,16 @@ struct CigaretteView: View {
     // Menu
     @Binding var menu:AppMenu
     var cigOpacity:CGFloat = 1
+    
+    /// Somebody in the courtyard gave you a light.
+    ///
+    /// Set from outside when the two tips touch, and the cigarette lights
+    /// itself exactly as a tap would - including the notification at the end
+    /// of the break, which is the one thing lighting up sets up that nothing
+    /// else does. Nil everywhere else, and always nil on the watch, which has
+    /// no courtyard.
+    var litByStranger:Date? = nil
+    
     @State private var appeared:Bool = false
     
     // Cigarette design
@@ -139,6 +149,11 @@ struct CigaretteView: View {
         .onChange(of: data.breakStarted, perform: { _ in
             updateSmokebreak()
         })
+        .onChange(of: litByStranger, perform: { arrived in
+            // Only ever lights, never puts out: a gift cannot stub out a
+            // cigarette you had already lit yourself.
+            if arrived != nil, data.breakStarted == nil { lightUp() }
+        })
         .onReceive(timer, perform: { _ in
            updateSmokebreak()
         })
@@ -207,27 +222,32 @@ struct CigaretteView: View {
                 self.data.breakStarted = nil
                 removeNotifications()
             } else {
-                
-                // A cigarette needs a name before it can stand in the
-                // courtyard, and plenty of people never open Customize. Roll
-                // one here rather than publishing a nameless cigarette.
-                //
-                // Set in the same mutation as breakStarted, so the name is
-                // already in place by the time anything observes the break
-                // starting - otherwise presence publishes the empty title.
-                var temp = self.data
-                if temp.cigDesign.title.isEmpty {
-                    temp.cigDesign.title = randomCigaretteName()
-                }
-                temp.breakStarted = Date.now
-                self.data = temp
-                
-                self.breakProgress = 0
-                setNotification()
+                lightUp()
             }
             //sendUpdate()
             
         }
+    }
+    
+    /// Lights the cigarette. One place, whether it was a tap or a stranger.
+    func lightUp() {
+        
+        // A cigarette needs a name before it can stand in the courtyard, and
+        // plenty of people never open Customize. Roll one here rather than
+        // publishing a nameless cigarette.
+        //
+        // Set in the same mutation as breakStarted, so the name is already in
+        // place by the time anything observes the break starting - otherwise
+        // presence publishes the empty title.
+        var temp = self.data
+        if temp.cigDesign.title.isEmpty {
+            temp.cigDesign.title = randomCigaretteName()
+        }
+        temp.breakStarted = Date.now
+        self.data = temp
+        
+        self.breakProgress = 0
+        setNotification()
     }
     
     func setNotification() {

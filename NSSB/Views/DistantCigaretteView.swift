@@ -20,13 +20,19 @@ struct DistantCigaretteView: View {
     
     let height: CGFloat
     
+    /// False for somebody standing there with an unlit cigarette, asking.
+    /// The ember is simply absent - no grey stand-in for it, because an
+    /// unlit cigarette is exactly a cigarette with nothing at the end.
+    var lit: Bool = true
+    
     private var width: CGFloat { max(1, height * design.widthPercentage) }
-    private var glowHeight: CGFloat { height * design.glowPercentage }
+    private var glowHeight: CGFloat { lit ? height * design.glowPercentage : 0 }
     private var filterHeight: CGFloat { height * design.filterPercentage }
     
     /// The body is what burns away.
     private var bodyHeight: CGFloat {
         let full = (design.bodyPercentage + design.glowPercentage) * height - glowHeight
+        guard lit else { return full }
         return max(0, full - full * progress)
     }
     
@@ -45,10 +51,12 @@ struct DistantCigaretteView: View {
             
             // The lit tip. A plain glow rather than the full ember - at this
             // size the detail is noise, and it would animate twenty times over.
-            RoundedRectangle(cornerRadius: width * 0.2)
-                .fill(design.glow)
-                .frame(width: width, height: glowHeight)
-                .shadow(color: design.glow.opacity(0.9), radius: width * 0.9)
+            if lit {
+                RoundedRectangle(cornerRadius: width * 0.2)
+                    .fill(design.glow)
+                    .frame(width: width, height: glowHeight)
+                    .shadow(color: design.glow.opacity(0.9), radius: width * 0.9)
+            }
             
             LinearGradient(gradient: Gradient(colors: design.bodyArray),
                            startPoint: .leading, endPoint: .trailing)
@@ -62,8 +70,23 @@ struct DistantCigaretteView: View {
     }
 }
 
+extension CigDesign {
+    
+    /// How far down a cigarette of this height the lit end sits.
+    ///
+    /// What has burned away is empty space above the ember, so the ember
+    /// travels down as the cigarette goes - which is why a handoff has to ask
+    /// where the tip is rather than assume it is at the top. Falls out of the
+    /// same arithmetic the views use: the three parts add up to 1, so the gap
+    /// above is exactly the burnt share of the body.
+    func tipOffset(height: CGFloat, progress: Double) -> CGFloat {
+        height * bodyPercentage * min(max(progress, 0), 1)
+    }
+}
+
 #Preview {
     HStack(spacing: 30) {
+        DistantCigaretteView(design: CigDesign(), progress: 0, height: 90, lit: false)
         DistantCigaretteView(design: CigDesign(), progress: 0.1, height: 90)
         DistantCigaretteView(design: getRandom(), progress: 0.5, height: 70)
         DistantCigaretteView(design: getRandom(), progress: 0.9, height: 110)

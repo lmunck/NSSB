@@ -91,6 +91,39 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     }
     
     
+    // MARK: Got a light?
+    
+    /// Taps the wrist when somebody in the courtyard answered your ask.
+    ///
+    /// Deliberately not queued. transferUserInfo would deliver this later,
+    /// and a tap on the wrist ten minutes after the fact is not a message
+    /// about somebody lighting your cigarette - it is a stranger tapping you
+    /// for no reason. So if the watch is not there, nothing happens.
+    ///
+    /// No payload beyond the event. The watch has no courtyard, knows nobody
+    /// out there, and does not need to.
+    func tellWatchYouWereLit() {
+        
+        guard session.isReachable else {
+            print("Session - watch not reachable, no haptic")
+            return
+        }
+        
+        session.sendMessage(
+            [WatchEvent.key: WatchEvent.litByStranger],
+            replyHandler: nil,
+            errorHandler: { error in
+                print("Session - haptic not delivered: \(error.localizedDescription)")
+            }
+        )
+    }
+    
+    /// The one thing the phone ever says to the watch that is not data.
+    enum WatchEvent {
+        static let key = "event"
+        static let litByStranger = "litByStranger"
+    }
+    
     // MARK: Only Phone
     func sessionDidBecomeInactive(_ session: WCSession) {
         connectionUpdate(session.isReachable)

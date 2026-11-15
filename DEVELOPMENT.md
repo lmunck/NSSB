@@ -39,6 +39,16 @@ They cover the things that are hard to notice going wrong:
   share URLs and Firestore.
 - **Break statistics** — that a cigarette still burning is not yet counted,
   and that an empty history does not produce NaN.
+- **Asking for a light** — the document (eight seconds, lowercase-hex asker
+  hash, open until claimed or expired, the giver's burn position surviving the
+  wire) and the state machine driven end to end against
+  `SimulatedPresenceService`: a light arriving at the last moment is not
+  thrown away by the timeout, lighting your own takes the ask down, an
+  answered ask leaves no document behind, and only the first light counts.
+
+`BreakAsk.window` is a `var` for the same reason `Date.breakLength` is one —
+so the eight seconds can be tested without a test spending eight seconds.
+Nothing in the app assigns to it.
 
 ## Simulators
 
@@ -54,6 +64,14 @@ Both devices have to be booted for the pair to show `(active, connected)`.
 Without it, `session.isReachable` is always false and sync silently does
 nothing - which is why phone/watch sync went unverified for a long time.
 
+An active, connected pair is necessary but apparently not sufficient: as of
+this writing both apps run in the foreground on a paired, connected pair and
+`isReachable` is still false in both directions, so nothing crosses — neither
+the data sync nor the "somebody gave you a light" haptic. Both are written
+against the same `WCSession`, so when one works the other does. On a real
+phone and watch this is the normal case; between simulators it is a coin
+toss.
+
 ## Firebase
 
 See `firebase/README.md`. Short version: the app runs without any of it, on a
@@ -65,6 +83,22 @@ package are both present.
 `firebase/firestore.rules` is load-bearing and currently has no automated
 tests. The standard approach is `@firebase/rules-unit-testing` against the
 Firestore emulator, but the emulator needs a Java runtime and this machine has
-none. Installing a JDK is the only blocker; until then, rules changes are
-verified by deploying them and exercising the real app against the real
-project, which catches behaviour but not edge cases.
+none. Installing a JDK is the only blocker.
+
+Until then, a rules change is verified against the live project instead, which
+is less convenient but not much weaker: sign in anonymously two or three times
+over the Identity Toolkit REST API, write scratch documents with the Firestore
+REST API using those tokens, check that each write is allowed or refused as the
+rule says, and delete them again. The `asks` rules were checked this way — a
+hash that is not yours, an ask born answered, a twenty-second ask, answering
+your own ask, a second person answering one that is already answered, and
+deleting somebody else's fresh ask are all refused; the first answer and the
+owner's own delete are allowed.
+
+**Do not conclude a write worked because the app looked happy.** `setData(from:)`
+only throws if *encoding* fails: a rejected write still goes to the local cache,
+the listener attaches, and the first snapshot comes back from that same cache
+with the document in it. Both devices showed each other while the server held
+nothing. Every write in `FirestorePresenceService` therefore encodes first and
+then awaits the untyped `setData` / `updateData`, and anything being verified is
+read back from the **server**, not from a screen.
