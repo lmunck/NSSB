@@ -1,0 +1,29 @@
+# Xcode
+build/
+DerivedData/
+*.xcuserstate
+xcuserdata/
+*.xcscmblueprint
+*.xccheckout
+
+# macOS
+.DS_Store
+
+# Firebase CLI
+firebase/.firebaserc
+firebase/*-debug.log
+.firebase/
+
+# Firebase app config.
+#
+# GoogleService-Info.plist is NOT a secret - it ships inside the app binary,
+# and its API key is restricted by bundle id. Google's own guidance is that
+# it is fine to commit. It is left tracked here deliberately; uncomment the
+# line below only if you would rather keep it out of the repository, and
+# remember that a fresh clone then cannot talk to Firebase until it is added
+# back by hand.
+# GoogleService-Info.plist
+#
+# Note: Xcode put the file reference in the project's ROOT group, so the live
+# copy is ./GoogleService-Info.plist, not NSSB/GoogleService-Info.plist. If
+# you ever move it into the NSSB folder, move the Xcode reference with it.
