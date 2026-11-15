@@ -26,7 +26,7 @@ service cloud.firestore {
                     // person cannot be linked. Firestore rules are
                     // per-document and cannot hide a field, so the only way
                     // to keep a uid private is to not store one.
-                    && request.resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
+                    && request.resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toHexString().lower()
                     // A break is five minutes. Not an hour, not a day.
                     && request.resource.data.endsAt is timestamp
                     && request.resource.data.startedAt is timestamp
@@ -49,7 +49,7 @@ service cloud.firestore {
       // field that identifies the break has to be unchanged - so this cannot
       // be used to extend a break or swap a name halfway through it.
       allow update: if request.auth != null
-                    && resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
+                    && resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toHexString().lower()
                     && request.resource.data.ownerHash == resource.data.ownerHash
                     && request.resource.data.startedAt == resource.data.startedAt
                     && request.resource.data.endsAt == resource.data.endsAt
@@ -70,7 +70,7 @@ service cloud.firestore {
       // so this can never delete a cigarette anyone is still holding.
       allow delete: if request.auth != null
                     && (
-                      resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
+                      resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toHexString().lower()
                       || resource.data.endsAt < request.time - duration.value(1, 'h')
                     );
     }

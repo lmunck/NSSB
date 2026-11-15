@@ -14,11 +14,16 @@ import CryptoKit
 
 enum BreakOwner {
     
-    /// Must match `hashing.sha256(request.auth.uid + breakId).toBase64()` in
-    /// firestore.rules exactly, or every write is denied.
+    /// Must match `hashing.sha256(request.auth.uid + breakId).toHexString().lower()`
+    /// in firestore.rules exactly, or every write is denied.
+    ///
+    /// Hex rather than base64 deliberately. Base64 has two ways to disagree -
+    /// padding, and the URL-safe alphabet - and when the two sides disagree
+    /// the only symptom is a permission error from a rule that looks correct.
+    /// Hex has one representation and a case convention.
     static func hash(uid: String, breakId: String) -> String {
         let digest = SHA256.hash(data: Data((uid + breakId).utf8))
-        return Data(digest).base64EncodedString()
+        return digest.map { String(format: "%02x", $0) }.joined()
     }
 }
 

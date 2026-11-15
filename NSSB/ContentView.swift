@@ -15,6 +15,10 @@ struct ContentView: View {
     @State private var offset:CGFloat = .zero
     
     @EnvironmentObject var model:WCSessionPhone
+    @EnvironmentObject var presence:PresenceRepository
+    
+    /// The stranger whose cigarette is currently tapped, if any.
+    @State private var selectedOther:BreakPresence? = nil
     
     var body: some View {
         
@@ -46,6 +50,17 @@ struct ContentView: View {
                 
                 // Background view
                 Color.black.edgesIgnoringSafeArea(.all)
+                
+                // Everyone else who is out here, standing behind you. Empty
+                // unless a break is running, because the listener is only
+                // attached for the length of a cigarette.
+                CourtyardView(
+                    others: presence.courtyard,
+                    referenceHeight: cigHeight,
+                    selected: $selectedOther
+                )
+                .opacity(cigOpacity)
+                .allowsHitTesting(menu == .cigarette)
                 
                 // Main view
                 VStack(spacing: 10) {
@@ -96,9 +111,31 @@ struct ContentView: View {
                 }
                 .animation(.easeOut(duration: 0.2), value: menu)
                 
+                // Who you just tapped. Sits above everything, dismissed by
+                // tapping the same cigarette again.
+                if let selected = selectedOther {
+                    VStack {
+                        // Above the cigarette, in the empty part of the
+                        // screen. Over it, the card covered the share button
+                        // and the name, and the cigarette showed through.
+                        CourtyardDetailView(presence: selected)
+                            .padding(.top, geo.size.height * 0.1)
+                        Spacer()
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
+                    .allowsHitTesting(false)
+                }
+                
                 
             }
             .foregroundColor(Color.foregroundInactive)
+            .onChange(of: presence.courtyard) { current in
+                // Their cigarette went out, so the card goes with it.
+                if let selected = selectedOther,
+                   current.contains(where: { $0.id == selected.id }) == false {
+                    withAnimation(.easeInOut(duration: 0.3)) { selectedOther = nil }
+                }
+            }
         }
     }
 }

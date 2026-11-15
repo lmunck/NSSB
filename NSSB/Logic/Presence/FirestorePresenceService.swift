@@ -54,9 +54,20 @@ final class FirestorePresenceService: PresenceService {
         
         guard uid != nil else { throw PresenceError.notSignedIn }
         
-        try db.collection(collection)
+        // Encoded first, then awaited, on purpose.
+        //
+        // setData(from:) only throws if encoding fails. The write itself goes
+        // to the local cache and is queued for the server, so a rules
+        // rejection never reaches the caller - the app carries on believing
+        // it published, the listener attaches, and the first snapshot even
+        // contains the document, served from that same local cache. The
+        // server quietly has nothing. Awaiting the untyped setData surfaces
+        // the rejection where it belongs.
+        let data = try Firestore.Encoder().encode(presence)
+        
+        try await db.collection(collection)
             .document(presence.id)
-            .setData(from: presence)
+            .setData(data)
     }
     
     func withdraw(id: String) async throws {
@@ -87,6 +98,8 @@ final class FirestorePresenceService: PresenceService {
                 }
                 
                 guard let documents = snapshot?.documents else { return }
+                
+                print("Presence - query returned \(documents.count) live break(s)")
                 
                 let others: [BreakPresence] = documents.compactMap { document in
                     

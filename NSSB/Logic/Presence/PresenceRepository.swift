@@ -94,11 +94,23 @@ final class PresenceRepository: ObservableObject {
         }
     }
     
-    /// Everyone except you. The raw count includes your own document while
-    /// you are lit, and "1 other" when that one is yourself reads as a lie.
+    /// Everyone except you.
+    ///
+    /// While a break is running the courtyard listener is attached, so the
+    /// live list is both cheaper and more current than the aggregation - and
+    /// using it keeps the screen honest. Reading "quiet out here right now"
+    /// with a stranger's cigarette visibly burning behind it is worse than
+    /// either message alone.
+    ///
+    /// Outside a break there is no listener, so the periodic count stands in.
+    /// It excludes your own document, because "1 other" when that one is
+    /// yourself reads as a lie.
     var othersCount: Int? {
+        
+        if publishedBreak != nil { return courtyard.count }
+        
         guard let liveCount = liveCount else { return nil }
-        return max(0, liveCount - (publishedBreak == nil ? 0 : 1))
+        return liveCount
     }
     
     // MARK: Lifecycle
