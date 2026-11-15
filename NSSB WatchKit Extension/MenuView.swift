@@ -32,13 +32,21 @@ struct MenuView: View {
                                 .frame(width: buttonSize, height: buttonSize * 1.3)
                         )
                         .onTapGesture {
-                            if data.cigDesign.title != CigDesign.standard.title {
-                                print("set standard")
-                                self.data.cigDesign = CigDesign.standard
-                            } else {
-                                print("set random \(data.cigDesign.title)!=\(CigDesign.standard.title)")
-                                self.data.cigDesign = getRandom()
+                            
+                            // Always a fresh cigarette, never a reset.
+                            //
+                            // This used to toggle between the standard design
+                            // and a random one, which meant every other tap
+                            // emptied the title. That was harmless when a name
+                            // was decoration; now the name is the identity a
+                            // stranger sees in the courtyard, and silently
+                            // clearing it is not something a randomise button
+                            // should do.
+                            var fresh = getRandom()
+                            while fresh.title == data.cigDesign.title {
+                                fresh = getRandom()
                             }
+                            self.data.cigDesign = fresh
                         }
                     
                     Spacer()
