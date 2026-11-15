@@ -23,6 +23,11 @@ final class PresenceRepository: ObservableObject {
     /// the listener is only attached for the length of a cigarette.
     @Published private(set) var courtyard: [BreakPresence] = []
     
+    /// Breaks that ended in the last hour, shown as dying embers so the
+    /// courtyard is never completely dark. Real people, real cigarettes -
+    /// just not this minute. Disclosed in the info panel.
+    @Published private(set) var echoes: [BreakPresence] = []
+    
     /// Nil until the first successful sign-in.
     @Published private(set) var uid: String?
     
@@ -46,6 +51,10 @@ final class PresenceRepository: ObservableObject {
     /// Cap from the proposal: enough to fill a courtyard, few enough that a
     /// five-minute break is a handful of reads rather than a bill.
     private let courtyardLimit = 20
+    
+    /// How many embers to pull in, and how far back to look for them.
+    private let echoLimit = 4
+    private let echoWindow: TimeInterval = 60 * 60
     
     /// Whether to put a flag on this break. Opt-out lives here so the rest
     /// of the code never has to think about it.
@@ -113,6 +122,26 @@ final class PresenceRepository: ObservableObject {
         return liveCount
     }
     
+    /// Pulled once per break. Not a listener - an ember is not news.
+    func loadEchoes() async {
+        do {
+            self.echoes = try await service.recentEchoes(limit: echoLimit, within: echoWindow)
+            if echoes.isEmpty == false {
+                print("Presence - \(echoes.count) ember(s) still warm")
+            }
+        } catch {
+            print("Presence - echoes failed: \(error.localizedDescription)")
+        }
+        
+        // Take a few bins out while we are here. Nothing else will.
+        do {
+            let swept = try await service.sweepStale(olderThan: echoWindow + 60, limit: 5)
+            if swept > 0 { print("Presence - swept \(swept) stale document(s)") }
+        } catch {
+            print("Presence - sweep failed: \(error.localizedDescription)")
+        }
+    }
+    
     // MARK: Lifecycle
     
     /// Called once, at launch.
@@ -173,6 +202,7 @@ final class PresenceRepository: ObservableObject {
             }
             
             await refreshCount()
+            await loadEchoes()
             
             service.observeCourtyard(limit: courtyardLimit) { [weak self] others in
                 Task { @MainActor in
@@ -201,12 +231,26 @@ final class PresenceRepository: ObservableObject {
         
         service.stopObservingCourtyard()
         self.courtyard = []
+        self.echoes = []
         
-        // Either the break being published right now, or one left behind by a
-        // previous launch that was killed mid-cigarette and never got to
-        // withdraw it. The stored id is the only trace of that one, so it has
-        // to be used before it is cleared - otherwise the document sits in the
-        // courtyard until a TTL policy sweeps it, and there may not be one.
+        // A break that ran its course is left in place, to linger as an ember
+        // for anyone who lights up in the next hour. A break that was
+        // cancelled is deleted, because it did not happen - standing in
+        // someone's courtyard on the strength of a cigarette you stubbed out
+        // after four seconds would be a lie.
+        //
+        // Nobody else can delete it either way until it is an hour stale, at
+        // which point the sweep rule lets any client clear it.
+        if let published = publishedBreak, Date.now >= published.endsAt.addingTimeInterval(-2) {
+            self.publishedBreak = nil
+            self.storedBreakId = ""
+            self.storedBreakStart = 0
+            return
+        }
+        
+        // Either the break being cancelled now, or one left behind by a
+        // previous launch that was killed mid-cigarette. The stored id is the
+        // only trace of that one, so it has to be used before it is cleared.
         let orphan = storedBreakId.isEmpty ? nil : storedBreakId
         guard let id = publishedBreak?.id ?? orphan else { return }
         

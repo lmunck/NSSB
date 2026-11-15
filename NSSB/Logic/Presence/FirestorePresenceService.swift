@@ -128,6 +128,56 @@ final class FirestorePresenceService: PresenceService {
         listener = nil
     }
     
+    /// Breaks whose cigarettes went out within the given window.
+    ///
+    /// Two inequalities on the same field, which Firestore allows, and a
+    /// single read of at most `limit` documents. Run once at the start of a
+    /// break rather than listened to: an ember is not news.
+    func recentEchoes(limit: Int, within: TimeInterval) async throws -> [BreakPresence] {
+        
+        let now = Date.now
+        
+        let snapshot = try await db.collection(collection)
+            .whereField("endsAt", isLessThan: now)
+            .whereField("endsAt", isGreaterThan: now.addingTimeInterval(-within))
+            .order(by: "endsAt", descending: true)
+            .limit(to: limit)
+            .getDocuments(source: .server)
+        
+        let ownUid = self.uid
+        
+        return snapshot.documents.compactMap { document in
+            guard let presence = try? document.data(as: BreakPresence.self) else { return nil }
+            if let ownUid = ownUid,
+               presence.ownerHash == BreakOwner.hash(uid: ownUid, breakId: presence.id) {
+                return nil
+            }
+            return presence
+        }
+    }
+    
+    /// Takes the bins out: deletes a few documents nobody can see any more.
+    ///
+    /// Bounded on purpose - a handful per break, not the whole backlog. With
+    /// every client doing this whenever it lights up, the collection stays
+    /// small without a TTL policy or a scheduled function.
+    func sweepStale(olderThan: TimeInterval, limit: Int) async throws -> Int {
+        
+        let cutoff = Date.now.addingTimeInterval(-olderThan)
+        
+        let snapshot = try await db.collection(collection)
+            .whereField("endsAt", isLessThan: cutoff)
+            .order(by: "endsAt")
+            .limit(to: limit)
+            .getDocuments(source: .server)
+        
+        for document in snapshot.documents {
+            try? await document.reference.delete()
+        }
+        
+        return snapshot.documents.count
+    }
+    
     /// One read, regardless of how many people are out there.
     ///
     /// Firestore bills an aggregation per thousand index entries, so this

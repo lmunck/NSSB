@@ -31,6 +31,21 @@ struct InfoView: View {
                     }
                     
                     
+                    // The disclosure. Almost nobody reads an info panel, so
+                    // the feeling of a populated courtyard survives - but the
+                    // app is never making a claim it has not written down.
+                    VStack(alignment: .leading, spacing: 10) {
+                        
+                        Text("The courtyard").font(.headline)
+                        
+                        Text("While your cigarette burns, you can see everyone else whose cigarette is burning too. Their design, the name they rolled, a flag from their phone's region, and what time it is where they are. Nothing else, and no way to reach them afterwards.")
+                        
+                        Text("When your cigarette goes out, so does all of it. Nothing is kept about who you stood next to.")
+                        
+                        Text("If the courtyard is quiet, you may still see a few faint cigarettes burned down to the filter. Those are embers - real breaks that real people finished within the last hour, left glowing a little longer so the place is never completely dark. They are not people standing there now, and they are drawn dimmer and shorter because of it.")
+                    }
+                    
+                    
                     VStack(alignment: .leading, spacing: 10) {
                         
                         Text("v1.2 Update").font(.headline)

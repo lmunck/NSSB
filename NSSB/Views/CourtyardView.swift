@@ -15,6 +15,12 @@ struct CourtyardView: View {
     
     let others: [BreakPresence]
     
+    /// Breaks that have already ended. Drawn as what they are - cigarettes
+    /// burned down to the filter, very dim - rather than dressed up as people
+    /// who are still here. The courtyard is never completely dark, and
+    /// nothing on screen claims someone is present who is not.
+    let echoes: [BreakPresence]
+    
     /// The height of your own cigarette, which everything else is sized
     /// against so the courtyard scales with the screen.
     let referenceHeight: CGFloat
@@ -31,6 +37,24 @@ struct CourtyardView: View {
         GeometryReader { geo in
             
             ZStack {
+                
+                ForEach(echoes) { ember in
+                    
+                    let spot = Courtyard.position(for: ember.id)
+                    
+                    DistantCigaretteView(
+                        design: ember.design,
+                        progress: 1,
+                        height: referenceHeight * (0.14 + spot.depth * 0.16)
+                    )
+                    .opacity(0.16)
+                    .position(
+                        x: geo.size.width * spot.x,
+                        y: geo.size.height * spot.y
+                    )
+                    .allowsHitTesting(false)
+                }
+                
                 ForEach(others) { other in
                     
                     let spot = Courtyard.position(for: other.id)

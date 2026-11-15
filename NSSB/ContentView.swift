@@ -56,6 +56,7 @@ struct ContentView: View {
                 // attached for the length of a cigarette.
                 CourtyardView(
                     others: presence.courtyard,
+                    echoes: presence.echoes,
                     referenceHeight: cigHeight,
                     selected: $selectedOther
                 )

@@ -42,6 +42,21 @@ protocol PresenceService: AnyObject {
     /// needed to avoid counting the collection; it is not, and the aggregation
     /// is both cheaper and simpler.
     func liveCount() async throws -> Int
+    
+    /// Breaks that ended recently - the embers people left behind.
+    ///
+    /// One query, run once when a break starts. These are real breaks by real
+    /// people; the only thing being stretched is which minute it is.
+    func recentEchoes(limit: Int, within: TimeInterval) async throws -> [BreakPresence]
+    
+    /// Deletes a few documents that went stale more than `olderThan` ago.
+    ///
+    /// This project has no TTL policy, so nothing sweeps the collection on its
+    /// own. Every client clears a handful whenever it lights up, which keeps
+    /// the collection bounded without a scheduled function - and the rules
+    /// only permit deleting documents that are certainly litter.
+    func sweepStale(olderThan: TimeInterval, limit: Int) async throws -> Int
+
 }
 
 enum PresenceError: LocalizedError {
@@ -115,6 +130,12 @@ final class SimulatedPresenceService: PresenceService {
     func liveCount() async throws -> Int {
         sample.filter { $0.isLive() }.count
     }
+    
+    func recentEchoes(limit: Int, within: TimeInterval) async throws -> [BreakPresence] {
+        []
+    }
+    
+    func sweepStale(olderThan: TimeInterval, limit: Int) async throws -> Int { 0 }
     
     private func emit() {
         
