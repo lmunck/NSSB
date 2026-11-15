@@ -5,7 +5,19 @@
 //  Created by Anders Munck on 09/06/2024.
 //
 
-// Extension for making colors comply with Codable protocol so they can be stored as Data
+// A Codable stand-in for SwiftUI's Color.
+//
+// This file used to declare `extension Color: Codable`, a retroactive
+// conformance to a type the app does not own. The compiler warns that it
+// "will not behave correctly if the owner adds conformance", and that stopped
+// being theoretical once CigDesign became a wire format: it is written to the
+// saved file, sent to the watch, packed into share URLs and stored in
+// Firestore. If Apple ever adds Codable to Color, the encoding could change
+// underneath all four at once.
+//
+// CodableColor is an ordinary struct this app owns. It encodes to exactly the
+// same JSON the old extension produced - {"red":_, "green":_, "blue":_} - so
+// every file, URL and document written before this change still decodes.
 
 import Foundation
 import SwiftUI
@@ -18,14 +30,17 @@ import WatchKit
 import AppKit
 #endif
 
-fileprivate extension Color {
+extension Color {
+    
     #if os(macOS)
     typealias SystemColor = NSColor
     #else
     typealias SystemColor = UIColor
     #endif
     
+    /// Nil for a colour that cannot be expressed as RGB.
     var colorComponents: (red: CGFloat, green: CGFloat, blue: CGFloat, alpha: CGFloat)? {
+        
         var r: CGFloat = 0
         var g: CGFloat = 0
         var b: CGFloat = 0
@@ -33,11 +48,8 @@ fileprivate extension Color {
         
         #if os(macOS)
         SystemColor(self).getRed(&r, green: &g, blue: &b, alpha: &a)
-        // Note that non RGB color will raise an exception, that I don't now how to catch because it is an Objc exception.
         #else
         guard SystemColor(self).getRed(&r, green: &g, blue: &b, alpha: &a) else {
-            // Pay attention that the color should be convertible into RGB format
-            // Colors using hue, saturation and brightness won't work
             return nil
         }
         #endif
@@ -46,29 +58,37 @@ fileprivate extension Color {
     }
 }
 
-extension Color: Codable {
-    enum CodingKeys: String, CodingKey {
-        case red, green, blue
+/// Three channels, stored as the app's own type rather than SwiftUI's.
+struct CodableColor: Codable, Equatable, Hashable {
+    
+    var red: Double
+    var green: Double
+    var blue: Double
+    
+    var color: Color {
+        Color(red: red, green: green, blue: blue)
     }
     
-    public init(from decoder: Decoder) throws {
-        let container = try decoder.container(keyedBy: CodingKeys.self)
-        let r = try container.decode(Double.self, forKey: .red)
-        let g = try container.decode(Double.self, forKey: .green)
-        let b = try container.decode(Double.self, forKey: .blue)
-        
-        self.init(red: r, green: g, blue: b)
+    init(red: Double, green: Double, blue: Double) {
+        self.red = red
+        self.green = green
+        self.blue = blue
     }
-
-    public func encode(to encoder: Encoder) throws {
-        guard let colorComponents = self.colorComponents else {
+    
+    /// Falls back to mid-grey for a colour with no RGB representation. The old
+    /// extension encoded nothing at all in that case, which wrote an empty
+    /// object that then failed to decode - a silently corrupted design.
+    init(_ color: Color) {
+        
+        guard let parts = color.colorComponents else {
+            self.init(red: 0.5, green: 0.5, blue: 0.5)
             return
         }
         
-        var container = encoder.container(keyedBy: CodingKeys.self)
-        
-        try container.encode(colorComponents.red, forKey: .red)
-        try container.encode(colorComponents.green, forKey: .green)
-        try container.encode(colorComponents.blue, forKey: .blue)
+        self.init(red: Double(parts.red), green: Double(parts.green), blue: Double(parts.blue))
     }
+}
+
+extension Color {
+    var codable: CodableColor { CodableColor(self) }
 }
