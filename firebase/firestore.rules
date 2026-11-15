@@ -1,0 +1,72 @@
+rules_version = '2';
+
+// NSSB presence rules.
+//
+// The whole threat model here is small, because there is nothing to steal:
+// a presence document is a cigarette, a rolled name, a country code and a
+// timezone offset, and it deletes itself after five minutes. What the rules
+// have to prevent is someone camping in the courtyard all day, impersonating
+// another client, or editing somebody else's break.
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+
+    match /presence/{breakId} {
+
+      // Anyone signed in may look at who is currently lit. Reads are capped
+      // client-side; there is nothing here worth harvesting.
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    // You may only publish as yourself.
+                    && request.resource.data.uid == request.auth.uid
+                    // A break is five minutes. Not an hour, not a day.
+                    && request.resource.data.endsAt is timestamp
+                    && request.resource.data.startedAt is timestamp
+                    && request.resource.data.endsAt > request.resource.data.startedAt
+                    && request.resource.data.endsAt
+                       < request.resource.data.startedAt + duration.value(6, 'm')
+                    // And it cannot be backdated or scheduled into the future.
+                    && request.resource.data.startedAt < request.time + duration.value(1, 'm')
+                    && request.resource.data.endsAt > request.time
+                    // No typing, anywhere. A name is two words and short -
+                    // and never empty, because the name is the identity and a
+                    // nameless cigarette in the courtyard is a bug, not a
+                    // person who declined to be named.
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 32;
+
+      // A break is not editable, with one exception: republishing the same
+      // break after the app was killed mid-cigarette. Owner only, and every
+      // field that identifies the break has to be unchanged - so this cannot
+      // be used to extend a break or swap a name halfway through it.
+      allow update: if request.auth != null
+                    && resource.data.uid == request.auth.uid
+                    && request.resource.data.uid == resource.data.uid
+                    && request.resource.data.startedAt == resource.data.startedAt
+                    && request.resource.data.endsAt == resource.data.endsAt
+                    && request.resource.data.name == resource.data.name;
+
+      // Only your own. With no TTL policy on this project, a client
+      // deleting its own document is the only thing that removes it, so this
+      // has to keep working - including on a later launch, for a break the
+      // app was killed during.
+      allow delete: if request.auth != null
+                    && resource.data.uid == request.auth.uid;
+    }
+
+    // Written by a scheduled function, never by a client. The count must not
+    // be derived by reading the presence collection - that is the one query
+    // that would actually cost money.
+    match /stats/{document} {
+      allow read: if request.auth != null;
+      allow write: if false;
+    }
+
+    // Nothing else exists yet.
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+}

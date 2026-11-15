@@ -1,0 +1,17 @@
+{
+  "comment": [
+    "No composite indexes are needed.",
+    "",
+    "The courtyard query filters and orders on the single field endsAt:",
+    "  where endsAt > now, order by endsAt, limit 20",
+    "Firestore indexes every single field automatically, so declaring one",
+    "here is rejected with 'this index is not necessary'. A composite index",
+    "only becomes necessary if a second field joins the query - country, say,",
+    "or a status enum.",
+    "",
+    "Left in place so that the day one is needed, the file and the deploy",
+    "wiring already exist."
+  ],
+  "indexes": [],
+  "fieldOverrides": []
+}
