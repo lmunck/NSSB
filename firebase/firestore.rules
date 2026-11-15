@@ -75,6 +75,59 @@ service cloud.firestore {
                     );
     }
 
+    // An open request for a light. Eight seconds long, and addressed to the
+    // whole courtyard rather than to a person - so nobody is singled out,
+    // nobody declines anybody, and nothing in the presence floor ever has to
+    // be able to answer.
+    match /asks/{askId} {
+
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    // Same trick as presence: prove ownership without
+                    // storing anything that links two asks together.
+                    && request.resource.data.askerHash == hashing.sha256(request.auth.uid + askId).toHexString().lower()
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.expiresAt is timestamp
+                    && request.resource.data.expiresAt > request.resource.data.createdAt
+                    // Eight seconds, with slack for the round trip. Long
+                    // enough to be answered, short enough that an unanswered
+                    // ask is not left hanging in anyone's courtyard.
+                    && request.resource.data.expiresAt
+                       < request.resource.data.createdAt + duration.value(20, 's')
+                    && request.resource.data.createdAt < request.time + duration.value(1, 'm')
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 32
+                    // You cannot create an ask that is already answered.
+                    && request.resource.data.claimed == false;
+
+      // The only permitted edit is answering it, and only once. Whoever
+      // writes first wins; everyone else's update is rejected by this rule
+      // rather than by the client, so the race is settled by the server.
+      allow update: if request.auth != null
+                    && resource.data.claimed == false
+                    && request.resource.data.claimed == true
+                    // You may not answer your own ask.
+                    && resource.data.askerHash != hashing.sha256(request.auth.uid + askId).toHexString().lower()
+                    // Everything about the ask itself is immutable.
+                    && request.resource.data.askerHash == resource.data.askerHash
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.expiresAt == resource.data.expiresAt
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.giverName is string
+                    && request.resource.data.giverName.size() > 0
+                    && request.resource.data.giverName.size() <= 32;
+
+      // Your own, or anyone's once it is certainly litter. Same reasoning as
+      // presence: there is no TTL policy, so clients take the bins out.
+      allow delete: if request.auth != null
+                    && (
+                      resource.data.askerHash == hashing.sha256(request.auth.uid + askId).toHexString().lower()
+                      || resource.data.expiresAt < request.time - duration.value(5, 'm')
+                    );
+    }
+
     // Written by a scheduled function, never by a client. The count must not
     // be derived by reading the presence collection - that is the one query
     // that would actually cost money.
