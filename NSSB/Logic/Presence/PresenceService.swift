@@ -194,6 +194,14 @@ final class SimulatedPresenceService: PresenceService {
     // courtyard.
     
     private var asks: [String: BreakAsk] = [:]
+    
+    /// Everything this stand-in is holding, answered asks included.
+    ///
+    /// The real service cannot be asked this question without a read - and
+    /// "is anything left behind?" is exactly the question the live flow has
+    /// to be checked against the server for, rather than asked of a client.
+    var askIds: [String] { Array(asks.keys) }
+    
     private var ownAskId: String?
     private var onOwnAskChange: ((BreakAsk) -> Void)?
     private var onAsksChange: (([BreakAsk]) -> Void)?
@@ -259,7 +267,14 @@ final class SimulatedPresenceService: PresenceService {
     }
     
     private func emitAsks() {
-        let open = asks.values.filter { $0.isOpen() }
+        
+        // Your own ask is never an offer - you cannot give yourself a light,
+        // and the rules say so too. Filtered the same way the real service
+        // does it, by recomputing the hash rather than by storing a uid.
+        let open = asks.values.filter {
+            $0.isOpen() && $0.askerHash != BreakOwner.hash(uid: uid, breakId: $0.id)
+        }
+        
         onAsksChange?(Array(open))
     }
     

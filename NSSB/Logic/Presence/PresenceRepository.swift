@@ -37,10 +37,26 @@ final class PresenceRepository: ObservableObject {
     /// when it simply has not looked.
     @Published private(set) var liveCount: Int?
     
+    /// Your own ask for a light, from going out to being over.
+    @Published private(set) var ask: AskState = .idle
+    
+    /// Other people's open asks: the dark cigarettes standing in your
+    /// courtyard, waiting. Only ever populated while your own cigarette is
+    /// lit, because an unlit cigarette has nothing to give.
+    @Published private(set) var offers: [BreakAsk] = []
+    
+    /// The ask you are answering right now, while the two tips touch. Nil
+    /// the rest of the time.
+    @Published private(set) var giving: BreakAsk?
+    
     private let service: PresenceService
     
     /// The break this device is currently publishing, if any.
     private var publishedBreak: BreakPresence?
+    
+    /// Fires when the eight seconds are up. Cancelled the moment somebody
+    /// answers, so a light that arrives at 7.9 seconds is not thrown away.
+    private var askTimeout: Task<Void, Never>?
     
     /// Survives being killed mid-break. Without it, a relaunch publishes a
     /// second document for the same cigarette and the user appears twice in
@@ -55,6 +71,14 @@ final class PresenceRepository: ObservableObject {
     /// How many embers to pull in, and how far back to look for them.
     private let echoLimit = 4
     private let echoWindow: TimeInterval = 60 * 60
+    
+    /// Open asks to show at once. An ask lives eight seconds, so this is a
+    /// far smaller slice than the courtyard even when the place is busy.
+    private let askLimit = 6
+    
+    /// How stale an ask has to be before anyone may clear it. Matches the
+    /// delete rule, which allows it five minutes after it expired.
+    private let askLitter: TimeInterval = 60 * 6
     
     /// Whether to put a flag on this break. Opt-out lives here so the rest
     /// of the code never has to think about it.
@@ -140,6 +164,17 @@ final class PresenceRepository: ObservableObject {
         } catch {
             print("Presence - sweep failed: \(error.localizedDescription)")
         }
+        
+        // And the asks, which the asker normally deletes itself. What is left
+        // here is an ask whose owner was killed in the eight seconds between
+        // asking and finding out, so there is very little of it - but with no
+        // TTL policy, very little that is never cleared still adds up.
+        do {
+            let swept = try await service.sweepStaleAsks(olderThan: askLitter, limit: 5)
+            if swept > 0 { print("Presence - swept \(swept) stale ask(s)") }
+        } catch {
+            print("Presence - ask sweep failed: \(error.localizedDescription)")
+        }
     }
     
     // MARK: Lifecycle
@@ -173,6 +208,14 @@ final class PresenceRepository: ObservableObject {
         
         // Already publishing this break - a relaunch or a redundant change.
         if let published = publishedBreak, published.startedAt == startedAt { return }
+        
+        // You lit your own while an ask was still out. Take it down: a dark
+        // cigarette standing in somebody's courtyard asking for a light you
+        // no longer need is a small lie, and it would waste their gift.
+        //
+        // A break that starts because somebody answered is already past
+        // .asking by this point, so this cannot cancel the ask that caused it.
+        if ask.isAsking { await cancelAsk() }
         
         guard let uid = self.uid else {
             print("Presence - not signed in yet, break not published")
@@ -219,6 +262,13 @@ final class PresenceRepository: ObservableObject {
                 }
             }
             
+            // Your cigarette is lit, so you are now somebody who can answer.
+            service.observeAsks(limit: askLimit) { [weak self] asks in
+                Task { @MainActor in
+                    self?.offers = asks
+                }
+            }
+            
         } catch {
             print("Presence - publish failed: \(error.localizedDescription)")
         }
@@ -230,8 +280,14 @@ final class PresenceRepository: ObservableObject {
     func breakEnded() async {
         
         service.stopObservingCourtyard()
+        service.stopObservingAsks()
         self.courtyard = []
         self.echoes = []
+        self.offers = []
+        self.giving = nil
+        
+        // The next unlit cigarette starts over, and can ask again.
+        if case .done = ask { self.ask = .idle }
         
         // A break that ran its course is left in place, to linger as an ember
         // for anyone who lights up in the next hour. A break that was
@@ -272,5 +328,180 @@ final class PresenceRepository: ObservableObject {
         } catch {
             print("Presence - withdraw failed, will retry next launch: \(error.localizedDescription)")
         }
+    }
+    
+    // MARK: - Got a light?
+    
+    /// Asks the whole courtyard.
+    ///
+    /// Not a person. Tapping one stranger would create declining, and a
+    /// declined ask is a wound at both ends - see BreakAsk. So this goes out
+    /// to everyone who is lit, anyone may answer, and the first one wins.
+    func askForALight(design: CigDesign) async {
+        
+        guard case .idle = ask else { return }
+        
+        guard let uid = self.uid else {
+            print("Presence - not signed in yet, cannot ask")
+            // Without a backend there is nobody to ask, so fall through to
+            // the same place eight seconds of silence would have led.
+            self.ask = .done(givenBy: nil)
+            return
+        }
+        
+        // A nameless cigarette cannot stand in anyone's courtyard, and the
+        // rules reject an empty name outright. The caller rolls one; this is
+        // the belt to that pair of braces, because a silent rejection here
+        // would look exactly like nobody answering.
+        var design = design
+        if design.title.isEmpty { design.title = randomCigaretteName() }
+        
+        let outgoing = BreakAsk.opening(
+            uid: uid,
+            design: design,
+            shareCountry: shareCountry
+        )
+        
+        do {
+            try await service.openAsk(outgoing)
+        } catch {
+            print("Presence - ask failed: \(error.localizedDescription)")
+            self.ask = .done(givenBy: nil)
+            return
+        }
+        
+        self.ask = .asking(outgoing)
+        print("Presence - asked the courtyard for a light")
+        
+        service.observeOwnAsk(id: outgoing.id) { [weak self] incoming in
+            Task { @MainActor in
+                self?.ownAskChanged(incoming)
+            }
+        }
+        
+        // Eight seconds, measured from the document rather than from now, so
+        // a slow round trip eats into the wait instead of extending it.
+        askTimeout = Task { [weak self] in
+            let wait = outgoing.expiresAt.timeIntervalSinceNow
+            if wait > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(wait * 1_000_000_000))
+            }
+            guard Task.isCancelled == false else { return }
+            await self?.askRanOut()
+        }
+    }
+    
+    /// The only thing that can happen to your ask: somebody answered it.
+    private func ownAskChanged(_ incoming: BreakAsk) {
+        
+        guard ask.isAsking, incoming.claimed, let giver = AskGiver(incoming) else { return }
+        
+        askTimeout?.cancel()
+        askTimeout = nil
+        service.stopObservingOwnAsk()
+        
+        print("Presence - \(giver.name) gave you a light")
+        self.ask = .lit(by: giver)
+        
+        // Answered means finished. Nothing is left behind, and nobody else
+        // can offer a light to an ask that has already been granted.
+        Task { await removeOwnAsk(id: incoming.id) }
+    }
+    
+    /// Eight seconds of silence.
+    private func askRanOut() async {
+        
+        guard let outgoing = ask.openAsk else { return }
+        
+        service.stopObservingOwnAsk()
+        askTimeout = nil
+        
+        print("Presence - nobody answered, lighting your own")
+        self.ask = .done(givenBy: nil)
+        
+        await removeOwnAsk(id: outgoing.id)
+    }
+    
+    /// You took the question back - by lighting your own, or by leaving.
+    func cancelAsk() async {
+        
+        guard let outgoing = ask.openAsk else { return }
+        
+        askTimeout?.cancel()
+        askTimeout = nil
+        service.stopObservingOwnAsk()
+        self.ask = .idle
+        
+        await removeOwnAsk(id: outgoing.id)
+    }
+    
+    /// The handoff has played out. From here the cigarette is just lit.
+    func handoffFinished() {
+        guard case .lit(let giver) = ask else { return }
+        self.ask = .done(givenBy: giver)
+    }
+    
+    /// Clears the line of text that says what happened, once it has been
+    /// read. Only from a finished state - this can never cut an ask short.
+    func clearAsk() {
+        guard case .done = ask else { return }
+        self.ask = .idle
+    }
+    
+    private func removeOwnAsk(id: String) async {
+        do {
+            try await service.withdrawAsk(id: id)
+        } catch {
+            // The sweep will get it. The rules let anyone clear an ask five
+            // minutes after it expired, precisely for this.
+            print("Presence - could not remove the ask, leaving it to the sweep: \(error.localizedDescription)")
+        }
+    }
+    
+    // MARK: Answering somebody
+    
+    /// Gives a stranger a light.
+    ///
+    /// Everything about the gift comes from your own live break rather than
+    /// from the caller, which is also what makes it impossible to give a
+    /// light you do not have: no lit cigarette, nothing to offer.
+    ///
+    /// Can lose. The rules permit exactly one claim, so if two people reach
+    /// for their lighter at the same moment the server picks one - and the
+    /// other simply finds the ask gone, which is what would happen in a real
+    /// courtyard too.
+    func offerLight(to wanted: BreakAsk) async {
+        
+        guard giving == nil else { return }
+        
+        guard let mine = publishedBreak, mine.isLive() else {
+            print("Presence - nothing lit to give a light with")
+            return
+        }
+        
+        guard wanted.isOpen() else { return }
+        
+        do {
+            try await service.claimAsk(
+                id: wanted.id,
+                giverName: mine.name,
+                giverDesign: mine.design,
+                giverProgress: mine.progress()
+            )
+            
+            print("Presence - gave \(wanted.name) a light")
+            self.giving = wanted
+            
+        } catch {
+            // Somebody was quicker, or the ask expired between the tap and
+            // the write. Either way it is no longer there to answer.
+            print("Presence - too late to give \(wanted.name) a light: \(error.localizedDescription)")
+            self.offers.removeAll { $0.id == wanted.id }
+        }
+    }
+    
+    /// Their cigarette caught and the handoff is over.
+    func offerFinished() {
+        self.giving = nil
     }
 }

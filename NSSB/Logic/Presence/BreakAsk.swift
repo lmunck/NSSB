@@ -57,7 +57,11 @@ extension BreakAsk {
     
     /// Eight seconds. Long enough to be answered, short enough that an
     /// unanswered ask is not left hanging in anyone's courtyard.
-    static let window: TimeInterval = 8
+    ///
+    /// A var only so that the state machine's eight seconds can be tested
+    /// without a test spending eight seconds, which is the same reason
+    /// `Date.breakLength` is one. Nothing in the app assigns to it.
+    static var window: TimeInterval = 8
     
     static func opening(
         at createdAt: Date = .now,
@@ -93,5 +97,57 @@ extension BreakAsk {
         let total = expiresAt.timeIntervalSince(createdAt)
         guard total > 0 else { return 1 }
         return min(max(now.timeIntervalSince(createdAt) / total, 0), 1)
+    }
+}
+
+// MARK: - What the asker is waiting for
+
+/// Who gave you the light.
+///
+/// Carries their burn position on purpose. Being lit by somebody almost
+/// finished should not look the same as being lit by somebody who just
+/// started, and the handoff draws it.
+struct AskGiver: Equatable {
+    
+    let name: String
+    let design: CigDesign
+    let progress: Double
+    
+    init?(_ ask: BreakAsk) {
+        guard let name = ask.giverName, name.isEmpty == false else { return nil }
+        self.name = name
+        self.design = ask.giverDesign ?? CigDesign()
+        self.progress = ask.giverProgress ?? 0
+    }
+}
+
+/// The whole life of an ask, on the asking side.
+///
+/// It only ever moves forward. There is no state for being refused, because
+/// nobody can refuse: an ask is addressed to the courtyard, and silence is
+/// the only no. That is the point - after eight seconds of silence you light
+/// your own, which is what happens most times in real life anyway.
+enum AskState: Equatable {
+    
+    case idle
+    
+    /// Your dark cigarette is standing in everyone else's courtyard.
+    case asking(BreakAsk)
+    
+    /// Somebody answered. The tips are touching.
+    case lit(by: AskGiver)
+    
+    /// Over. Nil when nobody came and you lit your own.
+    case done(givenBy: AskGiver?)
+    
+    var isAsking: Bool {
+        if case .asking = self { return true }
+        return false
+    }
+    
+    /// The ask itself, while it is still out there.
+    var openAsk: BreakAsk? {
+        if case .asking(let ask) = self { return ask }
+        return nil
     }
 }

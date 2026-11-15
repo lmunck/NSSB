@@ -7,6 +7,8 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000005 /* AskStateMachineTests.swift */; };
+		DEC0DE100000000000000004 /* AskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000003 /* AskTests.swift */; };
 		CD0FACE0000000000000000B /* BreakAsk.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE0000000000000000A /* BreakAsk.swift */; };
 		DEC0DE000000000000000005 /* CigNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000001 /* CigNameTests.swift */; };
 		DEC0DE100000000000000002 /* CourtyardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000001 /* CourtyardTests.swift */; };
@@ -131,6 +133,8 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DEC0DE100000000000000005 /* AskStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskStateMachineTests.swift; sourceTree = "<group>"; };
+		DEC0DE100000000000000003 /* AskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskTests.swift; sourceTree = "<group>"; };
 		CD0FACE0000000000000000A /* BreakAsk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakAsk.swift; sourceTree = "<group>"; };
 		DEC0DE000000000000000001 /* CigNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNameTests.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000001 /* CourtyardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardTests.swift; sourceTree = "<group>"; };
@@ -246,6 +250,8 @@
 		DEC0DE000000000000000009 /* NSSBTests */ = {
 			isa = PBXGroup;
 			children = (
+				DEC0DE100000000000000005 /* AskStateMachineTests.swift */,
+				DEC0DE100000000000000003 /* AskTests.swift */,
 				DEC0DE100000000000000001 /* CourtyardTests.swift */,
 				DEC0DE000000000000000001 /* CigNameTests.swift */,
 				DEC0DE000000000000000002 /* PresenceTests.swift */,
@@ -614,6 +620,8 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */,
+				DEC0DE100000000000000004 /* AskTests.swift in Sources */,
 				DEC0DE000000000000000005 /* CigNameTests.swift in Sources */,
 				DEC0DE100000000000000002 /* CourtyardTests.swift in Sources */,
 				DEC0DE000000000000000006 /* PresenceTests.swift in Sources */,
