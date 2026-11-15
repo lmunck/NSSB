@@ -86,10 +86,12 @@ func cigNameParts(_ title: String) -> (adjective: String, noun: String)? {
     return (adjective, noun)
 }
 
-/// True for a name the user typed before the field was removed. An empty title
-/// is not legacy - it just means this cigarette has never been named.
+/// True for a name the user typed before the field was removed. An empty - or
+/// whitespace-only - title is not legacy, it just means this cigarette has
+/// never been named, and a strikethrough over nothing reads as a glitch.
 func isLegacyCigName(_ title: String) -> Bool {
-    !title.isEmpty && cigNameParts(title) == nil
+    title.trimmingCharacters(in: .whitespacesAndNewlines).isEmpty == false
+        && cigNameParts(title) == nil
 }
 
 /// Re-rolls the first word and keeps the second.

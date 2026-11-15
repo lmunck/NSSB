@@ -7,6 +7,10 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		DEC0DE000000000000000005 /* CigNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000001 /* CigNameTests.swift */; };
+		DEC0DE000000000000000006 /* PresenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000002 /* PresenceTests.swift */; };
+		DEC0DE000000000000000007 /* CigDesignCodableTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000003 /* CigDesignCodableTests.swift */; };
+		DEC0DE000000000000000008 /* BreakStatsTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000004 /* BreakStatsTests.swift */; };
 		5C12DEF32C6FCF5800090A71 /* CigNamer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */; };
 		5C12DEF42C6FD63700090A71 /* ShareCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C3941E62C3C6D6D001E828D /* ShareCigaretteView.swift */; };
 		5C12DEF62C6FDBD900090A71 /* MenuView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C12DEF52C6FD6C900090A71 /* MenuView.swift */; };
@@ -91,6 +95,13 @@
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
+		DEC0DE000000000000000012 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68D2FCD8284361E100529BB1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 68D2FCDF284361E200529BB1;
+			remoteInfo = NSSB;
+		};
 		68D2FCF0284361E900529BB1 /* PBXContainerItemProxy */ = {
 			isa = PBXContainerItemProxy;
 			containerPortal = 68D2FCD8284361E100529BB1 /* Project object */;
@@ -115,6 +126,11 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		DEC0DE000000000000000001 /* CigNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNameTests.swift; sourceTree = "<group>"; };
+		DEC0DE000000000000000002 /* PresenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceTests.swift; sourceTree = "<group>"; };
+		DEC0DE000000000000000003 /* CigDesignCodableTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesignCodableTests.swift; sourceTree = "<group>"; };
+		DEC0DE000000000000000004 /* BreakStatsTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakStatsTests.swift; sourceTree = "<group>"; };
+		DEC0DE00000000000000000A /* NSSBTests.xctest */ = {isa = PBXFileReference; explicitFileType = wrapper.cfbundle; includeInIndex = 0; path = NSSBTests.xctest; sourceTree = BUILT_PRODUCTS_DIR; };
 		5C12DEF52C6FD6C900090A71 /* MenuView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = MenuView.swift; sourceTree = "<group>"; };
 		5C26B0EA2C28AE21000036D5 /* CigDesign.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigDesign.swift; sourceTree = "<group>"; };
 		5C35E6F92C5554B40038574B /* ExtDate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ExtDate.swift; sourceTree = "<group>"; };
@@ -180,6 +196,13 @@
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
+		DEC0DE00000000000000000D /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		68D2FCDD284361E200529BB1 /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
@@ -200,6 +223,17 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DEC0DE000000000000000009 /* NSSBTests */ = {
+			isa = PBXGroup;
+			children = (
+				DEC0DE000000000000000001 /* CigNameTests.swift */,
+				DEC0DE000000000000000002 /* PresenceTests.swift */,
+				DEC0DE000000000000000003 /* CigDesignCodableTests.swift */,
+				DEC0DE000000000000000004 /* BreakStatsTests.swift */,
+			);
+			path = NSSBTests;
+			sourceTree = "<group>";
+		};
 		5C8ACD512C31669700CCD6E0 /* Fonts */ = {
 			isa = PBXGroup;
 			children = (
@@ -314,6 +348,7 @@
 				68D1CE0030A9CD9B00FEA578 /* GoogleService-Info.plist */,
 				68A14A6B2854AA0C00154D84 /* Shared */,
 				68D2FCE2284361E200529BB1 /* NSSB */,
+				DEC0DE000000000000000009 /* NSSBTests */,
 				68D2FCF2284361E900529BB1 /* NSSB WatchKit App */,
 				68D2FCFD284361EC00529BB1 /* NSSB WatchKit Extension */,
 				68D2FCE1284361E200529BB1 /* Products */,
@@ -323,6 +358,7 @@
 		68D2FCE1284361E200529BB1 /* Products */ = {
 			isa = PBXGroup;
 			children = (
+				DEC0DE00000000000000000A /* NSSBTests.xctest */,
 				68D2FCE0284361E200529BB1 /* NSSB.app */,
 				68D2FCEE284361E900529BB1 /* NSSB.app */,
 			);
@@ -415,6 +451,24 @@
 /* End PBXGroup section */
 
 /* Begin PBXNativeTarget section */
+		DEC0DE00000000000000000B /* NSSBTests */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = DEC0DE000000000000000011 /* Build configuration list for PBXNativeTarget "NSSBTests" */;
+			buildPhases = (
+				DEC0DE00000000000000000C /* Sources */,
+				DEC0DE00000000000000000D /* Frameworks */,
+				DEC0DE00000000000000000E /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+				DEC0DE000000000000000013 /* PBXTargetDependency */,
+			);
+			name = NSSBTests;
+			productName = NSSBTests;
+			productReference = DEC0DE00000000000000000A /* NSSBTests.xctest */;
+			productType = "com.apple.product-type.bundle.unit-test";
+		};
 		68D2FCDF284361E200529BB1 /* NSSB */ = {
 			isa = PBXNativeTarget;
 			buildConfigurationList = 68D2FD19284361EF00529BB1 /* Build configuration list for PBXNativeTarget "NSSB" */;
@@ -469,6 +523,9 @@
 					68D2FCDF284361E200529BB1 = {
 						CreatedOnToolsVersion = 13.3;
 					};
+					DEC0DE00000000000000000B = {
+						TestTargetID = 68D2FCDF284361E200529BB1;
+					};
 					68D2FCED284361E900529BB1 = {
 						CreatedOnToolsVersion = 13.3;
 					};
@@ -491,12 +548,20 @@
 			projectRoot = "";
 			targets = (
 				68D2FCDF284361E200529BB1 /* NSSB */,
+				DEC0DE00000000000000000B /* NSSBTests */,
 				68D2FCED284361E900529BB1 /* NSSB WatchKit App */,
 			);
 		};
 /* End PBXProject section */
 
 /* Begin PBXResourcesBuildPhase section */
+		DEC0DE00000000000000000E /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		68D2FCDE284361E200529BB1 /* Resources */ = {
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -522,6 +587,17 @@
 /* End PBXResourcesBuildPhase section */
 
 /* Begin PBXSourcesBuildPhase section */
+		DEC0DE00000000000000000C /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				DEC0DE000000000000000005 /* CigNameTests.swift in Sources */,
+				DEC0DE000000000000000006 /* PresenceTests.swift in Sources */,
+				DEC0DE000000000000000007 /* CigDesignCodableTests.swift in Sources */,
+				DEC0DE000000000000000008 /* BreakStatsTests.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
 		68D2FCDC284361E200529BB1 /* Sources */ = {
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
@@ -608,6 +684,11 @@
 /* End PBXSourcesBuildPhase section */
 
 /* Begin PBXTargetDependency section */
+		DEC0DE000000000000000013 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 68D2FCDF284361E200529BB1 /* NSSB */;
+			targetProxy = DEC0DE000000000000000012 /* PBXContainerItemProxy */;
+		};
 		68D2FCF1284361E900529BB1 /* PBXTargetDependency */ = {
 			isa = PBXTargetDependency;
 			target = 68D2FCED284361E900529BB1 /* NSSB WatchKit App */;
@@ -616,6 +697,48 @@
 /* End PBXTargetDependency section */
 
 /* Begin XCBuildConfiguration section */
+		DEC0DE00000000000000000F /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3JMZLMZVTS;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NSSB.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NSSB";
+			};
+			name = Debug;
+		};
+		DEC0DE000000000000000010 /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
+				BUNDLE_LOADER = "$(TEST_HOST)";
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3JMZLMZVTS;
+				GENERATE_INFOPLIST_FILE = YES;
+				IPHONEOS_DEPLOYMENT_TARGET = 16.0;
+				MARKETING_VERSION = 1.0;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSBTests;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = iphoneos;
+				SWIFT_EMIT_LOC_STRINGS = NO;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = "1,2";
+				TEST_HOST = "$(BUILT_PRODUCTS_DIR)/NSSB.app/$(BUNDLE_EXECUTABLE_FOLDER_PATH)/NSSB";
+			};
+			name = Release;
+		};
 		68D2FD0F284361EF00529BB1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
@@ -870,6 +993,15 @@
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
+		DEC0DE000000000000000011 /* Build configuration list for PBXNativeTarget "NSSBTests" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				DEC0DE00000000000000000F /* Debug */,
+				DEC0DE000000000000000010 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
 		68D2FCDB284361E100529BB1 /* Build configuration list for PBXProject "NSSB" */ = {
 			isa = XCConfigurationList;
 			buildConfigurations = (
