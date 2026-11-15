@@ -12,27 +12,28 @@ import NotificationCenter
 
 class ReminderRepository: ObservableObject {
     
-    
+    // Stable identifiers so a rescheduled set replaces the previous one instead
+    // of stacking on top of it. Bounded by the largest option the UI offers.
+    private static let reminderPrefix = "dailyReminder-"
+    private static let maxReminders = 20
     
     func setReminders(_ perDay: Int) {
         
         print("per day \(perDay)")
         
-        if perDay != 0 {
-            
-            let triggers = getDailyTriggers(perDay)
-            
-            for trigger in triggers {
-                
-                addStartNotification(at: trigger)
-                
-            }
-            
-        } else {
-            
+        // Always clear the previously scheduled reminders first. Only our own
+        // reminder identifiers are removed, so an ongoing break notification
+        // is left alone.
+        let staleIDs:[String] = (0..<ReminderRepository.maxReminders).map { "\(ReminderRepository.reminderPrefix)\($0)" }
+        UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: staleIDs)
+        
+        guard perDay != 0 else {
             print("Removed reminders")
-            UNUserNotificationCenter.current().removeAllPendingNotificationRequests()
-            
+            return
+        }
+        
+        for (index, trigger) in getDailyTriggers(perDay).enumerated() {
+            addStartNotification(at: trigger, index: index)
         }
     }
     
@@ -93,15 +94,15 @@ class ReminderRepository: ObservableObject {
         return triggers
     }
     
-    private func addStartNotification(at trigger: UNNotificationTrigger) {
+    private func addStartNotification(at trigger: UNNotificationTrigger, index: Int) {
         
         let content = UNMutableNotificationContent()
         content.title = "Take a Non-Smoking Smoke Break"
         content.subtitle = "It's healthy and you deserve it."
         content.sound = UNNotificationSound.default
 
-        // choose a random identifier
-        let request = UNNotificationRequest(identifier: UUID().uuidString, content: content, trigger: trigger)
+        // Stable identifier, so rescheduling replaces this reminder
+        let request = UNNotificationRequest(identifier: "\(ReminderRepository.reminderPrefix)\(index)", content: content, trigger: trigger)
 
         // add our notification request
         UNUserNotificationCenter.current().add(request)

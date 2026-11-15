@@ -72,12 +72,16 @@ struct ReminderView: View {
         
         getPermissions() { newPermissions in
             
-            // If permissions changed, then update value
-            if self.permissions != newPermissions { self.permissions = newPermissions }
-            
-            // Update reminders if permission granted
-            updateReminders(newPermissions ?? false ? self.remindersPerDay : 0)
-            
+            // The notification callbacks come back off the main thread
+            DispatchQueue.main.async {
+                
+                // If permissions changed, then update value
+                if self.permissions != newPermissions { self.permissions = newPermissions }
+                
+                // Update reminders if permission granted
+                updateReminders(newPermissions ?? false ? self.remindersPerDay : 0)
+                
+            }
         }
         
         func updateReminders(_ perDay: Int) {
@@ -119,19 +123,21 @@ struct ReminderView: View {
         }
         
         func requestPermissions(completion: @escaping (Bool?) -> Void) {
-            if remindersPerDay != 0 {
+            
+            // Nothing to ask for yet - the user has not chosen a frequency
+            guard remindersPerDay != 0 else {
+                completion(nil)
+                return
+            }
+            
+            UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
                 
-                UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
-                    
-                    if success {
-                        completion(true)
-                    } else if let error = error {
-                        print(error.localizedDescription)
-                        completion(false)
-                    }
-                    
-                    completion(nil)
-                }
+                if let error = error { print(error.localizedDescription) }
+                
+                // Exactly one call - calling it twice used to overwrite a
+                // granted permission with nil, which cancelled the reminders
+                // immediately after the user allowed them.
+                completion(success)
             }
         }
         

@@ -33,12 +33,10 @@ struct SettingsDesignView: View {
             
             Grid(alignment: .leading) {
                 
-                GridRow {
+                GridRow(alignment: .top) {
                     Text("Name")
                     
-                    TitleTextFieldView(title: $design.title)
-                        .background( Rectangle().fill(.black).cornerRadius(3))
-                        
+                    CigNameWheelsView(title: $design.title)
                 }
                 
                 HueSliderView(title: "Back", color: $design.background)
@@ -59,7 +57,7 @@ struct SettingsDesignView: View {
                 }
                 
                 GridRow {
-                    Text("Filter")
+                    Text("Length")
                     Slider(value: $design.filterPercentage, in: CigDesign.filterRange)
                 }
             }
@@ -96,46 +94,72 @@ struct SettingsDesignView: View {
 }
 
 
-import Combine
-
-struct TitleTextFieldView:View {
+struct CigNameWheelsView: View {
     
     @Binding var title: String
     
-    @State private var tempTitle:String = ""
-    
-    let textLimit = 50
+    private var parts: (adjective: String, noun: String)? { cigNameParts(title) }
     
     var body: some View {
-        HStack(spacing: 0) {
-            
-            TextField("Custom name", text: $tempTitle, onCommit: { self.title = String(tempTitle.prefix(70)) })
-                .onReceive(Just(tempTitle)) { _ in limitText(textLimit) }
-                .padding(3)
-                .foregroundStyle(Color.accent)
-            
-            Text(Image(systemName: "xmark.circle.fill"))
-                .onTapGesture {
-                    self.tempTitle = ""
-                    self.title = ""
-                }
-                .opacity(self.tempTitle.count != 0 ? 1 : 0)
-        }
-        .onAppear { tempTitle = title }
         
-        // Check if title is changed from outside this view
-        .onChange(of: self.title) { new in
-            if new != self.tempTitle {
-                self.tempTitle = new
+        VStack(alignment: .leading, spacing: 4) {
+            
+            // A name typed back when this was a text field. Shown once, struck
+            // through, so it is not swapped out behind the user's back - it
+            // disappears by itself as soon as they roll.
+            if isLegacyCigName(title) {
+                Text(title)
+                    .strikethrough()
+                    .foregroundStyle(.gray)
+                Text("Names are rolled now.")
+                    .font(.caption2)
+                    .foregroundStyle(.gray)
+            }
+            
+            HStack(spacing: 6) {
+                
+                if let parts = parts {
+                    
+                    // Two wheels. Tapping one re-rolls that word and leaves
+                    // the other alone, which is the whole mechanic - holding a
+                    // word is just not tapping it.
+                    wheel(parts.adjective) { title = rerollCigAdjective(in: title) }
+                    wheel(parts.noun) { title = rerollCigNoun(in: title) }
+                    
+                    Text(Image(systemName: "xmark.circle.fill"))
+                        .foregroundStyle(.gray)
+                        .onTapGesture {
+                            withAnimation(.easeInOut(duration: 0.2)) { title = "" }
+                        }
+                    
+                } else {
+                    
+                    // No name yet, or a legacy one being replaced. One tap
+                    // rolls both words, and teaches that the words are taps.
+                    wheel("Roll a name") { title = randomCigaretteName() }
+                }
             }
         }
     }
     
-    //Function to keep text length in limits
-        func limitText(_ upper: Int) {
-            if tempTitle.count > upper {
-                tempTitle = String(tempTitle.prefix(upper))
+    @ViewBuilder
+    private func wheel(_ word: String, roll: @escaping () -> Void) -> some View {
+        
+        Text(word)
+            .foregroundStyle(Color.accent)
+            .padding(.horizontal, 8)
+            .padding(.vertical, 3)
+            .background(
+                RoundedRectangle(cornerRadius: 4)
+                    .fill(.black)
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 4)
+                            .stroke(Color.accent.opacity(0.4), lineWidth: 1)
+                    )
+            )
+            .contentShape(Rectangle())
+            .onTapGesture {
+                withAnimation(.easeInOut(duration: 0.2)) { roll() }
             }
-        }
-    
+    }
 }

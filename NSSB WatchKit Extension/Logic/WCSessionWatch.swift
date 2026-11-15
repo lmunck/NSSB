@@ -11,7 +11,7 @@ import WatchConnectivity
 class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     
     // Cigarette
-    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) { didSet { sendUpdate() }}
+    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) { didSet { save(); sendUpdate() }}
     var lastReceived:NonSmokingData? = nil
     
     // Session
@@ -30,9 +30,21 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         session.activate()
         
         // Load data
+        load()
+        
+    }
+    
+    func load() {
         if let loadedData = functions.load() {
+            print("Loaded data \(loadedData.breaks.count)")
             self.data = loadedData
+        } else {
+            print("Load failed")
         }
+    }
+    
+    func save() {
+        functions.save(self.data)
     }
     
     // MARK: Sessions

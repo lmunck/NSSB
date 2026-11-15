@@ -14,7 +14,22 @@ import WatchConnectivity
 class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     
     // Cigrette
-    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) { didSet { sendUpdate() }}
+    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) {
+        didSet {
+            // Persist break history and the name straight away - neither can
+            // be recreated if the app is killed before it backgrounds, and a
+            // rolled name is not something the user can simply type again.
+            // Both are discrete changes. Colours and width still save on scene
+            // phase changes, so dragging a slider does not write to disk on
+            // every frame.
+            if oldValue.breaks != data.breaks
+                || oldValue.breakStarted != data.breakStarted
+                || oldValue.cigDesign.title != data.cigDesign.title {
+                save()
+            }
+            sendUpdate()
+        }
+    }
     var lastReceived:NonSmokingData? = nil
     
     // Session
