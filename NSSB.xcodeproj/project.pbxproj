@@ -7,6 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
+		CD0FACE0000000000000000B /* BreakAsk.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE0000000000000000A /* BreakAsk.swift */; };
 		DEC0DE000000000000000005 /* CigNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000001 /* CigNameTests.swift */; };
 		DEC0DE100000000000000002 /* CourtyardTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000001 /* CourtyardTests.swift */; };
 		DEC0DE000000000000000006 /* PresenceTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000002 /* PresenceTests.swift */; };
@@ -130,6 +131,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
+		CD0FACE0000000000000000A /* BreakAsk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakAsk.swift; sourceTree = "<group>"; };
 		DEC0DE000000000000000001 /* CigNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNameTests.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000001 /* CourtyardTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardTests.swift; sourceTree = "<group>"; };
 		DEC0DE000000000000000002 /* PresenceTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceTests.swift; sourceTree = "<group>"; };
@@ -460,6 +462,7 @@
 		CD0FACE00000000000000009 /* Presence */ = {
 			isa = PBXGroup;
 			children = (
+				CD0FACE0000000000000000A /* BreakAsk.swift */,
 				CD0FACE00000000000000001 /* BreakPresence.swift */,
 				CD0FACE00000000000000002 /* PresenceService.swift */,
 				CD0FACE00000000000000003 /* FirestorePresenceService.swift */,
@@ -623,6 +626,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				CD0FACE0000000000000000B /* BreakAsk.swift in Sources */,
 				68A14A812860F21F00154D84 /* Colors.swift in Sources */,
 				5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */,
 				5CCF0DB92C29F4E300D433A3 /* CigaretteGlowDots.swift in Sources */,

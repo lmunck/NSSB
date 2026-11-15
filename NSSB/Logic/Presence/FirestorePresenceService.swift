@@ -26,9 +26,12 @@ final class FirestorePresenceService: PresenceService {
     // ordering already works out - this just removes the question.
     private lazy var db = Firestore.firestore()
     private var listener: ListenerRegistration?
+    private var ownAskListener: ListenerRegistration?
+    private var asksListener: ListenerRegistration?
     private var uid: String?
     
     private let collection = "presence"
+    private let asksCollection = "asks"
     
     // MARK: Auth
     
@@ -193,6 +196,165 @@ final class FirestorePresenceService: PresenceService {
             .getAggregation(source: .server)
         
         return snapshot.count.intValue
+    }
+    
+    // MARK: - Asking for a light
+    
+    /// Same encode-then-await as `publish`, for the same reason: a rules
+    /// rejection has to reach the caller. An ask that was refused by the
+    /// server but believed by the client is worse here than anywhere else -
+    /// the asker would stand waiting eight seconds for an answer to a
+    /// question nobody was ever asked.
+    func openAsk(_ ask: BreakAsk) async throws {
+        
+        guard uid != nil else { throw PresenceError.notSignedIn }
+        
+        let data = try Firestore.Encoder().encode(ask)
+        
+        try await db.collection(asksCollection)
+            .document(ask.id)
+            .setData(data)
+    }
+    
+    /// A document listener on your own ask, for the eight seconds it lives.
+    ///
+    /// Snapshots can be served from the local cache, and the first one here
+    /// always is - it is our own write coming back. That is harmless, because
+    /// the only transition this is watching for is `claimed` becoming true,
+    /// which this device never writes and the rules forbid it from writing.
+    /// So a claim can only ever have come from the server, and from somebody
+    /// else.
+    func observeOwnAsk(id: String, onChange: @escaping (BreakAsk) -> Void) {
+        
+        stopObservingOwnAsk()
+        
+        ownAskListener = db.collection(asksCollection)
+            .document(id)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Presence - own ask listener error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let snapshot = snapshot, snapshot.exists,
+                      let ask = try? snapshot.data(as: BreakAsk.self) else { return }
+                
+                onChange(ask)
+            }
+    }
+    
+    func stopObservingOwnAsk() {
+        ownAskListener?.remove()
+        ownAskListener = nil
+    }
+    
+    /// Asks that are still open, excluding your own.
+    ///
+    /// Ordered and bounded on `expiresAt` alone, and `claimed` is filtered
+    /// here rather than in the query. Adding an equality on `claimed` would
+    /// turn this into a composite index for no benefit: the window is eight
+    /// seconds wide, so the slice this reads is a handful of documents even
+    /// when the courtyard is busy, and an answered ask that arrives is simply
+    /// dropped on this side.
+    func observeAsks(limit: Int, onChange: @escaping ([BreakAsk]) -> Void) {
+        
+        stopObservingAsks()
+        
+        let ownUid = self.uid
+        
+        asksListener = db.collection(asksCollection)
+            .whereField("expiresAt", isGreaterThan: Date.now)
+            .order(by: "expiresAt")
+            .limit(to: limit)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Presence - asks listener error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                let open: [BreakAsk] = documents.compactMap { document in
+                    
+                    guard let ask = try? document.data(as: BreakAsk.self) else { return nil }
+                    guard ask.isOpen() else { return nil }
+                    
+                    // Your own ask, which you may not answer - the rules say
+                    // so too, but it should never be drawn as an offer.
+                    if let ownUid = ownUid,
+                       ask.askerHash == BreakOwner.hash(uid: ownUid, breakId: ask.id) {
+                        return nil
+                    }
+                    
+                    return ask
+                }
+                
+                if open.isEmpty == false {
+                    print("Presence - \(open.count) open ask(s) in the courtyard")
+                }
+                
+                onChange(open)
+            }
+    }
+    
+    func stopObservingAsks() {
+        asksListener?.remove()
+        asksListener = nil
+    }
+    
+    /// The one write that can lose.
+    ///
+    /// `updateData` rather than `setData`, because the rule compares the
+    /// incoming document against the one already there: exactly one
+    /// `claimed: false -> true` transition is permitted, so if two people
+    /// reach for their lighter at the same moment the server picks one and
+    /// this throws for the other. That is the whole race, settled where it
+    /// should be - and awaited, so the loser actually finds out.
+    func claimAsk(
+        id: String,
+        giverName: String,
+        giverDesign: CigDesign,
+        giverProgress: Double
+    ) async throws {
+        
+        guard uid != nil else { throw PresenceError.notSignedIn }
+        
+        let design = try Firestore.Encoder().encode(giverDesign)
+        
+        try await db.collection(asksCollection)
+            .document(id)
+            .updateData([
+                "claimed": true,
+                "giverName": giverName,
+                "giverDesign": design,
+                "giverProgress": giverProgress
+            ])
+    }
+    
+    func withdrawAsk(id: String) async throws {
+        try await db.collection(asksCollection).document(id).delete()
+    }
+    
+    /// An ask is eight seconds long, so anything the rules will let anyone
+    /// delete here has been litter for five minutes. Same bounded handful as
+    /// the presence sweep.
+    func sweepStaleAsks(olderThan: TimeInterval, limit: Int) async throws -> Int {
+        
+        let cutoff = Date.now.addingTimeInterval(-olderThan)
+        
+        let snapshot = try await db.collection(asksCollection)
+            .whereField("expiresAt", isLessThan: cutoff)
+            .order(by: "expiresAt")
+            .limit(to: limit)
+            .getDocuments(source: .server)
+        
+        for document in snapshot.documents {
+            try? await document.reference.delete()
+        }
+        
+        return snapshot.documents.count
     }
 }
 

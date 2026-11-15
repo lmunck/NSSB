@@ -56,6 +56,46 @@ protocol PresenceService: AnyObject {
     /// the collection bounded without a scheduled function - and the rules
     /// only permit deleting documents that are certainly litter.
     func sweepStale(olderThan: TimeInterval, limit: Int) async throws -> Int
+    
+    // MARK: Asking for a light
+    
+    /// Publishes an open ask. Eight seconds, addressed to the whole
+    /// courtyard rather than to a person - see BreakAsk for why that is the
+    /// whole feature rather than a detail of it.
+    func openAsk(_ ask: BreakAsk) async throws
+    
+    /// Watches your own ask for the one thing that can happen to it:
+    /// somebody answering. A document listener, not a query, and attached for
+    /// eight seconds.
+    func observeOwnAsk(id: String, onChange: @escaping (BreakAsk) -> Void)
+    
+    func stopObservingOwnAsk()
+    
+    /// Everyone else's open asks. Attached only while your own cigarette is
+    /// lit, because an unlit cigarette has nothing to give.
+    func observeAsks(limit: Int, onChange: @escaping ([BreakAsk]) -> Void)
+    
+    func stopObservingAsks()
+    
+    /// Answers an ask.
+    ///
+    /// Throws when somebody else got there first: the rules permit exactly
+    /// one `claimed: false -> true` transition, so the race is settled by the
+    /// server and the loser finds out here rather than by being told by a
+    /// client that it lost.
+    func claimAsk(
+        id: String,
+        giverName: String,
+        giverDesign: CigDesign,
+        giverProgress: Double
+    ) async throws
+    
+    /// Removes your own ask - answered, timed out, or cancelled. Same
+    /// reasoning as `withdraw`: nothing else will.
+    func withdrawAsk(id: String) async throws
+    
+    /// Takes the bins out in the asks collection.
+    func sweepStaleAsks(olderThan: TimeInterval, limit: Int) async throws -> Int
 
 }
 
@@ -63,6 +103,7 @@ enum PresenceError: LocalizedError {
     
     case notConfigured
     case notSignedIn
+    case askAlreadyAnswered
     
     var errorDescription: String? {
         switch self {
@@ -70,6 +111,8 @@ enum PresenceError: LocalizedError {
             return "No Firebase project is configured. See firebase/README.md."
         case .notSignedIn:
             return "Tried to publish a break before signing in."
+        case .askAlreadyAnswered:
+            return "Somebody else got there first."
         }
     }
 }
@@ -136,6 +179,89 @@ final class SimulatedPresenceService: PresenceService {
     }
     
     func sweepStale(olderThan: TimeInterval, limit: Int) async throws -> Int { 0 }
+    
+    // MARK: Asking for a light
+    
+    // Faithful plumbing, and nothing more. The state machine above can be
+    // driven end to end against this - opened, answered, withdrawn - which is
+    // what makes it testable without a network.
+    //
+    // Deliberately nobody ever answers by themselves. The invented breaks
+    // further down exist so there is something on screen during development,
+    // and manufacturing presence is already a stretch; manufacturing a gift
+    // would be a lie about another person having done something kind. So an
+    // ask left alone here times out, exactly as it does in an empty
+    // courtyard.
+    
+    private var asks: [String: BreakAsk] = [:]
+    private var ownAskId: String?
+    private var onOwnAskChange: ((BreakAsk) -> Void)?
+    private var onAsksChange: (([BreakAsk]) -> Void)?
+    
+    func openAsk(_ ask: BreakAsk) async throws {
+        asks[ask.id] = ask
+        print("Presence - asked the courtyard for a light (\(ask.name))")
+        emitAsks()
+        emitOwnAsk()
+    }
+    
+    func observeOwnAsk(id: String, onChange: @escaping (BreakAsk) -> Void) {
+        ownAskId = id
+        onOwnAskChange = onChange
+        emitOwnAsk()
+    }
+    
+    func stopObservingOwnAsk() {
+        ownAskId = nil
+        onOwnAskChange = nil
+    }
+    
+    func observeAsks(limit: Int, onChange: @escaping ([BreakAsk]) -> Void) {
+        onAsksChange = onChange
+        emitAsks()
+    }
+    
+    func stopObservingAsks() {
+        onAsksChange = nil
+    }
+    
+    func claimAsk(
+        id: String,
+        giverName: String,
+        giverDesign: CigDesign,
+        giverProgress: Double
+    ) async throws {
+        
+        guard var ask = asks[id], ask.claimed == false else {
+            throw PresenceError.askAlreadyAnswered
+        }
+        
+        ask.claimed = true
+        ask.giverName = giverName
+        ask.giverDesign = giverDesign
+        ask.giverProgress = giverProgress
+        asks[id] = ask
+        
+        emitAsks()
+        emitOwnAsk()
+    }
+    
+    func withdrawAsk(id: String) async throws {
+        asks[id] = nil
+        emitAsks()
+    }
+    
+    func sweepStaleAsks(olderThan: TimeInterval, limit: Int) async throws -> Int { 0 }
+    
+    private func emitOwnAsk() {
+        guard let id = ownAskId, let ask = asks[id] else { return }
+        onOwnAskChange?(ask)
+    }
+    
+    private func emitAsks() {
+        let open = asks.values.filter { $0.isOpen() }
+        onAsksChange?(Array(open))
+    }
     
     private func emit() {
         
