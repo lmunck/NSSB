@@ -125,9 +125,11 @@ final class SimulatedPresenceService: PresenceService {
             var design = getRandom()
             design.title = randomCigaretteName()
             
+            let id = "simulated-\(index)"
+            
             return BreakPresence(
-                id: "simulated-\(index)",
-                uid: "simulated-other-\(index)",
+                id: id,
+                ownerHash: BreakOwner.hash(uid: "simulated-other-\(index)", breakId: id),
                 startedAt: startedAt,
                 endsAt: startedAt.addingTimeInterval(Date.breakLength),
                 name: design.title,
