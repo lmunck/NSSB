@@ -95,8 +95,13 @@ final class FirestorePresenceService: PresenceService {
                         return nil
                     }
                     
-                    // Your own cigarette is drawn in front, not in the crowd.
-                    guard presence.uid != ownUid else { return nil }
+                    // Your own cigarette is drawn in front, not in the
+                    // crowd. Recomputed rather than compared directly,
+                    // because the document no longer carries a uid.
+                    if let ownUid = ownUid,
+                       presence.ownerHash == BreakOwner.hash(uid: ownUid, breakId: presence.id) {
+                        return nil
+                    }
                     
                     return presence
                 }

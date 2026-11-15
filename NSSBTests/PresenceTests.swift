@@ -16,7 +16,7 @@ final class PresenceTests: XCTestCase {
     private func presence(startedAt: Date, tzOffset: Int = 0, name: String = "Hollow Lantern") -> BreakPresence {
         BreakPresence(
             id: "test",
-            uid: "uid",
+            ownerHash: BreakOwner.hash(uid: "uid", breakId: "test"),
             startedAt: startedAt,
             endsAt: startedAt.addingTimeInterval(Date.breakLength),
             name: name,
@@ -108,6 +108,34 @@ final class PresenceTests: XCTestCase {
         XCTAssertNil(p.country, "there are places where a flag is not a neutral act")
     }
     
+    // MARK: Ownership
+
+    /// The whole point of the hash: it proves ownership to the rules without
+    /// letting anyone link two breaks by the same person.
+    func testOwnerHashDiffersPerBreakForTheSameUser() {
+        let a = BreakOwner.hash(uid: "same-user", breakId: "break-1")
+        let b = BreakOwner.hash(uid: "same-user", breakId: "break-2")
+        XCTAssertNotEqual(a, b, "two breaks by one person are linkable")
+    }
+
+    func testOwnerHashIsStableForTheSameBreak() {
+        // A republish after a kill has to produce the same hash or the rules
+        // reject the update.
+        XCTAssertEqual(BreakOwner.hash(uid: "u", breakId: "b"),
+                       BreakOwner.hash(uid: "u", breakId: "b"))
+    }
+
+    func testOwnerHashDiffersBetweenUsersForTheSameBreakId() {
+        XCTAssertNotEqual(BreakOwner.hash(uid: "user-a", breakId: "b"),
+                          BreakOwner.hash(uid: "user-b", breakId: "b"))
+    }
+
+    func testNoUidIsStoredOnThePresenceDocument() throws {
+        let p = BreakPresence.starting(at: .now, uid: "secret-uid", design: CigDesign())
+        let json = String(data: try JSONEncoder().encode(p), encoding: .utf8) ?? ""
+        XCTAssertFalse(json.contains("secret-uid"), "the uid leaked into the document")
+    }
+
     // MARK: Round trip
     
     func testPresenceSurvivesEncodingAndDecoding() throws {
@@ -122,7 +150,7 @@ final class PresenceTests: XCTestCase {
         let back = try JSONDecoder().decode(BreakPresence.self, from: data)
         
         XCTAssertEqual(original.id, back.id)
-        XCTAssertEqual(original.uid, back.uid)
+        XCTAssertEqual(original.ownerHash, back.ownerHash)
         XCTAssertEqual(original.name, back.name)
         XCTAssertEqual(original.country, back.country)
         XCTAssertEqual(original.tzOffset, back.tzOffset)

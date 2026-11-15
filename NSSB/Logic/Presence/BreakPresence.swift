@@ -10,6 +10,17 @@
 // out, so there is no record anywhere of who stood next to whom.
 
 import Foundation
+import CryptoKit
+
+enum BreakOwner {
+    
+    /// Must match `hashing.sha256(request.auth.uid + breakId).toBase64()` in
+    /// firestore.rules exactly, or every write is denied.
+    static func hash(uid: String, breakId: String) -> String {
+        let digest = SHA256.hash(data: Data((uid + breakId).utf8))
+        return Data(digest).base64EncodedString()
+    }
+}
 
 struct BreakPresence: Codable, Equatable, Identifiable {
     
@@ -17,17 +28,19 @@ struct BreakPresence: Codable, Equatable, Identifiable {
     /// breaks by the same user cannot be linked together by anyone reading.
     let id: String
     
-    /// Anonymous auth uid. Written so the security rules can check that a
-    /// client is only ever writing its own document, and filtered out before
-    /// the courtyard reaches a view.
+    /// Proof of ownership that is useless to everyone else.
     ///
-    /// Note that it is readable by any signed-in client, because Firestore
-    /// rules are per-document and cannot hide a field. It is an opaque
-    /// anonymous id with nothing attached to it, but it does mean two breaks
-    /// by the same user are linkable by anyone reading the raw collection.
-    /// Moving the write behind a Cloud Function would drop the field entirely
-    /// - worth doing before the courtyard is actually visible to anyone.
-    let uid: String
+    /// This used to be the raw anonymous uid, which the security rules need
+    /// but which any signed-in client could also read - and since every break
+    /// by one person carried the same uid, their breaks were linkable by
+    /// anyone reading the collection. Firestore rules are per-document and
+    /// cannot hide a field, so the only way to keep a uid private is not to
+    /// store one.
+    ///
+    /// sha256(uid + breakId) still lets the rules verify ownership, because
+    /// they can recompute it from request.auth.uid. But it is different for
+    /// every break, so it links nothing.
+    let ownerHash: String
     
     let startedAt: Date
     
@@ -72,7 +85,7 @@ extension BreakPresence {
         
         BreakPresence(
             id: id,
-            uid: uid,
+            ownerHash: BreakOwner.hash(uid: uid, breakId: id),
             startedAt: startedAt,
             endsAt: startedAt.addingTimeInterval(Date.breakLength),
             name: design.title,

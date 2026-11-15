@@ -18,8 +18,15 @@ service cloud.firestore {
       allow read: if request.auth != null;
 
       allow create: if request.auth != null
-                    // You may only publish as yourself.
-                    && request.resource.data.uid == request.auth.uid
+                    // You may only publish as yourself - but the document
+                    // never carries your uid. ownerHash is sha256(uid +
+                    // breakId), which proves ownership to these rules while
+                    // being useless to anyone reading the collection: it is
+                    // different for every break, so two breaks by the same
+                    // person cannot be linked. Firestore rules are
+                    // per-document and cannot hide a field, so the only way
+                    // to keep a uid private is to not store one.
+                    && request.resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
                     // A break is five minutes. Not an hour, not a day.
                     && request.resource.data.endsAt is timestamp
                     && request.resource.data.startedAt is timestamp
@@ -42,8 +49,8 @@ service cloud.firestore {
       // field that identifies the break has to be unchanged - so this cannot
       // be used to extend a break or swap a name halfway through it.
       allow update: if request.auth != null
-                    && resource.data.uid == request.auth.uid
-                    && request.resource.data.uid == resource.data.uid
+                    && resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
+                    && request.resource.data.ownerHash == resource.data.ownerHash
                     && request.resource.data.startedAt == resource.data.startedAt
                     && request.resource.data.endsAt == resource.data.endsAt
                     && request.resource.data.name == resource.data.name;
@@ -53,7 +60,7 @@ service cloud.firestore {
       // has to keep working - including on a later launch, for a break the
       // app was killed during.
       allow delete: if request.auth != null
-                    && resource.data.uid == request.auth.uid;
+                    && resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64();
     }
 
     // Written by a scheduled function, never by a client. The count must not

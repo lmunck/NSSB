@@ -223,6 +223,16 @@
 /* End PBXFrameworksBuildPhase section */
 
 /* Begin PBXGroup section */
+		DA7A0F000000000000000001 /* UI */ = {
+			isa = PBXGroup;
+			children = (
+				68A14A6428537E7C00154D84 /* Focus.swift */,
+				5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */,
+				5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */,
+			);
+			path = UI;
+			sourceTree = "<group>";
+		};
 		DEC0DE000000000000000009 /* NSSBTests */ = {
 			isa = PBXGroup;
 			children = (
@@ -238,7 +248,6 @@
 			isa = PBXGroup;
 			children = (
 				5C8ACD522C3166C400CCD6E0 /* captainicon.ttf */,
-				5C8ACD552C31675600CCD6E0 /* CaptainIconView.swift */,
 				5C964EE42C3EC2E8004A94D6 /* AppFonts.swift */,
 			);
 			path = Fonts;
@@ -247,6 +256,7 @@
 		5CBF16772C45A3FF0011FC18 /* Extensions */ = {
 			isa = PBXGroup;
 			children = (
+				5C9F18822C2C713600F96C32 /* ExtColor.swift */,
 				5CBF16782C45A4130011FC18 /* ExtString.swift */,
 				5C35E6F92C5554B40038574B /* ExtDate.swift */,
 				5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */,
@@ -265,24 +275,21 @@
 			path = CigaretteViews;
 			sourceTree = "<group>";
 		};
-		68372CAF284A8E7200607600 /* Shared */ = {
+		68372CAF284A8E7200607600 /* Support */ = {
 			isa = PBXGroup;
 			children = (
 				5C8ACD512C31669700CCD6E0 /* Fonts */,
 				68372CB0284A8EA200607600 /* LabelStyleReversed.swift */,
-				68A14A6428537E7C00154D84 /* Focus.swift */,
 				68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */,
-				5C9C25372C161E9F0025191E /* ColorCodable.swift */,
-				5CEC10F52C2B3A9600EAD79C /* RoundedCornerShape.swift */,
-				5C9F18822C2C713600F96C32 /* ExtColor.swift */,
 				5CE064792C3DC92F003B05DC /* DragToSelect.swift */,
 			);
-			path = Shared;
+			path = Support;
 			sourceTree = "<group>";
 		};
 		68372CB2284BE5BA00607600 /* Models */ = {
 			isa = PBXGroup;
 			children = (
+				5C9C25372C161E9F0025191E /* ColorCodable.swift */,
 				68A14A58285207D500154D84 /* AppMenu.swift */,
 				68372CB3284BE66E00607600 /* NonSmokingData.swift */,
 				5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */,
@@ -312,6 +319,7 @@
 		68A14A6B2854AA0C00154D84 /* Shared */ = {
 			isa = PBXGroup;
 			children = (
+				DA7A0F000000000000000001 /* UI */,
 				5CBF16772C45A3FF0011FC18 /* Extensions */,
 				5CCF0DB52C29F47500D433A3 /* CigaretteViews */,
 				68A14A6C2854AA1100154D84 /* Logic */,
@@ -373,7 +381,7 @@
 				68D2FCE3284361E200529BB1 /* NSSBApp.swift */,
 				68D2FCE5284361E200529BB1 /* ContentView.swift */,
 				68D2FD1C2843656700529BB1 /* Views */,
-				68372CAF284A8E7200607600 /* Shared */,
+				68372CAF284A8E7200607600 /* Support */,
 				68372CB5284BE74D00607600 /* Logic */,
 				68D2FCE7284361E900529BB1 /* Assets.xcassets */,
 				68D2FCE9284361E900529BB1 /* Preview Content */,
