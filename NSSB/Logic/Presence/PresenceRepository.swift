@@ -26,6 +26,12 @@ final class PresenceRepository: ObservableObject {
     /// Nil until the first successful sign-in.
     @Published private(set) var uid: String?
     
+    /// Everyone lit anywhere right now, including you. Nil until it has been
+    /// asked for once - the difference between "nobody" and "we do not know
+    /// yet" matters, because the courtyard should never claim to be empty
+    /// when it simply has not looked.
+    @Published private(set) var liveCount: Int?
+    
     private let service: PresenceService
     
     /// The break this device is currently publishing, if any.
@@ -76,6 +82,25 @@ final class PresenceRepository: ObservableObject {
         return SimulatedPresenceService()
     }
     
+    // MARK: The count
+    
+    /// Cheap enough to call on launch and at either end of a break, which is
+    /// as often as the number meaningfully changes for this user.
+    func refreshCount() async {
+        do {
+            self.liveCount = try await service.liveCount()
+        } catch {
+            print("Presence - count failed: \(error.localizedDescription)")
+        }
+    }
+    
+    /// Everyone except you. The raw count includes your own document while
+    /// you are lit, and "1 other" when that one is yourself reads as a lie.
+    var othersCount: Int? {
+        guard let liveCount = liveCount else { return nil }
+        return max(0, liveCount - (publishedBreak == nil ? 0 : 1))
+    }
+    
     // MARK: Lifecycle
     
     /// Called once, at launch.
@@ -83,6 +108,7 @@ final class PresenceRepository: ObservableObject {
         do {
             self.uid = try await service.signIn()
             print("Presence - signed in anonymously")
+            await refreshCount()
         } catch {
             // Firebase's own message for most auth failures is "An internal
             // error has occurred, print and inspect the error details" - the
@@ -133,6 +159,8 @@ final class PresenceRepository: ObservableObject {
             if isSameBreak {
                 print("Presence - resumed \(presence.name) at its real burn position")
             }
+            
+            await refreshCount()
             
             service.observeCourtyard(limit: courtyardLimit) { [weak self] others in
                 Task { @MainActor in

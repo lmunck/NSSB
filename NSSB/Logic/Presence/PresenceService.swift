@@ -33,6 +33,15 @@ protocol PresenceService: AnyObject {
     func observeCourtyard(limit: Int, onChange: @escaping ([BreakPresence]) -> Void)
     
     func stopObservingCourtyard()
+    
+    /// How many breaks are burning anywhere right now, including your own.
+    ///
+    /// A count() aggregation, which Firestore bills as one read per thousand
+    /// index entries - so this is one read, not one per person. The proposal
+    /// assumed a scheduled Cloud Function writing a stats document would be
+    /// needed to avoid counting the collection; it is not, and the aggregation
+    /// is both cheaper and simpler.
+    func liveCount() async throws -> Int
 }
 
 enum PresenceError: LocalizedError {
@@ -101,6 +110,10 @@ final class SimulatedPresenceService: PresenceService {
         timer?.invalidate()
         timer = nil
         onChange = nil
+    }
+    
+    func liveCount() async throws -> Int {
+        sample.filter { $0.isLive() }.count
     }
     
     private func emit() {

@@ -114,6 +114,23 @@ final class FirestorePresenceService: PresenceService {
         listener?.remove()
         listener = nil
     }
+    
+    /// One read, regardless of how many people are out there.
+    ///
+    /// Firestore bills an aggregation per thousand index entries, so this
+    /// stays a single read until the app has a thousand simultaneous breaks.
+    /// Deliberately not a snapshot listener: the number does not need to be
+    /// live to the second, and a listener on an unbounded query is the one
+    /// thing in this design that could actually run up a bill.
+    func liveCount() async throws -> Int {
+        
+        let snapshot = try await db.collection(collection)
+            .whereField("endsAt", isGreaterThan: Date.now)
+            .count
+            .getAggregation(source: .server)
+        
+        return snapshot.count.intValue
+    }
 }
 
 #endif

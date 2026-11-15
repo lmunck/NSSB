@@ -59,8 +59,20 @@ service cloud.firestore {
       // deleting its own document is the only thing that removes it, so this
       // has to keep working - including on a later launch, for a break the
       // app was killed during.
+      // Your own break, at any time.
+      //
+      // Or anyone's, once it expired long enough ago that it is certainly
+      // litter rather than presence. With no TTL policy on this project
+      // nothing else sweeps the collection, and two kinds of document would
+      // otherwise be immortal: one whose owner was killed mid-break and never
+      // came back, and one written before ownerHash existed, which no client
+      // can now prove it owns. An hour is far beyond the five-minute break,
+      // so this can never delete a cigarette anyone is still holding.
       allow delete: if request.auth != null
-                    && resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64();
+                    && (
+                      resource.data.ownerHash == hashing.sha256(request.auth.uid + breakId).toBase64()
+                      || resource.data.endsAt < request.time - duration.value(1, 'h')
+                    );
     }
 
     // Written by a scheduled function, never by a client. The count must not

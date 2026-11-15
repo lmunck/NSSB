@@ -85,6 +85,11 @@ struct ContentView: View {
                         
                     }
                     .frame(width: geo.size.width)
+                    
+                    // Who else is out here. Fades with the cigarette, so it
+                    // stays out of the way while a panel is open.
+                    CourtyardCountView()
+                        .opacity(cigOpacity)
                 
                     // Score view
                     ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)

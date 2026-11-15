@@ -49,6 +49,10 @@ struct NSSBApp: App {
                 .onChange(of: scenePhase) { newPhase in
                     if newPhase == .active {
                         model.load()
+                        
+                        // One read, on coming back to the app - which is when
+                        // the number is actually being looked at.
+                        Task { await presence.refreshCount() }
                     } else if newPhase == .inactive {
                         model.save()
                     } else if newPhase == .background {

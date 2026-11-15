@@ -54,6 +54,7 @@
 		68372CB9284E0B2500607600 /* ScoreView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CB8284E0B2500607600 /* ScoreView.swift */; };
 		68372CBB284E1EF200607600 /* ReminderView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CBA284E1EF200607600 /* ReminderView.swift */; };
 		68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CBC284E6DC400607600 /* ReminderRepository.swift */; };
+		C0A17A000000000000000002 /* CourtyardCountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A17A000000000000000001 /* CourtyardCountView.swift */; };
 		68A14A59285207D500154D84 /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A58285207D500154D84 /* AppMenu.swift */; };
 		68A14A5A285207EA00154D84 /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A58285207D500154D84 /* AppMenu.swift */; };
 		68A14A5D28520E1E00154D84 /* WCSessionPhone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */; };
@@ -160,6 +161,7 @@
 		68372CB8284E0B2500607600 /* ScoreView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ScoreView.swift; sourceTree = "<group>"; };
 		68372CBA284E1EF200607600 /* ReminderView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderView.swift; sourceTree = "<group>"; };
 		68372CBC284E6DC400607600 /* ReminderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderRepository.swift; sourceTree = "<group>"; };
+		C0A17A000000000000000001 /* CourtyardCountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardCountView.swift; sourceTree = "<group>"; };
 		68A14A58285207D500154D84 /* AppMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenu.swift; sourceTree = "<group>"; };
 		68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionPhone.swift; sourceTree = "<group>"; };
 		68A14A60285215BA00154D84 /* WCSessionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionWatch.swift; sourceTree = "<group>"; };
@@ -435,6 +437,7 @@
 		68D2FD1C2843656700529BB1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
+				C0A17A000000000000000001 /* CourtyardCountView.swift */,
 				68D2FD1F2843659600529BB1 /* SettingsView.swift */,
 				68A14A79285CF5AC00154D84 /* SettingsSubviews */,
 				68EE927828474A7500E90BDB /* InfoView.swift */,
@@ -619,6 +622,7 @@
 				68372CB9284E0B2500607600 /* ScoreView.swift in Sources */,
 				68D2FD202843659600529BB1 /* SettingsView.swift in Sources */,
 				68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */,
+				C0A17A000000000000000002 /* CourtyardCountView.swift in Sources */,
 				CD0FACE00000000000000005 /* BreakPresence.swift in Sources */,
 				CD0FACE00000000000000006 /* PresenceService.swift in Sources */,
 				CD0FACE00000000000000007 /* FirestorePresenceService.swift in Sources */,
