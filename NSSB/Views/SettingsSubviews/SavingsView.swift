@@ -44,6 +44,20 @@ struct SavingsView: View, KeyboardReadable {
                         }
                         .focused($textfieldFocused)
                     
+                        // Select the existing amount on focus so typing replaces it
+                        // instead of appending to the formatted "0,00" placeholder,
+                        // and commit the value whenever focus is lost - not only
+                        // when the Done button is used.
+                        .onChange(of: textfieldFocused) { isFocused in
+                            if isFocused {
+                                DispatchQueue.main.async {
+                                    UIApplication.shared.sendAction(#selector(UIResponder.selectAll(_:)), to: nil, from: nil, for: nil)
+                                }
+                            } else if self.costPer20 != tempCost {
+                                self.costPer20 = tempCost
+                            }
+                        }
+                    
                     if keyboardVisible {
                         
                         Button("Done", action: {

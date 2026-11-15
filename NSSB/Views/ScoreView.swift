@@ -45,7 +45,7 @@ struct ScoreView: View, KeyboardReadable {
                     }
                     
                     VStack(spacing: -3) {
-                        Text("\(breaks.count)").foregroundColor(.white)
+                        Text("\(breaks.breaksTotal())").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }

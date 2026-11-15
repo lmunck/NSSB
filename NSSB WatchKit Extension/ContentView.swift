@@ -10,7 +10,8 @@ import SwiftUI
 struct ContentView: View {
     
     @State private var menu:AppMenu = .cigarette
-    @ObservedObject var model = WCSessionWatch()
+    @StateObject private var model = WCSessionWatch()
+    @Environment(\.scenePhase) var scenePhase
     
     var body: some View {
         
@@ -38,6 +39,12 @@ struct ContentView: View {
             }
             .foregroundStyle(Color.foregroundInactive)
             
+        }
+        // Keep the local save in sync when the app leaves the screen
+        .onChange(of: scenePhase) { newPhase in
+            if newPhase == .inactive || newPhase == .background {
+                model.save()
+            }
         }
     }
     
