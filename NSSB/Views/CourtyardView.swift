@@ -28,6 +28,12 @@ struct CourtyardView: View {
     /// this courtyard that wants answering.
     let asks: [BreakAsk]
     
+    /// People standing out here unlit, waiting for somebody to start with.
+    ///
+    /// Only ever populated while you are waiting too - which is also the only
+    /// time any of this is on screen before your own cigarette is lit.
+    let waits: [BreakWait]
+    
     /// The height of your own cigarette, which everything else is sized
     /// against so the courtyard scales with the screen.
     let referenceHeight: CGFloat
@@ -42,6 +48,9 @@ struct CourtyardView: View {
     /// The ask you tapped, if any. Separate from `selected`, because an ask
     /// opens a card with a button on it rather than a card you only read.
     @Binding var selectedAsk: BreakAsk?
+    
+    /// The waiter you tapped, if any. Its card has the other button.
+    @Binding var selectedWait: BreakWait?
     
     var body: some View {
         
@@ -93,6 +102,30 @@ struct CourtyardView: View {
                     .transition(.opacity)
                 }
                 
+                // Same clock filter as the asks below, for the same
+                // reason: thirty seconds is shorter than the listener's
+                // lifetime, so a waiter whose owner never came back to
+                // delete the document would otherwise stand there forever.
+                ForEach(waits.filter { $0.isOpen(at: now) }) { wait in
+                    
+                    let spot = Courtyard.position(for: wait.id)
+                    
+                    WaitingCigaretteView(
+                        wait: wait,
+                        height: referenceHeight * (0.17 + spot.depth * 0.25)
+                    )
+                    .position(
+                        x: geo.size.width * spot.x,
+                        y: geo.size.height * spot.y
+                    )
+                    .onTapGesture {
+                        withAnimation(.easeInOut(duration: 0.25)) {
+                            selectedWait = (selectedWait?.id == wait.id) ? nil : wait
+                        }
+                    }
+                    .transition(.opacity)
+                }
+                
                 // Filtered by the clock as well as by the query. The
                 // courtyard listener's range was fixed when it attached, so
                 // an ask whose owner never came back to delete it would
@@ -120,6 +153,7 @@ struct CourtyardView: View {
             }
             .animation(.easeInOut(duration: 0.6), value: others.map(\.id))
             .animation(.easeInOut(duration: 0.4), value: asks.map(\.id))
+            .animation(.easeInOut(duration: 0.5), value: waits.map(\.id))
         }
         .allowsHitTesting(true)
         .onReceive(clock) { now = $0 }
@@ -182,6 +216,59 @@ struct AskingCigaretteView: View {
                 breath = 1
             }
             withAnimation(.easeIn(duration: max(ask.expiresAt.timeIntervalSinceNow, 0.2))) {
+                left = 0
+            }
+        }
+    }
+}
+
+/// Somebody standing out here unlit, waiting for company.
+///
+/// Deliberately not the asking cigarette. An ask has eight seconds and wants
+/// something, so it breathes and has to be noticed. Waiting is not urgent and
+/// is not a request - it is somebody leaning on a wall - so this one holds
+/// still. A single soft aura, no pulse, and a slow fade as the thirty seconds
+/// go, which is the only thing about it that moves.
+///
+/// Nothing warm near the tip on either of them. Both cigarettes are unlit,
+/// and in this one's case that is the whole invitation: it could be lit at the
+/// same moment as yours.
+struct WaitingCigaretteView: View {
+    
+    let wait: BreakWait
+    let height: CGFloat
+    
+    @State private var left: Double = 1
+    
+    var body: some View {
+        
+        ZStack {
+            
+            Circle()
+                .fill(
+                    RadialGradient(
+                        colors: [wait.design.background.opacity(0.32), .clear],
+                        center: .center,
+                        startRadius: 0,
+                        endRadius: height * 0.5
+                    )
+                )
+                .frame(width: height, height: height)
+                .opacity(0.35 + 0.35 * left)
+                .blur(radius: height * 0.06)
+            
+            DistantCigaretteView(
+                design: wait.design,
+                progress: 0,
+                height: height,
+                lit: false
+            )
+            .opacity(0.42 + 0.3 * left)
+        }
+        .onAppear {
+            // Driven by the document's own expiresAt, so it is honest about
+            // how much of the wait is left even if this device saw it late.
+            withAnimation(.easeInOut(duration: max(wait.expiresAt.timeIntervalSinceNow, 0.2))) {
                 left = 0
             }
         }

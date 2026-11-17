@@ -96,6 +96,50 @@ protocol PresenceService: AnyObject {
     
     /// Takes the bins out in the asks collection.
     func sweepStaleAsks(olderThan: TimeInterval, limit: Int) async throws -> Int
+    
+    // MARK: Waiting for company
+    
+    /// Publishes an open wait: an unlit cigarette standing in the courtyard
+    /// for thirty seconds. See BreakWait for why both sides of Synchrony are
+    /// unlit, which is what removes the matching problem entirely.
+    func openWait(_ wait: BreakWait) async throws
+    
+    /// Watches your own wait for the one thing that can happen to it:
+    /// somebody joining. A document listener, attached for thirty seconds.
+    func observeOwnWait(id: String, onChange: @escaping (BreakWait) -> Void)
+    
+    func stopObservingOwnWait()
+    
+    /// Everyone else who is waiting. Attached only while you are waiting
+    /// too - a lit cigarette cannot start together with anybody, and this is
+    /// also the only time the courtyard is visible to an unlit smoker.
+    func observeWaits(limit: Int, onChange: @escaping ([BreakWait]) -> Void)
+    
+    func stopObservingWaits()
+    
+    /// Takes the free chair.
+    ///
+    /// Throws when somebody else sat down first: the rules permit exactly one
+    /// `paired: false -> true` transition, so the race is settled by the
+    /// server and the loser finds out here.
+    ///
+    /// `litAt` is the shared ignition instant, written by whoever joins and
+    /// read by the waiter. Both cigarettes burn from it, which is the whole
+    /// of "ending on the same second".
+    func pairWith(
+        id: String,
+        partnerName: String,
+        partnerDesign: CigDesign,
+        partnerCountry: String?,
+        partnerTzOffset: Int,
+        litAt: Date
+    ) async throws
+    
+    /// Removes your own wait - joined, timed out, or cancelled.
+    func withdrawWait(id: String) async throws
+    
+    /// Takes the bins out in the waits collection.
+    func sweepStaleWaits(olderThan: TimeInterval, limit: Int) async throws -> Int
 
 }
 
@@ -104,6 +148,7 @@ enum PresenceError: LocalizedError {
     case notConfigured
     case notSignedIn
     case askAlreadyAnswered
+    case waitAlreadyPaired
     
     var errorDescription: String? {
         switch self {
@@ -113,6 +158,8 @@ enum PresenceError: LocalizedError {
             return "Tried to publish a break before signing in."
         case .askAlreadyAnswered:
             return "Somebody else got there first."
+        case .waitAlreadyPaired:
+            return "Somebody else took the chair."
         }
     }
 }
@@ -276,6 +323,100 @@ final class SimulatedPresenceService: PresenceService {
         }
         
         onAsksChange?(Array(open))
+    }
+    
+    // MARK: Waiting for company
+    
+    // Same honesty as the asks above: nobody here ever joins a wait by
+    // itself. An invented cigarette standing in the courtyard is atmosphere;
+    // an invented cigarette that sits down next to you and smokes a whole
+    // five minutes with you is a lie about company, which is the one thing
+    // this feature exists to provide. So a wait left alone here times out,
+    // exactly as it does in an empty courtyard.
+    
+    private var waits: [String: BreakWait] = [:]
+    
+    /// Everything this stand-in is holding, paired waits included.
+    var waitIds: [String] { Array(waits.keys) }
+    
+    private var ownWaitId: String?
+    private var onOwnWaitChange: ((BreakWait) -> Void)?
+    private var onWaitsChange: (([BreakWait]) -> Void)?
+    
+    func openWait(_ wait: BreakWait) async throws {
+        waits[wait.id] = wait
+        print("Presence - waiting for company (\(wait.name))")
+        emitWaits()
+        emitOwnWait()
+    }
+    
+    func observeOwnWait(id: String, onChange: @escaping (BreakWait) -> Void) {
+        ownWaitId = id
+        onOwnWaitChange = onChange
+        emitOwnWait()
+    }
+    
+    func stopObservingOwnWait() {
+        ownWaitId = nil
+        onOwnWaitChange = nil
+    }
+    
+    func observeWaits(limit: Int, onChange: @escaping ([BreakWait]) -> Void) {
+        onWaitsChange = onChange
+        emitWaits()
+    }
+    
+    func stopObservingWaits() {
+        onWaitsChange = nil
+    }
+    
+    func pairWith(
+        id: String,
+        partnerName: String,
+        partnerDesign: CigDesign,
+        partnerCountry: String?,
+        partnerTzOffset: Int,
+        litAt: Date
+    ) async throws {
+        
+        guard var wait = waits[id], wait.paired == false else {
+            throw PresenceError.waitAlreadyPaired
+        }
+        
+        wait.paired = true
+        wait.partnerName = partnerName
+        wait.partnerDesign = partnerDesign
+        wait.partnerCountry = partnerCountry
+        wait.partnerTzOffset = partnerTzOffset
+        wait.litAt = litAt
+        waits[id] = wait
+        
+        emitWaits()
+        emitOwnWait()
+    }
+    
+    func withdrawWait(id: String) async throws {
+        waits[id] = nil
+        emitWaits()
+    }
+    
+    func sweepStaleWaits(olderThan: TimeInterval, limit: Int) async throws -> Int { 0 }
+    
+    private func emitOwnWait() {
+        guard let id = ownWaitId, let wait = waits[id] else { return }
+        onOwnWaitChange?(wait)
+    }
+    
+    private func emitWaits() {
+        
+        // Your own wait is never company - you cannot keep yourself company,
+        // and the rules say so too. Filtered the way the real service does
+        // it, by recomputing the hash rather than by storing a uid.
+        let open = waits.values.filter {
+            $0.isOpen() && $0.waiterHash != BreakOwner.hash(uid: uid, breakId: $0.id)
+        }
+        
+        onWaitsChange?(Array(open))
     }
     
     private func emit() {

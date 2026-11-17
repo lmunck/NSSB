@@ -24,6 +24,9 @@ struct ContentView: View {
     /// Separate from the above, because this card has a button on it.
     @State private var selectedAsk:BreakAsk? = nil
     
+    /// The stranger waiting for company whose cigarette is currently tapped.
+    @State private var selectedWait:BreakWait? = nil
+    
     /// Set at the moment the two tips touch, which is what lights the
     /// cigarette. Nothing else writes it.
     @State private var litByStranger:Date? = nil
@@ -69,9 +72,11 @@ struct ContentView: View {
                     // standing out there any more - they are over here, in
                     // the handoff, and drawing them twice would break it.
                     asks: presence.offers.filter { $0.id != presence.giving?.id },
+                    waits: presence.waiting,
                     referenceHeight: cigHeight,
                     selected: $selectedOther,
-                    selectedAsk: $selectedAsk
+                    selectedAsk: $selectedAsk,
+                    selectedWait: $selectedWait
                 )
                 .opacity(cigOpacity)
                 .allowsHitTesting(menu == .cigarette)
@@ -112,6 +117,16 @@ struct ContentView: View {
                             handoff(height: cigHeight, width: cigWidth)
                                 .opacity(cigOpacity)
                         }
+                        
+                        // Whoever you lit up with, standing next to you for
+                        // the whole five minutes. Drawn in the same frame as
+                        // your own cigarette and at the same height, because
+                        // they are not across the courtyard - they are here,
+                        // burning down at exactly your pace.
+                        .overlay {
+                            companion(height: cigHeight, width: cigWidth)
+                                .opacity(cigOpacity)
+                        }
                            
                         
                         SettingsView(menu: $menu, data: $model.data)
@@ -129,14 +144,39 @@ struct ContentView: View {
                     CourtyardCountView()
                         .opacity(cigOpacity)
                     
-                    // Got a light?
-                    AskForALightView(
-                        state: presence.ask,
-                        unlit: model.data.breakStarted == nil,
-                        othersCount: presence.othersCount,
-                        ask: askForALight,
-                        clear: presence.clearAsk
-                    )
+                    // The two things you can do before lighting up, in one
+                    // row: ask somebody already out there for a light, or
+                    // wait for somebody to start with. Side by side while
+                    // both are available, and whichever one is happening
+                    // takes the row to itself.
+                    // Spacing lives on the capsules rather than here, so a
+                    // row holding only one of the two offers still centres
+                    // it exactly. An empty view is still a view, and an
+                    // HStack would otherwise leave half a gap behind it.
+                    HStack(spacing: 0) {
+                        
+                        AskForALightView(
+                            state: presence.ask,
+                            unlit: model.data.breakStarted == nil,
+                            othersCount: presence.othersCount,
+                            suppressed: presence.company != .idle,
+                            ask: askForALight,
+                            clear: presence.clearAsk
+                        )
+                        
+                        // No count here, unlike the ask. You are waiting for
+                        // somebody else who is also standing out here unlit,
+                        // and they are not in the count - so this is the one
+                        // social thing in the app that is worth offering in a
+                        // completely empty courtyard.
+                        WaitForCompanyView(
+                            state: presence.company,
+                            unlit: model.data.breakStarted == nil,
+                            suppressed: presence.ask != .idle,
+                            wait: waitForCompany,
+                            clear: presence.clearCompany
+                        )
+                    }
                     .opacity(cigOpacity)
                     .allowsHitTesting(menu == .cigarette)
                 
@@ -158,6 +198,19 @@ struct ContentView: View {
                     }
                     .transition(.opacity.combined(with: .move(edge: .top)))
                     .allowsHitTesting(false)
+                }
+                
+                // Somebody waiting. Taking the free chair next to them.
+                if let waiting = selectedWait {
+                    VStack {
+                        WaitDetailView(wait: waiting) {
+                            withAnimation(.easeInOut(duration: 0.25)) { selectedWait = nil }
+                            waitWith(waiting)
+                        }
+                        .padding(.top, geo.size.height * 0.08)
+                        Spacer()
+                    }
+                    .transition(.opacity.combined(with: .move(edge: .top)))
                 }
                 
                 // Somebody asking. The same card, with the one button in the
@@ -191,8 +244,43 @@ struct ContentView: View {
                     withAnimation(.easeInOut(duration: 0.3)) { selectedAsk = nil }
                 }
             }
+            .onChange(of: presence.waiting) { current in
+                // They went in, or somebody else took the chair.
+                if let waiting = selectedWait,
+                   current.contains(where: { $0.id == waiting.id }) == false {
+                    withAnimation(.easeInOut(duration: 0.3)) { selectedWait = nil }
+                }
+            }
             .onChange(of: selectedAsk) { asking in
-                if asking != nil { selectedOther = nil }
+                if asking != nil { selectedOther = nil; selectedWait = nil }
+            }
+            .onChange(of: selectedWait) { waiting in
+                if waiting != nil { selectedOther = nil; selectedAsk = nil }
+            }
+            .onChange(of: presence.company) { state in
+                
+                // The wait is over, one way or the other, and either way the
+                // cigarette gets lit - the same contract as the ask.
+                //
+                // Somebody came out: light at the instant you were paired,
+                // not at now. That one value is the whole feature; using
+                // `now` here would start your break a round trip after
+                // theirs, and the two cigarettes would not go out together.
+                //
+                // Nobody came: light it because that is what the line of
+                // text says is happening, and because waiting must never
+                // leave you worse off than simply tapping would have.
+                guard model.data.breakStarted == nil else { return }
+                
+                switch state {
+                case .together(_, let since):
+                    litByStranger = since
+                    knock()
+                case .alone:
+                    litByStranger = .now
+                default:
+                    break
+                }
             }
             .onChange(of: presence.ask) { state in
                 
@@ -217,12 +305,12 @@ struct ContentView: View {
 
 extension ContentView {
     
-    /// Asks the courtyard.
+    /// The design this device is about to stand in a courtyard with.
     ///
-    /// The name is rolled first and written back, so the cigarette standing
-    /// in everyone else's courtyard asking and the cigarette that gets
-    /// published afterwards are the same cigarette with the same name.
-    private func askForALight() {
+    /// The name is rolled here and written back, so the cigarette other
+    /// people see standing out there and the cigarette that gets published
+    /// when it lights are the same cigarette with the same name.
+    private func rolledDesign() -> CigDesign {
         
         var temp = model.data
         if temp.cigDesign.title.isEmpty {
@@ -230,8 +318,53 @@ extension ContentView {
         }
         model.data = temp
         
-        let design = temp.cigDesign
+        return temp.cigDesign
+    }
+    
+    /// Asks the courtyard for a light.
+    private func askForALight() {
+        let design = rolledDesign()
         Task { await presence.askForALight(design: design) }
+    }
+    
+    /// Steps outside and waits for somebody to light up with.
+    private func waitForCompany() {
+        let design = rolledDesign()
+        Task { await presence.waitForCompany(design: design) }
+    }
+    
+    /// Takes the free chair next to somebody already waiting.
+    private func waitWith(_ other: BreakWait) {
+        let design = rolledDesign()
+        Task { await presence.waitWith(other, design: design) }
+    }
+    
+    /// The person you lit up with, standing beside your own cigarette.
+    ///
+    /// Their burn position is `ownProgress` - not an approximation of it, the
+    /// same number. You lit at one instant, so there is nothing to keep in
+    /// sync and nothing to ask the network for; the two cigarettes shorten
+    /// together and go out together because they were lit together.
+    @ViewBuilder
+    private func companion(height: CGFloat, width: CGFloat) -> some View {
+        
+        if let companion = presence.company.companion {
+            
+            // Whichever side of you they would have been standing on out in
+            // the courtyard, so somebody who was over to your left comes to
+            // stand on your left.
+            let spot = Courtyard.position(for: companion.name)
+            let side: CGFloat = spot.x < 0.5 ? -1 : 1
+            
+            CompanionCigaretteView(
+                companion: companion,
+                progress: ownProgress,
+                height: height
+            )
+            .offset(x: side * (width * 0.75 + 12), y: 0)
+            .transition(.opacity)
+            .allowsHitTesting(false)
+        }
     }
     
     /// Your own burn position, without ExtDate's debug print on every frame.

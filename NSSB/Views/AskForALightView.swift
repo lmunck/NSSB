@@ -22,6 +22,11 @@ struct AskForALightView: View {
     /// Nil until the courtyard has been looked at once. Asking an empty
     /// courtyard is just an eight-second pause, so the offer is not made.
     let othersCount: Int?
+    
+    /// True while a wait for company is under way, so the two offers never
+    /// both claim the row - and so you can never have two unlit cigarettes
+    /// of your own standing in the same courtyard.
+    var suppressed: Bool = false
 
     let ask: () -> Void
     
@@ -41,7 +46,7 @@ struct AskForALightView: View {
             switch state {
 
             case .idle:
-                if unlit, let others = othersCount, others > 0 {
+                if unlit, suppressed == false, let others = othersCount, others > 0 {
                     Text("got a light?")
                         .font(.footnote)
                         .foregroundStyle(Color.accent)
@@ -51,6 +56,7 @@ struct AskForALightView: View {
                             Capsule().stroke(Color.accent.opacity(0.5), lineWidth: 1)
                         )
                         // The same idiom as every other tap in this app.
+                        .padding(.horizontal, 5)
                         .contentShape(Capsule())
                         .onTapGesture(perform: ask)
                         .transition(.opacity)

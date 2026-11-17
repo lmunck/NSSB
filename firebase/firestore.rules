@@ -128,6 +128,73 @@ service cloud.firestore {
                     );
     }
 
+    // Somebody standing outside with an unlit cigarette, waiting for company.
+    //
+    // Thirty seconds, and addressed to the courtyard exactly as an ask is -
+    // so there is no declining here either. Joining a waiter is taking the
+    // free chair at a table, and the first person to sit down gets it.
+    //
+    // Both parties are unlit, which is what makes "ending on the same second"
+    // true rather than approximate: the break begins at one shared instant
+    // written here as litAt, and both devices burn from it.
+    match /waits/{waitId} {
+
+      allow read: if request.auth != null;
+
+      allow create: if request.auth != null
+                    // Same trick as presence and asks: prove ownership
+                    // without storing anything that links two waits together.
+                    && request.resource.data.waiterHash == hashing.sha256(request.auth.uid + waitId).toHexString().lower()
+                    && request.resource.data.createdAt is timestamp
+                    && request.resource.data.expiresAt is timestamp
+                    && request.resource.data.expiresAt > request.resource.data.createdAt
+                    // Thirty seconds, with slack for the round trip. Nobody
+                    // gets to stand in the courtyard all afternoon.
+                    && request.resource.data.expiresAt
+                       < request.resource.data.createdAt + duration.value(45, 's')
+                    && request.resource.data.createdAt < request.time + duration.value(1, 'm')
+                    && request.resource.data.name is string
+                    && request.resource.data.name.size() > 0
+                    && request.resource.data.name.size() <= 32
+                    // You cannot step outside already paired up.
+                    && request.resource.data.paired == false;
+
+      // The only permitted edit is somebody joining, and only once. Whoever
+      // writes first wins; everyone else is rejected here rather than by a
+      // client, so the race for the free chair is settled by the server.
+      allow update: if request.auth != null
+                    && resource.data.paired == false
+                    && request.resource.data.paired == true
+                    // You may not keep yourself company.
+                    && resource.data.waiterHash != hashing.sha256(request.auth.uid + waitId).toHexString().lower()
+                    // Everything about the wait itself is immutable.
+                    && request.resource.data.waiterHash == resource.data.waiterHash
+                    && request.resource.data.createdAt == resource.data.createdAt
+                    && request.resource.data.expiresAt == resource.data.expiresAt
+                    && request.resource.data.name == resource.data.name
+                    && request.resource.data.partnerName is string
+                    && request.resource.data.partnerName.size() > 0
+                    && request.resource.data.partnerName.size() <= 32
+                    // The shared instant, and it has to be this moment. A
+                    // litAt in the past would hand the waiter a cigarette
+                    // already half burned down; one in the future would stall
+                    // them. Both sides use it as the start of the break, so
+                    // it is the one field here worth pinning to real time.
+                    && request.resource.data.litAt is timestamp
+                    && request.resource.data.litAt > request.time - duration.value(1, 'm')
+                    && request.resource.data.litAt < request.time + duration.value(1, 'm');
+
+      // Your own, or anyone's once it is certainly litter. Same reasoning as
+      // presence and asks: there is no TTL policy, so clients take the bins
+      // out. A paired wait is deleted by the waiter the moment they light up,
+      // which is why nothing here has to live as long as a break.
+      allow delete: if request.auth != null
+                    && (
+                      resource.data.waiterHash == hashing.sha256(request.auth.uid + waitId).toHexString().lower()
+                      || resource.data.expiresAt < request.time - duration.value(5, 'm')
+                    );
+    }
+
     // Written by a scheduled function, never by a client. The count must not
     // be derived by reading the presence collection - that is the one query
     // that would actually cost money.

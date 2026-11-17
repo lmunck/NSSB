@@ -9,7 +9,11 @@
 /* Begin PBXBuildFile section */
 		C0117A00000000000000000D /* HandoffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000C /* HandoffView.swift */; };
 		C0117A00000000000000000B /* AskForALightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000A /* AskForALightView.swift */; };
+		DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA17000000000000000A /* WaitForCompanyView.swift */; };
+		DA17WA1T000000000000000B /* BreakWait.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA1T000000000000000A /* BreakWait.swift */; };
 		DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000005 /* AskStateMachineTests.swift */; };
+		DEC0DE1000000000000000C2 /* SynchronyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE1000000000000000C1 /* SynchronyTests.swift */; };
+		DEC0DE1000000000000000A2 /* WaitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE1000000000000000A1 /* WaitTests.swift */; };
 		DEC0DE100000000000000004 /* AskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000003 /* AskTests.swift */; };
 		CD0FACE0000000000000000B /* BreakAsk.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE0000000000000000A /* BreakAsk.swift */; };
 		DEC0DE000000000000000005 /* CigNameTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE000000000000000001 /* CigNameTests.swift */; };
@@ -137,7 +141,11 @@
 /* Begin PBXFileReference section */
 		C0117A00000000000000000C /* HandoffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandoffView.swift; sourceTree = "<group>"; };
 		C0117A00000000000000000A /* AskForALightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskForALightView.swift; sourceTree = "<group>"; };
+		DA17WA17000000000000000A /* WaitForCompanyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForCompanyView.swift; sourceTree = "<group>"; };
+		DA17WA1T000000000000000A /* BreakWait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakWait.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000005 /* AskStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskStateMachineTests.swift; sourceTree = "<group>"; };
+		DEC0DE1000000000000000C1 /* SynchronyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynchronyTests.swift; sourceTree = "<group>"; };
+		DEC0DE1000000000000000A1 /* WaitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitTests.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000003 /* AskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskTests.swift; sourceTree = "<group>"; };
 		CD0FACE0000000000000000A /* BreakAsk.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakAsk.swift; sourceTree = "<group>"; };
 		DEC0DE000000000000000001 /* CigNameTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CigNameTests.swift; sourceTree = "<group>"; };
@@ -255,6 +263,8 @@
 			isa = PBXGroup;
 			children = (
 				DEC0DE100000000000000005 /* AskStateMachineTests.swift */,
+				DEC0DE1000000000000000C1 /* SynchronyTests.swift */,
+				DEC0DE1000000000000000A1 /* WaitTests.swift */,
 				DEC0DE100000000000000003 /* AskTests.swift */,
 				DEC0DE100000000000000001 /* CourtyardTests.swift */,
 				DEC0DE000000000000000001 /* CigNameTests.swift */,
@@ -458,6 +468,7 @@
 			children = (
 				C0117A00000000000000000C /* HandoffView.swift */,
 				C0117A00000000000000000A /* AskForALightView.swift */,
+				DA17WA17000000000000000A /* WaitForCompanyView.swift */,
 				C0117A000000000000000003 /* CourtyardView.swift */,
 				C0117A000000000000000001 /* DistantCigaretteView.swift */,
 				C0A17A000000000000000001 /* CourtyardCountView.swift */,
@@ -475,6 +486,7 @@
 			isa = PBXGroup;
 			children = (
 				CD0FACE0000000000000000A /* BreakAsk.swift */,
+				DA17WA1T000000000000000A /* BreakWait.swift */,
 				CD0FACE00000000000000001 /* BreakPresence.swift */,
 				CD0FACE00000000000000002 /* PresenceService.swift */,
 				CD0FACE00000000000000003 /* FirestorePresenceService.swift */,
@@ -627,6 +639,8 @@
 			buildActionMask = 2147483647;
 			files = (
 				DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */,
+				DEC0DE1000000000000000C2 /* SynchronyTests.swift in Sources */,
+				DEC0DE1000000000000000A2 /* WaitTests.swift in Sources */,
 				DEC0DE100000000000000004 /* AskTests.swift in Sources */,
 				DEC0DE000000000000000005 /* CigNameTests.swift in Sources */,
 				DEC0DE100000000000000002 /* CourtyardTests.swift in Sources */,
@@ -642,6 +656,8 @@
 			files = (
 				C0117A00000000000000000D /* HandoffView.swift in Sources */,
 				C0117A00000000000000000B /* AskForALightView.swift in Sources */,
+				DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */,
+				DA17WA1T000000000000000B /* BreakWait.swift in Sources */,
 				CD0FACE0000000000000000B /* BreakAsk.swift in Sources */,
 				68A14A812860F21F00154D84 /* Colors.swift in Sources */,
 				5C9F18832C2C713600F96C32 /* ExtColor.swift in Sources */,

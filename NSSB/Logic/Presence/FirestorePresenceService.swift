@@ -28,10 +28,13 @@ final class FirestorePresenceService: PresenceService {
     private var listener: ListenerRegistration?
     private var ownAskListener: ListenerRegistration?
     private var asksListener: ListenerRegistration?
+    private var ownWaitListener: ListenerRegistration?
+    private var waitsListener: ListenerRegistration?
     private var uid: String?
     
     private let collection = "presence"
     private let asksCollection = "asks"
+    private let waitsCollection = "waits"
     
     // MARK: Auth
     
@@ -345,6 +348,166 @@ final class FirestorePresenceService: PresenceService {
         let cutoff = Date.now.addingTimeInterval(-olderThan)
         
         let snapshot = try await db.collection(asksCollection)
+            .whereField("expiresAt", isLessThan: cutoff)
+            .order(by: "expiresAt")
+            .limit(to: limit)
+            .getDocuments(source: .server)
+        
+        for document in snapshot.documents {
+            try? await document.reference.delete()
+        }
+        
+        return snapshot.documents.count
+    }
+    
+    // MARK: - Waiting for company
+    
+    /// Same encode-then-await as every other write here, for the same
+    /// reason: `setData(from:)` reports encoding failures and nothing else,
+    /// so a rules rejection would leave somebody standing in a courtyard
+    /// nobody can see them in, waiting out thirty seconds for company that
+    /// was never asked for.
+    func openWait(_ wait: BreakWait) async throws {
+        
+        guard uid != nil else { throw PresenceError.notSignedIn }
+        
+        let data = try Firestore.Encoder().encode(wait)
+        
+        try await db.collection(waitsCollection)
+            .document(wait.id)
+            .setData(data)
+    }
+    
+    /// A document listener on your own wait, for the thirty seconds it lives.
+    ///
+    /// The first snapshot is always our own write coming back from the local
+    /// cache, which is harmless for the same reason it is harmless on an ask:
+    /// the only transition being watched for is `paired` becoming true, which
+    /// this device never writes and the rules forbid it from writing.
+    func observeOwnWait(id: String, onChange: @escaping (BreakWait) -> Void) {
+        
+        stopObservingOwnWait()
+        
+        ownWaitListener = db.collection(waitsCollection)
+            .document(id)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Presence - own wait listener error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let snapshot = snapshot, snapshot.exists,
+                      let wait = try? snapshot.data(as: BreakWait.self) else { return }
+                
+                onChange(wait)
+            }
+    }
+    
+    func stopObservingOwnWait() {
+        ownWaitListener?.remove()
+        ownWaitListener = nil
+    }
+    
+    /// Everyone else who is standing out there waiting, excluding you.
+    ///
+    /// Bounded and ordered on `expiresAt` alone, with `paired` filtered on
+    /// this side - the same trade as the asks listener, and for the same
+    /// reason: a thirty-second window is a handful of documents, and a
+    /// composite index would buy nothing.
+    func observeWaits(limit: Int, onChange: @escaping ([BreakWait]) -> Void) {
+        
+        stopObservingWaits()
+        
+        let ownUid = self.uid
+        
+        waitsListener = db.collection(waitsCollection)
+            .whereField("expiresAt", isGreaterThan: Date.now)
+            .order(by: "expiresAt")
+            .limit(to: limit)
+            .addSnapshotListener { snapshot, error in
+                
+                if let error = error {
+                    print("Presence - waits listener error: \(error.localizedDescription)")
+                    return
+                }
+                
+                guard let documents = snapshot?.documents else { return }
+                
+                let open: [BreakWait] = documents.compactMap { document in
+                    
+                    guard let wait = try? document.data(as: BreakWait.self) else { return nil }
+                    guard wait.isOpen() else { return nil }
+                    
+                    // Your own wait, which you may not join - the rules say
+                    // so too, but it should never be drawn as company.
+                    if let ownUid = ownUid,
+                       wait.waiterHash == BreakOwner.hash(uid: ownUid, breakId: wait.id) {
+                        return nil
+                    }
+                    
+                    return wait
+                }
+                
+                if open.isEmpty == false {
+                    print("Presence - \(open.count) other(s) waiting for company")
+                }
+                
+                onChange(open)
+            }
+    }
+    
+    func stopObservingWaits() {
+        waitsListener?.remove()
+        waitsListener = nil
+    }
+    
+    /// The other write that can lose.
+    ///
+    /// `updateData` rather than `setData`, so the rule can compare against
+    /// the document already there: exactly one `paired: false -> true`
+    /// transition is permitted, so if two people reach for the same free
+    /// chair the server picks one and this throws for the other.
+    func pairWith(
+        id: String,
+        partnerName: String,
+        partnerDesign: CigDesign,
+        partnerCountry: String?,
+        partnerTzOffset: Int,
+        litAt: Date
+    ) async throws {
+        
+        guard uid != nil else { throw PresenceError.notSignedIn }
+        
+        let design = try Firestore.Encoder().encode(partnerDesign)
+        
+        // NSNull rather than nil: a country is genuinely absent for anyone
+        // who opted out of the flag, and a dictionary with a nil value in it
+        // is a dictionary with the key missing, which the waiter would decode
+        // as "not sent yet" rather than "not shared".
+        try await db.collection(waitsCollection)
+            .document(id)
+            .updateData([
+                "paired": true,
+                "partnerName": partnerName,
+                "partnerDesign": design,
+                "partnerCountry": partnerCountry ?? NSNull(),
+                "partnerTzOffset": partnerTzOffset,
+                "litAt": Timestamp(date: litAt)
+            ])
+    }
+    
+    func withdrawWait(id: String) async throws {
+        try await db.collection(waitsCollection).document(id).delete()
+    }
+    
+    /// A wait is thirty seconds long, so anything the rules will let anyone
+    /// delete here has been litter for five minutes.
+    func sweepStaleWaits(olderThan: TimeInterval, limit: Int) async throws -> Int {
+        
+        let cutoff = Date.now.addingTimeInterval(-olderThan)
+        
+        let snapshot = try await db.collection(waitsCollection)
             .whereField("expiresAt", isLessThan: cutoff)
             .order(by: "expiresAt")
             .limit(to: limit)

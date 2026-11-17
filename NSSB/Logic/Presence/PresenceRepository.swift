@@ -49,6 +49,15 @@ final class PresenceRepository: ObservableObject {
     /// the rest of the time.
     @Published private(set) var giving: BreakAsk?
     
+    /// Waiting for somebody to smoke with, and then smoking with them. The
+    /// one piece of state in this app that lasts a whole cigarette.
+    @Published private(set) var company: CompanyState = .idle
+    
+    /// Other people standing out here unlit, waiting for company. Only ever
+    /// populated while you are waiting too: a lit cigarette cannot start
+    /// together with anybody, so there would be nothing to do with them.
+    @Published private(set) var waiting: [BreakWait] = []
+    
     private let service: PresenceService
     
     /// The break this device is currently publishing, if any.
@@ -65,6 +74,10 @@ final class PresenceRepository: ObservableObject {
     /// and a half seconds.
     private var handoffNet: Task<Void, Never>?
     private var offerNet: Task<Void, Never>?
+    
+    /// Fires when the thirty seconds are up. Cancelled the moment somebody
+    /// joins, so company that arrives at 29.9 seconds is not thrown away.
+    private var waitTimeout: Task<Void, Never>?
     
     /// Survives being killed mid-break. Without it, a relaunch publishes a
     /// second document for the same cigarette and the user appears twice in
@@ -87,6 +100,14 @@ final class PresenceRepository: ObservableObject {
     /// How stale an ask has to be before anyone may clear it. Matches the
     /// delete rule, which allows it five minutes after it expired.
     private let askLitter: TimeInterval = 60 * 6
+    
+    /// Open waits to show at once. A wait lives thirty seconds, so even a
+    /// busy courtyard has only a handful standing about.
+    private let waitLimit = 6
+    
+    /// How stale a wait has to be before anyone may clear it. Matches its
+    /// delete rule: five minutes after a thirty-second wait expired.
+    private let waitLitter: TimeInterval = 60 * 6
     
     /// Whether to put a flag on this break. Opt-out lives here so the rest
     /// of the code never has to think about it.
@@ -183,6 +204,16 @@ final class PresenceRepository: ObservableObject {
         } catch {
             print("Presence - ask sweep failed: \(error.localizedDescription)")
         }
+        
+        // And the waits, for the same reason: a waiter who was killed in the
+        // thirty seconds before anybody joined leaves a document nothing
+        // else will ever clear.
+        do {
+            let swept = try await service.sweepStaleWaits(olderThan: waitLitter, limit: 5)
+            if swept > 0 { print("Presence - swept \(swept) stale wait(s)") }
+        } catch {
+            print("Presence - wait sweep failed: \(error.localizedDescription)")
+        }
     }
     
     // MARK: Lifecycle
@@ -224,6 +255,12 @@ final class PresenceRepository: ObservableObject {
         // A break that starts because somebody answered is already past
         // .asking by this point, so this cannot cancel the ask that caused it.
         if ask.isAsking { await cancelAsk() }
+        
+        // Same for a wait: you lit your own while still standing out there
+        // waiting for company. A break that starts *because* somebody joined
+        // is already past .waiting by this point, so this cannot cancel the
+        // pairing that caused it.
+        if company.isWaiting { await cancelWait() }
         
         guard let uid = self.uid else {
             print("Presence - not signed in yet, break not published")
@@ -289,13 +326,20 @@ final class PresenceRepository: ObservableObject {
         
         service.stopObservingCourtyard()
         service.stopObservingAsks()
+        service.stopObservingWaits()
         self.courtyard = []
         self.echoes = []
         self.offers = []
         self.giving = nil
+        self.waiting = []
         
         // The next unlit cigarette starts over, and can ask again.
         if case .done = ask { self.ask = .idle }
+        
+        // Company lasts exactly as long as the cigarettes do. Whoever you
+        // stood with, you are not standing with them any more, and nothing
+        // about it is kept - which is the first principle of the whole layer.
+        if case .idle = company {} else { self.company = .idle }
         
         // A break that ran its course is left in place, to linger as an ember
         // for anyone who lights up in the next hour. A break that was
@@ -540,5 +584,217 @@ final class PresenceRepository: ObservableObject {
         offerNet?.cancel()
         offerNet = nil
         self.giving = nil
+    }
+    
+    // MARK: - Smoking together
+    
+    /// Steps outside unlit and waits for somebody to start with.
+    ///
+    /// Both sides of this are unlit, which is what removes the matching
+    /// problem the proposal thought this layer had: there is no remaining
+    /// time to match, because the break has not begun. It begins when
+    /// somebody joins, at one instant, for both of you.
+    ///
+    /// Waiting is also the only time an unlit smoker can see the courtyard.
+    /// That is deliberate rather than incidental - a waiter who is invisible
+    /// to everyone except people already waiting could never be found.
+    func waitForCompany(design: CigDesign) async {
+        
+        guard case .idle = company else { return }
+        
+        guard let uid = self.uid else {
+            print("Presence - not signed in yet, cannot wait")
+            // Nobody to wait for, so land where thirty seconds of silence
+            // would have landed anyway.
+            self.company = .alone
+            return
+        }
+        
+        // Same braces as the ask: the rules reject an empty name, and a
+        // silent rejection would look exactly like nobody coming.
+        var design = design
+        if design.title.isEmpty { design.title = randomCigaretteName() }
+        
+        let outgoing = BreakWait.opening(
+            uid: uid,
+            design: design,
+            shareCountry: shareCountry
+        )
+        
+        do {
+            try await service.openWait(outgoing)
+        } catch {
+            print("Presence - wait failed: \(error.localizedDescription)")
+            self.company = .alone
+            return
+        }
+        
+        self.company = .waiting(outgoing)
+        print("Presence - waiting for company")
+        
+        service.observeOwnWait(id: outgoing.id) { [weak self] incoming in
+            Task { @MainActor in
+                self?.ownWaitChanged(incoming)
+            }
+        }
+        
+        // Everyone else out here doing the same thing. Either of you can take
+        // the other's chair; whoever taps first gets it.
+        service.observeWaits(limit: waitLimit) { [weak self] others in
+            Task { @MainActor in
+                self?.waiting = others
+            }
+        }
+        
+        // Thirty seconds, measured from the document rather than from now,
+        // so a slow round trip eats into the wait instead of extending it.
+        waitTimeout = Task { [weak self] in
+            let left = outgoing.expiresAt.timeIntervalSinceNow
+            if left > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
+            }
+            guard Task.isCancelled == false else { return }
+            await self?.waitRanOut()
+        }
+    }
+    
+    /// Somebody sat down. The only thing that can happen to your wait.
+    private func ownWaitChanged(_ incoming: BreakWait) {
+        
+        guard incoming.paired,
+              let companion = Companion(partnerOf: incoming),
+              let litAt = incoming.litAt
+        else { return }
+        
+        print("Presence - \(companion.name) is smoking with you")
+        enterTogether(companion, since: litAt)
+        
+        // Paired means finished waiting. The document is ours, so clearing it
+        // is ours to do - and it has to go, or a second person could try to
+        // sit in a chair that is no longer free.
+        Task { await removeOwnWait(id: incoming.id) }
+    }
+    
+    /// Takes the free chair next to somebody who is already standing there.
+    ///
+    /// Can lose, exactly as offering a light can: the rules permit one
+    /// pairing, so if two people sit down at the same moment the server picks
+    /// one and the other finds the chair taken - which is what would happen
+    /// in a real courtyard too.
+    func waitWith(_ other: BreakWait, design: CigDesign) async {
+        
+        // Already smoking with somebody, so there is nothing to join.
+        if case .together = company { return }
+        
+        guard other.isOpen() else { return }
+        
+        var design = design
+        if design.title.isEmpty { design.title = randomCigaretteName() }
+        
+        // The shared instant. Written here, read by them, used as the start
+        // of the break by both - so both cigarettes burn from the same second
+        // and go out on the same second.
+        let litAt = Date.now
+        
+        do {
+            try await service.pairWith(
+                id: other.id,
+                partnerName: design.title,
+                partnerDesign: design,
+                partnerCountry: shareCountry ? Locale.current.region?.identifier : nil,
+                partnerTzOffset: TimeZone.current.secondsFromGMT(for: litAt),
+                litAt: litAt
+            )
+        } catch {
+            print("Presence - too late to stand with \(other.name): \(error.localizedDescription)")
+            self.waiting.removeAll { $0.id == other.id }
+            return
+        }
+        
+        print("Presence - standing with \(other.name)")
+        
+        // Read before the state moves on, not after: entering `.together` is
+        // what ends the waiting, so by then `company.openWait` is nil and
+        // your own chair would be left standing in the courtyard for
+        // somebody to give their five minutes to.
+        let mine = company.openWait
+        
+        enterTogether(Companion(waiter: other), since: litAt)
+        
+        // Your own wait, if you had one out, is over: you found company.
+        if let mine = mine { await removeOwnWait(id: mine.id) }
+    }
+    
+    /// Both sides land here, from opposite ends.
+    ///
+    /// The tiebreak is for the one race the rules cannot settle: two waiters
+    /// taking each other's chair in the same instant, each succeeding on the
+    /// other's document. Both are then standing with the person they meant to
+    /// stand with, so there is nothing to undo - but they would be holding
+    /// two ignition instants a fraction of a second apart. Both sides can see
+    /// both values, so both sides keep the earlier one and stay in step.
+    private func enterTogether(_ companion: Companion, since litAt: Date) {
+        
+        waitTimeout?.cancel()
+        waitTimeout = nil
+        service.stopObservingOwnWait()
+        service.stopObservingWaits()
+        self.waiting = []
+        
+        if case .together(_, let already) = company {
+            self.company = .together(companion, since: min(already, litAt))
+            return
+        }
+        
+        self.company = .together(companion, since: litAt)
+    }
+    
+    /// Thirty seconds of nobody.
+    private func waitRanOut() async {
+        
+        guard let outgoing = company.openWait else { return }
+        
+        service.stopObservingOwnWait()
+        service.stopObservingWaits()
+        waitTimeout = nil
+        self.waiting = []
+        
+        print("Presence - nobody came out, lighting your own")
+        self.company = .alone
+        
+        await removeOwnWait(id: outgoing.id)
+    }
+    
+    /// You went back inside - or lit your own rather than keep waiting.
+    func cancelWait() async {
+        
+        guard let outgoing = company.openWait else { return }
+        
+        waitTimeout?.cancel()
+        waitTimeout = nil
+        service.stopObservingOwnWait()
+        service.stopObservingWaits()
+        self.waiting = []
+        self.company = .idle
+        
+        await removeOwnWait(id: outgoing.id)
+    }
+    
+    /// Clears the line that says nobody came, once it has been read. Only
+    /// from `.alone` - this can never cut a wait short, and it must never
+    /// end a shared break early.
+    func clearCompany() {
+        guard case .alone = company else { return }
+        self.company = .idle
+    }
+    
+    private func removeOwnWait(id: String) async {
+        do {
+            try await service.withdrawWait(id: id)
+        } catch {
+            // The sweep will get it. The rules let anyone clear a wait five
+            // minutes after it expired, precisely for this.
+            print("Presence - could not remove the wait, leaving it to the sweep: \(error.localizedDescription)")
+        }
     }
 }

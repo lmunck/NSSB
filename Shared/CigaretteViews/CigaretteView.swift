@@ -152,7 +152,13 @@ struct CigaretteView: View {
         .onChange(of: litByStranger, perform: { arrived in
             // Only ever lights, never puts out: a gift cannot stub out a
             // cigarette you had already lit yourself.
-            if arrived != nil, data.breakStarted == nil { lightUp() }
+            //
+            // The instant matters as well as the fact. Being lit by a
+            // stranger, it is the moment the tips touched, which is now. In a
+            // shared break it is the one instant both cigarettes were lit at,
+            // which may be a fraction of a second ago - and using it rather
+            // than `now` is what makes the two of them go out together.
+            if let arrived = arrived, data.breakStarted == nil { lightUp(at: arrived) }
         })
         .onReceive(timer, perform: { _ in
            updateSmokebreak()
@@ -230,7 +236,7 @@ struct CigaretteView: View {
     }
     
     /// Lights the cigarette. One place, whether it was a tap or a stranger.
-    func lightUp() {
+    func lightUp(at instant: Date = .now) {
         
         // A cigarette needs a name before it can stand in the courtyard, and
         // plenty of people never open Customize. Roll one here rather than
@@ -243,7 +249,7 @@ struct CigaretteView: View {
         if temp.cigDesign.title.isEmpty {
             temp.cigDesign.title = randomCigaretteName()
         }
-        temp.breakStarted = Date.now
+        temp.breakStarted = instant
         self.data = temp
         
         self.breakProgress = 0
