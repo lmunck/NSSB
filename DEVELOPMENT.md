@@ -15,6 +15,30 @@ xcodebuild test -project NSSB.xcodeproj -scheme NSSB \
   -destination 'platform=iOS Simulator,name=iPhone 18 Pro'
 ```
 
+### The live checks
+
+Three tests in `NSSBTests/LiveSynchronyTests.swift` drive the real Firestore
+service against the real project, with the second person played by a second
+anonymous client over the REST API. They are skipped unless asked for by
+name, because they need the network and write real documents:
+
+```bash
+TEST_RUNNER_NSSB_LIVE=1 xcodebuild test -project NSSB.xcodeproj -scheme NSSB \
+  -destination 'platform=iOS Simulator,name=iPhone 18 Pro' \
+  -only-testing:NSSBTests/LiveSynchronyTests
+```
+
+The `TEST_RUNNER_` prefix matters: xcodebuild does not pass its own
+environment to the test process, it forwards variables with that prefix and
+strips it. A plain `NSSB_LIVE=1` skips all three and still reports success.
+
+They exist because the stand-in service has never rejected a write and the
+real one has - silently. `setData(from:)` only throws on encoding failures,
+so a document the rules refused still looks like a success, still comes back
+from the local cache and still fills the first snapshot. Anything that writes
+to Firestore should be checked against the server, never against the screen.
+
+
 The `NSSB` scheme is shared (`xcshareddata/xcschemes`) and its test action runs
 `NSSBTests`, so the command above works on a fresh clone without Xcode having
 to generate anything first.

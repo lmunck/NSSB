@@ -12,6 +12,7 @@
 		DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA17000000000000000A /* WaitForCompanyView.swift */; };
 		DA17WA1T000000000000000B /* BreakWait.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA1T000000000000000A /* BreakWait.swift */; };
 		DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000005 /* AskStateMachineTests.swift */; };
+		DEC0DE1000000000000000E2 /* LiveSynchronyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE1000000000000000E1 /* LiveSynchronyTests.swift */; };
 		DEC0DE1000000000000000C2 /* SynchronyTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE1000000000000000C1 /* SynchronyTests.swift */; };
 		DEC0DE1000000000000000A2 /* WaitTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE1000000000000000A1 /* WaitTests.swift */; };
 		DEC0DE100000000000000004 /* AskTests.swift in Sources */ = {isa = PBXBuildFile; fileRef = DEC0DE100000000000000003 /* AskTests.swift */; };
@@ -144,6 +145,7 @@
 		DA17WA17000000000000000A /* WaitForCompanyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForCompanyView.swift; sourceTree = "<group>"; };
 		DA17WA1T000000000000000A /* BreakWait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakWait.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000005 /* AskStateMachineTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskStateMachineTests.swift; sourceTree = "<group>"; };
+		DEC0DE1000000000000000E1 /* LiveSynchronyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = LiveSynchronyTests.swift; sourceTree = "<group>"; };
 		DEC0DE1000000000000000C1 /* SynchronyTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SynchronyTests.swift; sourceTree = "<group>"; };
 		DEC0DE1000000000000000A1 /* WaitTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitTests.swift; sourceTree = "<group>"; };
 		DEC0DE100000000000000003 /* AskTests.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskTests.swift; sourceTree = "<group>"; };
@@ -263,6 +265,7 @@
 			isa = PBXGroup;
 			children = (
 				DEC0DE100000000000000005 /* AskStateMachineTests.swift */,
+				DEC0DE1000000000000000E1 /* LiveSynchronyTests.swift */,
 				DEC0DE1000000000000000C1 /* SynchronyTests.swift */,
 				DEC0DE1000000000000000A1 /* WaitTests.swift */,
 				DEC0DE100000000000000003 /* AskTests.swift */,
@@ -639,6 +642,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				DEC0DE100000000000000006 /* AskStateMachineTests.swift in Sources */,
+				DEC0DE1000000000000000E2 /* LiveSynchronyTests.swift in Sources */,
 				DEC0DE1000000000000000C2 /* SynchronyTests.swift in Sources */,
 				DEC0DE1000000000000000A2 /* WaitTests.swift in Sources */,
 				DEC0DE100000000000000004 /* AskTests.swift in Sources */,
