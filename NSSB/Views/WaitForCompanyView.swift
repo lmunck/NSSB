@@ -196,7 +196,27 @@ struct CompanionCigaretteView: View {
     /// lit end starts at your cigarette rather than near it.
     var restingOffset: CGFloat = 0
 
-    @State private var settled = false
+    /// Starts arrived, for a still picture of where somebody ends up. The
+    /// app never passes this; the rendering harness does, because a
+    /// screenshot cannot wait for an animation it is not running.
+    var arrived: Bool = false
+    
+    @State private var settled: Bool
+    
+    init(companion: Companion,
+         height: CGFloat,
+         mirrored: Bool = false,
+         arrival: CompanionArrival = .fromTheDark,
+         restingOffset: CGFloat = 0,
+         arrived: Bool = false) {
+        self.companion = companion
+        self.height = height
+        self.mirrored = mirrored
+        self.arrival = arrival
+        self.restingOffset = restingOffset
+        self.arrived = arrived
+        _settled = State(initialValue: arrived)
+    }
 
     /// Their own clock.
     ///
@@ -291,8 +311,17 @@ struct CompanionCigaretteView: View {
         .scaleEffect(settled ? 1 : 0.72)
         .offset(entry)
         .onReceive(clock) { now = $0 }
-        .onAppear {
-            withAnimation(.easeOut(duration: arrival.duration)) { settled = true }
+        // Attached to the change rather than wrapped around it. A
+        // withAnimation inside onAppear runs while SwiftUI is already
+        // settling the insert, and it was being swallowed - the walk simply
+        // did not happen. This way the animation belongs to `settled`
+        // wherever it is flipped, and the yield guarantees one frame in the
+        // entry position for it to move away from.
+        .animation(.easeOut(duration: arrival.duration), value: settled)
+        .task {
+            guard settled == false else { return }
+            await Task.yield()
+            settled = true
         }
     }
     

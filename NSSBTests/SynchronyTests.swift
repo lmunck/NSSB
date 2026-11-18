@@ -511,6 +511,53 @@ final class SynchronyTests: XCTestCase {
         XCTAssertEqual(repository.outreach, .idle)
     }
 
+    /// Reported from a phone: the second one appeared and then vanished.
+    /// The still picture of two companions is correct, so whatever removes
+    /// them is something that happens afterwards rather than a layout fault.
+    /// This holds the whole sequence still and then waits, which is the only
+    /// way a departure timer firing early would show up.
+    func testTheSecondOneIsStillThereASecondLater() async throws {
+
+        await repository.reachOut(design: design())
+        let mine = try XCTUnwrap(repository.company.openWait)
+        try await somebodyJoins(mine, as: "Paper Kestrel", at: .now)
+        try await waitUntil("the pairing") { self.repository.company.companions.count == 1 }
+
+        await repository.breakStarted(at: .now, design: design())
+
+        let theirs = try await strangerAsks(named: "Quiet Sparrow")
+        try await waitUntil("their ask") { self.repository.offers.isEmpty == false }
+
+        await repository.offerLight(to: theirs)
+        repository.offerFinished()
+
+        XCTAssertEqual(repository.company.companions.count, 2, "they never arrived")
+
+        try await Task.sleep(nanoseconds: 1_500_000_000)
+
+        XCTAssertEqual(repository.company.companions.count, 2,
+                       "somebody left who had only just got here")
+        XCTAssertEqual(repository.giving, nil, "the handoff never finished")
+    }
+
+    /// The other order: you light somebody first, then get paired.
+    func testLightingSomebodyFirstStillLeavesRoomForAPairing() async throws {
+
+        await repository.breakStarted(at: .now, design: design())
+
+        let theirs = try await strangerAsks(named: "Quiet Sparrow")
+        try await waitUntil("their ask") { self.repository.offers.isEmpty == false }
+        await repository.offerLight(to: theirs)
+        repository.offerFinished()
+
+        XCTAssertEqual(repository.company.companions.count, 1)
+
+        try await Task.sleep(nanoseconds: 1_000_000_000)
+
+        XCTAssertEqual(repository.company.companions.count, 1,
+                       "the only person out here left after a second")
+    }
+
     // MARK: - Where somebody will stand, asked before they get there
 
     private func companion(_ name: String, startedAt: Date) -> Companion {
@@ -704,5 +751,383 @@ final class SynchronyTests: XCTestCase {
         }
         
         XCTFail("timed out waiting for \(what)")
+    }
+}
+
+// MARK: - Seeing it
+
+import SwiftUI
+
+/// Renders the views to PNG files on the host, so they can be looked at.
+///
+/// The simulator's automation panel does not work on this machine - it goes
+/// looking for a CoreSimulator framework at a path Xcode 27 no longer uses -
+/// so there is no way to tap through the app and watch what happens. Several
+/// rounds of drawing bugs were fixed blind before this existed, which is how
+/// a companion ended up correctly placed and completely invisible.
+///
+/// This is not a substitute for using the app. It renders one view at a time
+/// with no animation running, which answers "is it there, and where" and
+/// nothing about motion.
+///
+/// Skipped unless asked for, because it writes files:
+///
+///     xcodebuild test -scheme NSSB \
+///       -destination 'platform=iOS Simulator,id=<udid>' \
+///       -only-testing:NSSBTests/RenderTests \
+///       TEST_RUNNER_NSSB_RENDER=/path/to/write/to
+///
+/// The TEST_RUNNER_ prefix is not optional - xcodebuild does not pass its own
+/// environment to the test process, and a variable without it silently never
+/// arrives, which looks exactly like the tests passing.
+@MainActor
+final class RenderTests: XCTestCase {
+
+    private var out: URL!
+
+    override func setUpWithError() throws {
+        // The simulator's temp directory is a real directory on this Mac,
+        // so the path printed below can be opened from outside. No build
+        // setting to forward and nothing to remember to pass.
+        out = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("nssb-render", isDirectory: true)
+        try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        print("rendering into \(out.path)")
+    }
+
+    private func render(_ name: String, size: CGSize, @ViewBuilder _ content: () -> some View) throws {
+
+        let view = content()
+            .frame(width: size.width, height: size.height)
+            .background(Color.black)
+
+        let renderer = ImageRenderer(content: view)
+        renderer.scale = 2
+
+        let image = try XCTUnwrap(renderer.uiImage, "\(name) rendered to nothing")
+        let data = try XCTUnwrap(image.pngData())
+        try data.write(to: out.appendingPathComponent("\(name).png"))
+        print("rendered \(name).png — \(Int(size.width))x\(Int(size.height))")
+    }
+
+    // The phone's proportions, so the numbers mean what they mean in the app.
+    private let screen = CGSize(width: 402, height: 874)
+    private var cigHeight: CGFloat { screen.height * 0.7 }
+    private var cigWidth: CGFloat { screen.width * 0.2 }
+
+    private func design(_ title: String, body: Color, filter: Color, glow: Color, background: Color) -> CigDesign {
+        var d = CigDesign()
+        d.title = title
+        d.body = body
+        d.filter = filter
+        d.glow = glow
+        d.background = background
+        return d
+    }
+
+    private var mine: CigDesign {
+        design("Sunlit Parchment", body: .white, filter: Color(red: 1, green: 0.8, blue: 0.5),
+               glow: Color(hue: 0.04, saturation: 1, brightness: 1), background: .blue)
+    }
+
+    private func companion(_ name: String, startedAt: Date) -> Companion {
+        var wait = BreakWait.opening(uid: "x", design: design(name, body: Color(red: 0.78, green: 0.76, blue: 0.72),
+                                                              filter: Color(red: 0.86, green: 0.55, blue: 0.18),
+                                                              glow: Color(red: 1, green: 0.35, blue: 0.05),
+                                                              background: Color(red: 0.85, green: 0.42, blue: 0.12)))
+        wait.paired = true
+        return Companion(waiter: wait, litAt: startedAt)
+    }
+
+    /// The whole composition: your cigarette in the middle with whoever is
+    /// standing with you drawn in the same frame, exactly as ContentView
+    /// lays it out.
+    private func courtyard(_ companions: [Companion], yourProgress: Double) -> some View {
+
+        let height = cigHeight
+        let mineWidth = height * mine.widthPercentage
+
+        // Exactly how ContentView puts it together: your own cigarette in
+        // its frame, with everybody else in an overlay on top of it. The
+        // structure is the point - a bare ForEach straight into .overlay
+        // behaves differently from one inside a ZStack, and this harness is
+        // worthless if it quietly builds the more forgiving of the two.
+        return DistantCigaretteView(design: mine, progress: yourProgress, height: height)
+            .frame(width: cigWidth, height: height)
+            .overlay {
+                ForEach(companions, id: \.name) { companion in
+                    let side: CGFloat = companion.side == .left ? -1 : 1
+                    let theirs = height * companion.design.widthPercentage
+                    let rest = mineWidth / 2 + 52 + theirs / 2
+                    CompanionCigaretteView(
+                        companion: companion,
+                        height: height,
+                        mirrored: side < 0,
+                        restingOffset: rest,
+                        arrived: true
+                    )
+                    .offset(x: side * rest, y: 0)
+                }
+            }
+    }
+
+    func testRenderNobodyOneAndTwo() throws {
+
+        let now = Date.now
+        let first = companion("Paper Kestrel", startedAt: now)
+
+        let one = CompanyState.idle.standing(with: first, since: now)
+        let two = one.standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
+
+        try render("company-0", size: screen) { courtyard([], yourProgress: 0.3) }
+        try render("company-1", size: screen) { courtyard(one.companions, yourProgress: 0.3) }
+        try render("company-2", size: screen) { courtyard(two.companions, yourProgress: 0.3) }
+
+        // The sides the model actually chose, printed so the picture can be
+        // checked against the thing that decided it.
+        for c in two.companions { print("  \(c.name) stands \(c.side)") }
+    }
+
+    func testRenderTheRow() throws {
+
+        let now = Date.now
+        let one = CompanyState.idle.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+        let two = one.standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
+        let wait = BreakWait.opening(uid: "me", design: mine)
+
+        let row = CGSize(width: 402, height: 44)
+
+        try render("row-idle", size: row) {
+            ReachOutView(state: .idle, unlit: true, reach: {}, clear: {})
+        }
+        try render("row-reaching", size: row) {
+            ReachOutView(state: .reaching(until: wait.expiresAt), unlit: true, reach: {}, clear: {})
+        }
+        try render("row-one", size: row) {
+            ReachOutView(state: .together(one.companions), unlit: false, reach: {}, clear: {})
+        }
+        try render("row-two", size: row) {
+            ReachOutView(state: .together(two.companions), unlit: false, reach: {}, clear: {})
+        }
+        try render("row-alone", size: row) {
+            ReachOutView(state: .alone, unlit: true, reach: {}, clear: {})
+        }
+    }
+}
+
+/// Runs a view for real and photographs it as it goes.
+///
+/// ImageRenderer draws a view once with nothing running - no onAppear, no
+/// task, no timers - which answers "where is it" and nothing about what
+/// happens next. A companion that arrives correctly and then vanishes looks
+/// perfect to it. So this puts the view in an actual window with an actual
+/// runloop, lets time pass, and takes a photograph whenever asked.
+///
+/// This is the closest thing to using the app that exists on this machine:
+/// the simulator's automation panel cannot attach, because it looks for a
+/// CoreSimulator framework at a path Xcode 27 no longer uses.
+@MainActor
+final class LiveViewTests: XCTestCase {
+
+    private var window: UIWindow!
+    private var out: URL!
+
+    override func setUpWithError() throws {
+        out = URL(fileURLWithPath: NSTemporaryDirectory(), isDirectory: true)
+            .appendingPathComponent("nssb-live", isDirectory: true)
+        try FileManager.default.createDirectory(at: out, withIntermediateDirectories: true)
+        print("filming into \(out.path)")
+    }
+
+    override func tearDown() async throws {
+        window?.isHidden = true
+        window = nil
+    }
+
+    private func show(_ view: some View, size: CGSize) {
+        window = UIWindow(frame: CGRect(origin: .zero, size: size))
+        window.rootViewController = UIHostingController(rootView:
+            view.frame(width: size.width, height: size.height).background(Color.black)
+        )
+        window.rootViewController?.view.backgroundColor = .black
+        window.makeKeyAndVisible()
+        window.layoutIfNeeded()
+    }
+
+    @discardableResult
+    private func frame(_ name: String) throws -> UIImage {
+        // drawHierarchy needs a real screen update and comes back black in a
+        // test bundle. Rendering the layer tree works headless, and the
+        // presentation layer is what is actually on screen this instant -
+        // mid-animation included, which is the point of filming at all.
+        // The hosting view has to be asked to lay out: a companion added
+        // after the window was shown otherwise never gets a layout pass
+        // here, and the overlay renders as nothing.
+        window.rootViewController?.view.setNeedsLayout()
+        window.layoutIfNeeded()
+        RunLoop.current.run(until: Date().addingTimeInterval(0.05))
+
+        let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
+        let image = renderer.image { ctx in
+            window.layer.render(in: ctx.cgContext)
+        }
+        try XCTUnwrap(image.pngData()).write(to: out.appendingPathComponent("\(name).png"))
+        return image
+    }
+
+    /// Roughly how much of the frame is not black, per vertical third of the
+    /// width. Enough to say "somebody is on the left and somebody is on the
+    /// right" without looking, so a regression can fail the test rather than
+    /// wait for somebody to notice a picture.
+    private func brightness(_ image: UIImage) -> (left: Double, middle: Double, right: Double) {
+
+        guard let cg = image.cgImage else { return (0, 0, 0) }
+        let w = cg.width, h = cg.height
+        var pixels = [UInt8](repeating: 0, count: w * h * 4)
+        let ctx = CGContext(data: &pixels, width: w, height: h, bitsPerComponent: 8,
+                            bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(),
+                            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        ctx?.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+
+        var sums = [0.0, 0.0, 0.0]
+        for y in stride(from: 0, to: h, by: 4) {
+            for x in stride(from: 0, to: w, by: 4) {
+                let i = (y * w + x) * 4
+                let v = (Double(pixels[i]) + Double(pixels[i + 1]) + Double(pixels[i + 2])) / 765
+                sums[min(2, x * 3 / w)] += v
+            }
+        }
+        let n = Double((h / 4) * (w / 4)) / 3
+        return (sums[0] / n, sums[1] / n, sums[2] / n)
+    }
+
+    // MARK: The experiment
+
+    /// Exactly what was reported: one person already standing with you, a
+    /// second arrives, and the second disappears.
+    func testASecondCompanionArrivesAndStays() async throws {
+
+        let stage = Stage()
+        let size = CGSize(width: 402, height: 874)
+
+        show(CompanionStageView(stage: stage, size: size), size: size)
+        try await settle(0.3)
+
+        stage.company = stage.company.standing(with: stage.someone("Paper Kestrel"), since: .now)
+        try await settle(1.2)
+        let one = try frame("live-1-only")
+
+        stage.company = stage.company.standing(with: stage.someone("Quiet Sparrow"), since: .now)
+        try await settle(0.15)
+        try frame("live-2-arriving")
+        try await settle(1.2)
+        let two = try frame("live-2-settled")
+        try await settle(2.5)
+        let later = try frame("live-2-later")
+
+        let sides = stage.company.companions.map(\.side)
+        print("  sides: \(sides)")
+
+        let b1 = brightness(one), b2 = brightness(two), b3 = brightness(later)
+        print(String(format: "  one      L%.3f M%.3f R%.3f", b1.left, b1.middle, b1.right))
+        print(String(format: "  two      L%.3f M%.3f R%.3f", b2.left, b2.middle, b2.right))
+        print(String(format: "  2.5s on  L%.3f M%.3f R%.3f", b3.left, b3.middle, b3.right))
+
+        XCTAssertEqual(stage.company.companions.count, 2)
+        XCTAssertGreaterThan(b2.left, 0.01, "nobody on the left")
+        XCTAssertGreaterThan(b2.right, 0.01, "nobody on the right")
+        XCTAssertGreaterThan(b3.left, 0.01, "the left one vanished")
+        XCTAssertGreaterThan(b3.right, 0.01, "the right one vanished")
+    }
+
+    /// Somebody you stopped to light walks out from your tip. The motion
+    /// is the whole of it - without it they teleport into place - so this
+    /// photographs the same arrival twice and insists the two differ.
+    func testTheArrivalActuallyMoves() async throws {
+
+        let stage = Stage()
+        let size = CGSize(width: 402, height: 874)
+
+        show(CompanionStageView(stage: stage, size: size, arrival: .fromYourTip), size: size)
+        try await settle(0.3)
+
+        stage.company = stage.company.standing(with: stage.someone("Brass Kestrel"), since: .now)
+
+        try await settle(0.1)
+        let early = brightness(try frame("walk-early"))
+        try await settle(1.0)
+        let late = brightness(try frame("walk-late"))
+
+        print(String(format: "  early L%.3f M%.3f R%.3f", early.left, early.middle, early.right))
+        print(String(format: "  late  L%.3f M%.3f R%.3f", late.left, late.middle, late.right))
+
+        // They end up on one side; early on they are still nearer the
+        // middle and smaller, so the two frames cannot be identical.
+        let movedLeft = abs(late.left - early.left)
+        let movedRight = abs(late.right - early.right)
+        XCTAssertGreaterThan(max(movedLeft, movedRight), 0.004,
+                             "they arrived without moving - the walk was swallowed again")
+        XCTAssertGreaterThan(max(late.left, late.right), 0.01, "nobody is standing there")
+    }
+
+    private func settle(_ seconds: Double) async throws {
+        try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+    }
+}
+
+
+/// A changeable `CompanyState` for the live harness, so a companion can be
+/// made to arrive while the view is on screen rather than being there from
+/// the first frame - which is the whole difference that matters.
+@MainActor
+final class Stage: ObservableObject {
+
+    @Published var company: CompanyState = .idle
+
+    func someone(_ name: String) -> Companion {
+        var d = CigDesign()
+        d.title = name
+        d.body = Color(red: 0.78, green: 0.76, blue: 0.72)
+        d.filter = Color(red: 0.86, green: 0.55, blue: 0.18)
+        d.glow = Color(red: 1, green: 0.35, blue: 0.05)
+        d.background = Color(red: 0.85, green: 0.42, blue: 0.12)
+        var wait = BreakWait.opening(uid: "x", design: d)
+        wait.paired = true
+        return Companion(waiter: wait, litAt: .now)
+    }
+}
+
+/// ContentView's arrangement, with nothing else on screen.
+struct CompanionStageView: View {
+
+    @ObservedObject var stage: Stage
+    let size: CGSize
+    var arrival: CompanionArrival = .fromTheDark
+
+    var body: some View {
+
+        let height = size.height * 0.7
+        let width = size.width * 0.2
+        var mine = CigDesign()
+        let _ = { mine.title = "Sunlit Parchment" }()
+
+        return DistantCigaretteView(design: mine, progress: 0.3, height: height)
+            .frame(width: width, height: height)
+            .overlay {
+                ForEach(stage.company.companions, id: \.name) { companion in
+                    let side: CGFloat = companion.side == .left ? -1 : 1
+                    let theirs = height * companion.design.widthPercentage
+                    let rest = height * mine.widthPercentage / 2 + 52 + theirs / 2
+                    CompanionCigaretteView(
+                        companion: companion,
+                        height: height,
+                        mirrored: side < 0,
+                        arrival: arrival,
+                        restingOffset: rest
+                    )
+                    .offset(x: side * rest, y: 0)
+                }
+            }
+            .frame(width: size.width, height: size.height)
     }
 }

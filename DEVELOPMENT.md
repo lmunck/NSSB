@@ -96,6 +96,65 @@ against the same `WCSession`, so when one works the other does. On a real
 phone and watch this is the normal case; between simulators it is a coin
 toss.
 
+## Looking at the views
+
+The simulator's automation panel does not work on this machine. It fails with
+`Failed to initialize simulator device set`, because it goes looking for a
+CoreSimulator framework at a path Xcode 27 no longer uses — Xcode 27 moved the
+simulator into `Xcode.app/Contents/Applications/DeviceHub.app` and dropped
+`Contents/Developer/Applications` entirely. So there is no way to tap through
+the app from a session and watch what happens. `xcrun simctl` still boots,
+installs, launches and screenshots; it just cannot tap.
+
+Several drawing bugs were fixed blind before this was addressed, including a
+companion that was correctly placed and completely invisible. Two harnesses
+in `NSSBTests` close most of that gap. Neither replaces using the app.
+
+### RenderTests — still pictures
+
+`ImageRenderer` draws a view once, with nothing running: no `onAppear`, no
+`task`, no timers. It answers "is it there, and where", and nothing about
+motion. Views that animate themselves into place therefore render in their
+starting position, which is why `CompanionCigaretteView` takes an `arrived`
+flag — the app never passes it, the harness does.
+
+```
+xcodebuild test -scheme NSSB \
+  -destination 'platform=iOS Simulator,id=<udid>' \
+  -only-testing:NSSBTests/RenderTests
+```
+
+It prints the directory it wrote into and the sides the model chose, so the
+picture can be checked against the thing that decided it.
+
+### LiveViewTests — film
+
+Puts the view in a real `UIWindow` with a real runloop, lets time pass, and
+photographs it. This is the only way to see an arrival actually arrive, or to
+catch something that appears correctly and then vanishes.
+
+Two things about it are easy to get wrong and cost an evening each:
+
+- **Capture.** `drawHierarchy(in:afterScreenUpdates:)` comes back black in a
+  test bundle. Render the layer tree instead.
+- **Layout.** A view added after the window was shown never gets a layout
+  pass on its own here, and its overlay renders as nothing — which looks
+  exactly like the bug you are hunting. Call `setNeedsLayout` and
+  `layoutIfNeeded` on the root view before every frame.
+
+The assertions are on how much of each vertical third of the frame is not
+black, so "somebody is on the left and somebody is on the right" fails the
+test rather than waiting for a person to notice a picture.
+
+### Writing the files out
+
+Both harnesses write into `NSTemporaryDirectory()`, which for a simulator is
+a real directory on the Mac, and print the path. They deliberately do **not**
+take a path through the environment: `xcodebuild` only forwards variables
+prefixed `TEST_RUNNER_`, and one that does not arrive looks exactly like the
+tests passing. This project has been bitten by that before — see the live
+Firebase checks below.
+
 ## Firebase
 
 See `firebase/README.md`. Short version: the app runs without any of it, on a
