@@ -236,6 +236,16 @@ struct CompanionCigaretteView: View {
     /// side, so nothing is written in the gap between the two cigarettes.
     var mirrored: Bool = false
 
+    /// How they got here, which is the only thing that decides how they
+    /// arrive. Nobody should appear beside your hand out of nothing.
+    var arrival: CompanionArrival = .fromTheDark
+
+    /// How far out they finally stand, so somebody walking over from your
+    /// lit end starts at your cigarette rather than near it.
+    var restingOffset: CGFloat = 0
+
+    @State private var settled = false
+
     /// Their own clock.
     ///
     /// This used to be handed your burn position, on the reasoning that you
@@ -319,8 +329,54 @@ struct CompanionCigaretteView: View {
                 .opacity(0.8)
         }
         // Near, but never competing with the cigarette in your own hand.
-        .opacity(0.9)
+        .opacity(settled ? 0.9 : 0)
+        .offset(entry)
         .onReceive(clock) { now = $0 }
+        .onAppear {
+            withAnimation(.easeOut(duration: arrival.duration)) { settled = true }
+        }
+    }
+
+    /// Where they come in from, measured back from where they end up.
+    private var entry: CGSize {
+
+        guard settled == false else { return .zero }
+
+        // Toward you is whichever way your cigarette is from theirs.
+        let inward: CGFloat = mirrored ? restingOffset : -restingOffset
+
+        switch arrival {
+
+        case .fromYourTip:
+            // The handoff left them with their tip against yours, up at the
+            // top of the frame. So they walk back out and their ember comes
+            // down to where it actually is - which is the movement that was
+            // missing, and why it read as a jump.
+            return CGSize(width: inward, height: -height * progress * 0.7)
+
+        case .fromTheDark:
+            // No handoff happened here. They were never near your hand, so
+            // they step in from further out, which is all the courtyard has
+            // ever shown of somebody arriving.
+            return CGSize(width: -inward * 0.22, height: 0)
+        }
+    }
+}
+
+/// The two ways somebody ends up standing next to you.
+enum CompanionArrival {
+
+    /// They stopped and lit you. The handoff just put them at your lit end.
+    case fromYourTip
+
+    /// They lit at the same instant as you, from wherever they were.
+    case fromTheDark
+
+    var duration: TimeInterval {
+        switch self {
+        case .fromYourTip: return 0.75
+        case .fromTheDark: return 1.1
+        }
     }
 }
 

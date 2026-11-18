@@ -355,13 +355,18 @@ extension ContentView {
             let mine = height * model.data.cigDesign.widthPercentage
             let theirs = height * companion.design.widthPercentage
 
+            let rest = mine / 2 + 52 + theirs / 2
+
             CompanionCigaretteView(
                 companion: companion,
                 height: height,
-                mirrored: side < 0
+                mirrored: side < 0,
+                arrival: presence.company.companionLitYou ? .fromYourTip : .fromTheDark,
+                restingOffset: rest
             )
-            .offset(x: side * (mine / 2 + 52 + theirs / 2), y: 0)
-            .transition(.opacity)
+            .offset(x: side * rest, y: 0)
+            // No transition here: the view walks itself in, and a crossfade
+            // laid over that read as a second, competing arrival.
             .allowsHitTesting(false)
         }
     }

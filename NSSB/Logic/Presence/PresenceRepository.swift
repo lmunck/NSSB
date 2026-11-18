@@ -179,10 +179,19 @@ final class PresenceRepository: ObservableObject {
     /// Outside a break there is no listener, so the periodic count stands in.
     /// It excludes your own document, because "1 other" when that one is
     /// yourself reads as a lie.
+    /// An attached listener that has not spoken yet is not an empty
+    /// courtyard. Without this the count flips to "quiet out here right now"
+    /// for the second between lighting up and the first snapshot arriving -
+    /// with a stranger's cigarette about to appear behind it.
+    private var courtyardSeen = false
+
     var othersCount: Int? {
-        
-        if publishedBreak != nil { return courtyard.count }
-        
+
+        if publishedBreak != nil {
+            guard courtyardSeen else { return nil }
+            return courtyard.count
+        }
+
         guard let liveCount = liveCount else { return nil }
         return liveCount
     }
@@ -307,6 +316,7 @@ final class PresenceRepository: ObservableObject {
             service.observeCourtyard(limit: courtyardLimit) { [weak self] others in
                 Task { @MainActor in
                     self?.courtyard = others
+                    self?.courtyardSeen = true
                     
                     if others.isEmpty {
                         print("Presence - courtyard: nobody else out there")
@@ -340,6 +350,7 @@ final class PresenceRepository: ObservableObject {
         service.stopObservingAsks()
         service.stopObservingWaits()
         self.courtyard = []
+        self.courtyardSeen = false
         self.echoes = []
         self.offers = []
         self.giving = nil

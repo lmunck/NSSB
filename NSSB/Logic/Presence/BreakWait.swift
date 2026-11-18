@@ -248,4 +248,19 @@ enum CompanyState: Equatable {
         if case .together(_, let since) = self { return since }
         return nil
     }
+
+    /// True when the person beside you was already burning when you met.
+    ///
+    /// Derived rather than stored: somebody who lit you started before you
+    /// did, somebody who lit with you started at the same instant. The
+    /// second of slack is for clock jitter, not for doubt - the two cases
+    /// are minutes apart in practice.
+    ///
+    /// It decides how they arrive on screen. One of them walks over from
+    /// your lit end, because that is literally where they were standing a
+    /// moment ago; the other was never near your cigarette at all.
+    var companionLitYou: Bool {
+        guard case .together(let companion, let since) = self else { return false }
+        return companion.startedAt < since.addingTimeInterval(-1)
+    }
 }

@@ -459,6 +459,54 @@ final class SynchronyTests: XCTestCase {
         XCTAssertEqual(companion.name, "Paper Kestrel")
     }
 
+    // MARK: - How they arrive
+
+    /// The two kinds of company look different on screen because they are
+    /// different: one walks over from your lit end, the other was never near
+    /// it. The state has to be able to tell them apart without being told.
+    func testTheStateKnowsWhichKindOfCompanyThisIs() {
+
+        let met = Date(timeIntervalSince1970: 1_000_000)
+
+        var ask = BreakAsk.opening(uid: "me", design: design())
+        ask.claimed = true
+        ask.giverName = "Brass Kestrel"
+        ask.giverProgress = 0.4
+        let lighter = Companion(giver: AskGiver(ask)!, metAt: met)
+
+        XCTAssertTrue(CompanyState.together(lighter, since: met).companionLitYou)
+
+        let theirs = BreakWait.opening(uid: "them", design: design(title: "Paper Kestrel"))
+        let equal = Companion(waiter: theirs, litAt: met)
+
+        XCTAssertFalse(CompanyState.together(equal, since: met).companionLitYou)
+        XCTAssertFalse(CompanyState.idle.companionLitYou)
+    }
+
+    /// A giver who had barely started is still a giver, not a twin - the
+    /// slack is for clock jitter, not for a real head start.
+    func testASecondOfJitterIsNotAHeadStart() {
+
+        let met = Date(timeIntervalSince1970: 1_000_000)
+        let theirs = BreakWait.opening(uid: "them", design: design())
+        let nearlyEqual = Companion(waiter: theirs, litAt: met.addingTimeInterval(-0.4))
+
+        XCTAssertFalse(CompanyState.together(nearlyEqual, since: met).companionLitYou)
+    }
+
+    // MARK: - The count
+
+    /// A listener that has attached but not spoken is not an empty
+    /// courtyard. Saying so put "quiet out here right now" on screen with a
+    /// stranger's cigarette about to appear behind it.
+    func testAnAttachedListenerIsNotAnEmptyCourtyard() async throws {
+
+        await repository.breakStarted(at: .now, design: design())
+
+        XCTAssertNotEqual(repository.othersCount, 0,
+                          "the courtyard was called empty before it had been looked at")
+    }
+
     func testAnIdleRepositoryOffersTheOneThing() {
         XCTAssertEqual(repository.outreach, .idle)
     }
