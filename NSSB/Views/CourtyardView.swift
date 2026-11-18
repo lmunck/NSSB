@@ -45,12 +45,13 @@ struct CourtyardView: View {
     
     @Binding var selected: BreakPresence?
     
-    /// The ask you tapped, if any. Separate from `selected`, because an ask
-    /// opens a card with a button on it rather than a card you only read.
-    @Binding var selectedAsk: BreakAsk?
+    /// Tapping somebody who is asking gives them a light. There is no card
+    /// and no second button: you had to aim at an unlit cigarette that is
+    /// visibly asking, and that is the decision made.
+    let offer: (BreakAsk) -> Void
     
-    /// The waiter you tapped, if any. Its card has the other button.
-    @Binding var selectedWait: BreakWait?
+    /// Tapping somebody who is waiting takes the chair beside them.
+    let join: (BreakWait) -> Void
     
     var body: some View {
         
@@ -118,11 +119,7 @@ struct CourtyardView: View {
                         x: geo.size.width * spot.x,
                         y: geo.size.height * spot.y
                     )
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            selectedWait = (selectedWait?.id == wait.id) ? nil : wait
-                        }
-                    }
+                    .onTapGesture { join(wait) }
                     .transition(.opacity)
                 }
                 
@@ -143,11 +140,7 @@ struct CourtyardView: View {
                         x: geo.size.width * spot.x,
                         y: geo.size.height * spot.y
                     )
-                    .onTapGesture {
-                        withAnimation(.easeInOut(duration: 0.25)) {
-                            selectedAsk = (selectedAsk?.id == ask.id) ? nil : ask
-                        }
-                    }
+                    .onTapGesture { offer(ask) }
                     .transition(.opacity)
                 }
             }
@@ -333,7 +326,7 @@ struct CourtyardDetailView: View {
                 if let flag = presence.flag {
                     Text(flag)
                 }
-                Text("\(presence.localTimeString()) there")
+                DaylightView(daylight: presence.daylight())
             }
             .font(.footnote)
             .foregroundStyle(.gray)
@@ -367,5 +360,22 @@ extension CourtyardStranger {
         }
         
         return String(scalars)
+    }
+}
+
+/// Where somebody is in their own day, as one small symbol.
+///
+/// Sits where their clock used to. A time of day gets read against your own
+/// and, next to a cigarette already counting down, looked like a second
+/// timer. A sun or a moon is the part you actually wanted: somebody is out
+/// here in the dark, or on their lunch, or before work.
+struct DaylightView: View {
+    
+    let daylight: Daylight
+    
+    var body: some View {
+        Image(systemName: daylight.symbol)
+            .symbolRenderingMode(.hierarchical)
+            .accessibilityLabel(daylight.spoken)
     }
 }

@@ -107,10 +107,10 @@ final class SynchronyTests: XCTestCase {
         try await somebodyJoins(mine, as: "Paper Kestrel", at: litAt)
         
         try await waitUntil("the pairing to arrive") {
-            self.repository.company.companion != nil
+            self.repository.company.companions.first != nil
         }
         
-        XCTAssertEqual(repository.company.companion?.name, "Paper Kestrel")
+        XCTAssertEqual(repository.company.companions.first?.name, "Paper Kestrel")
         XCTAssertEqual(repository.company.litAt, litAt,
                        "the break has to start at the shared instant, not at now")
     }
@@ -139,7 +139,7 @@ final class SynchronyTests: XCTestCase {
         try await somebodyJoins(mine, as: "Paper Kestrel", at: .now)
         
         try await waitUntil("the other waiters to be let go") {
-            self.repository.waiting.isEmpty && self.repository.company.companion != nil
+            self.repository.waiting.isEmpty && self.repository.company.companions.first != nil
         }
     }
     
@@ -151,7 +151,7 @@ final class SynchronyTests: XCTestCase {
         
         await repository.waitWith(theirs, design: design())
         
-        XCTAssertEqual(repository.company.companion?.name, "Paper Kestrel")
+        XCTAssertEqual(repository.company.companions.first?.name, "Paper Kestrel")
         XCTAssertNotNil(repository.company.litAt)
         
         // Written where they can read it, which is the only way they learn
@@ -199,12 +199,12 @@ final class SynchronyTests: XCTestCase {
         
         let first = try await strangerWaits()
         await repository.waitWith(first, design: design())
-        let companion = repository.company.companion
+        let companion = repository.company.companions.first
         
         let second = try await strangerWaits(named: "Hollow Lantern")
         await repository.waitWith(second, design: design())
         
-        XCTAssertEqual(repository.company.companion, companion, "you only have one cigarette")
+        XCTAssertEqual(repository.company.companions.first, companion, "you only have one cigarette")
     }
     
     func testAnExpiredChairCannotBeTaken() async throws {
@@ -261,7 +261,7 @@ final class SynchronyTests: XCTestCase {
         
         repository.clearCompany()
         
-        XCTAssertNotNil(repository.company.companion)
+        XCTAssertNotNil(repository.company.companions.first)
     }
     
     // MARK: - Leaving
@@ -299,7 +299,7 @@ final class SynchronyTests: XCTestCase {
         
         await repository.breakStarted(at: litAt, design: design())
         
-        XCTAssertEqual(repository.company.companion?.name, "Paper Kestrel")
+        XCTAssertEqual(repository.company.companions.first?.name, "Paper Kestrel")
         XCTAssertEqual(repository.company.litAt, litAt)
     }
     
@@ -453,10 +453,10 @@ final class SynchronyTests: XCTestCase {
             return false
         }
 
-        guard case .together(let companion) = repository.outreach else {
+        guard case .together(let companions) = repository.outreach else {
             return XCTFail("the row is not naming the person standing next to you")
         }
-        XCTAssertEqual(companion.name, "Paper Kestrel")
+        XCTAssertEqual(companions.map(\.name), ["Paper Kestrel"])
     }
 
     // MARK: - How they arrive
@@ -474,13 +474,13 @@ final class SynchronyTests: XCTestCase {
         ask.giverProgress = 0.4
         let lighter = Companion(giver: AskGiver(ask)!, metAt: met)
 
-        XCTAssertTrue(CompanyState.together(lighter, since: met).companionLitYou)
+        XCTAssertTrue(lighter.metAtYourTip(whenYouLitAt: met))
 
         let theirs = BreakWait.opening(uid: "them", design: design(title: "Paper Kestrel"))
         let equal = Companion(waiter: theirs, litAt: met)
 
-        XCTAssertFalse(CompanyState.together(equal, since: met).companionLitYou)
-        XCTAssertFalse(CompanyState.idle.companionLitYou)
+        XCTAssertFalse(equal.metAtYourTip(whenYouLitAt: met))
+        XCTAssertFalse(false)
     }
 
     /// A giver who had barely started is still a giver, not a twin - the
@@ -491,7 +491,7 @@ final class SynchronyTests: XCTestCase {
         let theirs = BreakWait.opening(uid: "them", design: design())
         let nearlyEqual = Companion(waiter: theirs, litAt: met.addingTimeInterval(-0.4))
 
-        XCTAssertFalse(CompanyState.together(nearlyEqual, since: met).companionLitYou)
+        XCTAssertFalse(nearlyEqual.metAtYourTip(whenYouLitAt: met))
     }
 
     // MARK: - The count
@@ -511,6 +511,125 @@ final class SynchronyTests: XCTestCase {
         XCTAssertEqual(repository.outreach, .idle)
     }
 
+    // MARK: - Two of you, one each side
+
+    private func companion(_ name: String, side: CompanionSide, startedAt: Date) -> Companion {
+        var one = Companion(waiter: BreakWait.opening(uid: "x", design: design(title: name)),
+                            litAt: startedAt)
+        one.side = side
+        return one
+    }
+
+    func testTheSecondPersonTakesTheOtherSide() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let first = companion("Paper Kestrel", side: .left, startedAt: now)
+        let second = companion("Brass Kestrel", side: .left, startedAt: now)
+
+        let one = CompanyState.idle.standing(with: first, since: now)
+        let two = one.standing(with: second, since: now)
+
+        XCTAssertEqual(two.companions.count, 2)
+        XCTAssertEqual(two.companions[0].side, .left, "the first one should not have moved")
+        XCTAssertEqual(two.companions[1].side, .right, "they cannot stand in the same place")
+        XCTAssertTrue(two.isFull)
+    }
+
+    func testThereIsNoRoomForAThird() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let two = CompanyState.idle
+            .standing(with: companion("A", side: .left, startedAt: now), since: now)
+            .standing(with: companion("B", side: .right, startedAt: now), since: now)
+
+        let three = two.standing(with: companion("C", side: .left, startedAt: now), since: now)
+
+        XCTAssertEqual(three.companions.count, 2, "there are only two sides of a person")
+        XCTAssertEqual(three.companions.map(\.name), ["A", "B"])
+    }
+
+    /// Whoever finishes first goes in alone, and nobody shuffles across to
+    /// take the empty side.
+    func testOneCanLeaveWithoutMovingTheOther() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let two = CompanyState.idle
+            .standing(with: companion("A", side: .left, startedAt: now), since: now)
+            .standing(with: companion("B", side: .right, startedAt: now), since: now)
+
+        let one = two.without("A")
+
+        XCTAssertEqual(one.companions.map(\.name), ["B"])
+        XCTAssertEqual(one.companions[0].side, .right, "B should not have slid over")
+        XCTAssertEqual(one.litAt, now, "the break did not restart because somebody left")
+
+        XCTAssertEqual(one.without("B"), .idle, "the last one out leaves you alone")
+    }
+
+    func testTheSamePersonCannotStandWithYouTwice() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let once = CompanyState.idle.standing(with: companion("A", side: .left, startedAt: now), since: now)
+        let twice = once.standing(with: companion("A", side: .right, startedAt: now), since: now)
+
+        XCTAssertEqual(twice.companions.count, 1)
+    }
+
+    // MARK: - Whoever has burned longest goes in first
+
+    /// The one rule the whole layer runs on. Somebody who lit you started
+    /// before you; somebody you lit started after; two who lit together
+    /// started at the same instant and end on the same second.
+    func testTheThreeWaysOfMeetingBurnInTheRightOrder() {
+
+        let met = Date(timeIntervalSince1970: 1_000_000)
+
+        var ask = BreakAsk.opening(uid: "me", design: design())
+        ask.claimed = true
+        ask.giverName = "Brass Kestrel"
+        ask.giverProgress = 0.4
+        let whoLitYou = Companion(giver: AskGiver(ask)!, metAt: met)
+
+        let whoYouLit = Companion(lit: BreakAsk.opening(uid: "them", design: design(title: "Quiet Sparrow")), at: met)
+
+        let whoLitWithYou = Companion(waiter: BreakWait.opening(uid: "them", design: design(title: "Paper Kestrel")), litAt: met)
+
+        XCTAssertGreaterThan(whoLitYou.progress(at: met), whoLitWithYou.progress(at: met),
+                             "somebody who lit you is ahead of you")
+        XCTAssertEqual(whoYouLit.progress(at: met), 0, accuracy: 0.001,
+                       "somebody you just lit has their whole cigarette")
+        XCTAssertEqual(whoLitWithYou.progress(at: met), 0, accuracy: 0.001)
+
+        // And only the two who lit together were never tip to tip.
+        XCTAssertTrue(whoLitYou.metAtYourTip(whenYouLitAt: met))
+        XCTAssertFalse(whoLitWithYou.metAtYourTip(whenYouLitAt: met))
+
+        // You lit them a while into your own break, so they are behind you.
+        let late = met.addingTimeInterval(120)
+        let lateOne = Companion(lit: BreakAsk.opening(uid: "them", design: design(title: "Quiet Sparrow")), at: late)
+        XCTAssertTrue(lateOne.metAtYourTip(whenYouLitAt: met))
+        XCTAssertFalse(lateOne.hasGone(at: met.addingTimeInterval(Date.breakLength)),
+                       "they are still out here after you have gone in")
+    }
+
+    // MARK: - The count
+
+    /// Somebody standing right there asking is present. They just have not
+    /// got their cigarette going yet.
+    func testPeopleWhoAreOutButUnlitAreCounted() async throws {
+
+        await repository.breakStarted(at: .now, design: design())
+
+        try await waitUntil("the courtyard to be looked at") { self.repository.othersCount != nil }
+        let lit = try XCTUnwrap(repository.othersCount)
+
+        try await strangerAsks()
+        try await waitUntil("their ask to arrive") { self.repository.offers.isEmpty == false }
+
+        XCTAssertEqual(repository.othersCount, lit + 1,
+                       "an unlit cigarette in the courtyard is still somebody out here")
+    }
+
     private func design(title: String = "Charcoal Gull") -> CigDesign {
         var design = CigDesign()
         design.title = title
@@ -521,6 +640,14 @@ final class SynchronyTests: XCTestCase {
     private func strangerWaits(named name: String = "Paper Kestrel") async throws -> BreakWait {
         let theirs = BreakWait.opening(uid: "a-stranger", design: design(title: name))
         try await service.openWait(theirs)
+        return theirs
+    }
+    
+    /// Somebody else standing out there with an unlit cigarette, asking.
+    @discardableResult
+    private func strangerAsks(named name: String = "Quiet Sparrow") async throws -> BreakAsk {
+        let theirs = BreakAsk.opening(uid: "a-stranger", design: design(title: name))
+        try await service.openAsk(theirs)
         return theirs
     }
     

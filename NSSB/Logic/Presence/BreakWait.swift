@@ -136,7 +136,7 @@ enum Outreach: Equatable {
     case lit(AskGiver)
 
     /// Somebody is out here with you.
-    case together(Companion)
+    case together([Companion])
 
     /// They lit you and went straight back in - there was not enough of
     /// their cigarette left to stay for.
@@ -163,6 +163,24 @@ struct Companion: Equatable, CourtyardStranger {
     /// thing to draw.
     let startedAt: Date
 
+    /// Which side of you they stand on.
+    ///
+    /// Taken from where they would have been in the courtyard, so somebody
+    /// who was over to your left comes to stand on your left. That is random
+    /// and reads as natural because it is. Overwritten only when the side is
+    /// already taken - two people never stand in the same place.
+    var side: CompanionSide
+    
+    /// True when a handoff put the two of you tip to tip: either they
+    /// stopped to light you, or you stopped to light them. Both end with
+    /// them at your lit end, which is where they walk out from.
+    ///
+    /// False for two people who lit at the same instant, who were never
+    /// anywhere near each other's cigarettes.
+    func metAtYourTip(whenYouLitAt since: Date) -> Bool {
+        abs(startedAt.timeIntervalSince(since)) > 1
+    }
+    
     /// Seen from the waiter's side: the person who joined them.
     init?(partnerOf wait: BreakWait) {
         guard let name = wait.partnerName, name.isEmpty == false,
@@ -173,6 +191,7 @@ struct Companion: Equatable, CourtyardStranger {
         self.country = wait.partnerCountry
         self.tzOffset = wait.partnerTzOffset ?? 0
         self.startedAt = litAt
+        self.side = Companion.naturalSide(for: name)
     }
 
     /// Seen from the joiner's side: the person who was already standing there.
@@ -182,6 +201,7 @@ struct Companion: Equatable, CourtyardStranger {
         self.country = wait.country
         self.tzOffset = wait.tzOffset
         self.startedAt = litAt
+        self.side = Companion.naturalSide(for: wait.name)
     }
 
     /// Somebody who was already out here and stopped to light you.
@@ -195,6 +215,24 @@ struct Companion: Equatable, CourtyardStranger {
         self.country = giver.country
         self.tzOffset = giver.tzOffset
         self.startedAt = metAt.addingTimeInterval(-giver.progress * Date.breakLength)
+        self.side = Companion.naturalSide(for: giver.name)
+    }
+
+    /// Somebody you stopped to light, who lit at the moment the tips
+    /// touched. The mirror of `giver`: this one is behind you rather than
+    /// ahead, so you will go back inside and leave them out here.
+    init(lit ask: BreakAsk, at litAt: Date) {
+        self.name = ask.name
+        self.design = ask.design
+        self.country = ask.country
+        self.tzOffset = ask.tzOffset
+        self.startedAt = litAt
+        self.side = Companion.naturalSide(for: ask.name)
+    }
+
+    /// Where they would have been standing out in the courtyard.
+    static func naturalSide(for name: String) -> CompanionSide {
+        Courtyard.position(for: name).x < 0.5 ? .left : .right
     }
 
     /// How far down their cigarette is, 0 to 1. Theirs, not yours.
@@ -220,7 +258,12 @@ enum CompanyState: Equatable {
     
     /// Lit together, at `since`, and burning in parallel until they both go
     /// out. This is the one state in the app that lasts a whole cigarette.
-    case together(Companion, since: Date)
+    /// Who is standing with you. At most two, because there are two sides
+    /// of you to stand on - and because somebody's neighbour has their own
+    /// other neighbour, so the courtyard is a chain of overlapping pairs
+    /// rather than a crowd. You can get your own lit and then turn and light
+    /// somebody else, which makes you a link rather than a recipient.
+    case together([Companion], since: Date)
     
     /// Thirty seconds, nobody came, lighting your own. Transient - it is a
     /// line of text that clears itself.
@@ -237,11 +280,15 @@ enum CompanyState: Equatable {
         return nil
     }
     
-    /// Who you are smoking with, if anybody.
-    var companion: Companion? {
-        if case .together(let companion, _) = self { return companion }
-        return nil
+    /// Who you are smoking with. Empty unless somebody is out here.
+    var companions: [Companion] {
+        if case .together(let companions, _) = self { return companions }
+        return []
     }
+    
+    /// Both sides of you are taken, so nobody else can stand with you - the
+    /// light is still yours to give, the place beside you is not.
+    var isFull: Bool { companions.count >= 2 }
     
     /// The shared ignition instant, which both cigarettes burn from.
     var litAt: Date? {
@@ -249,18 +296,45 @@ enum CompanyState: Equatable {
         return nil
     }
 
-    /// True when the person beside you was already burning when you met.
+    /// Adds somebody to your side, if there is a side left.
     ///
-    /// Derived rather than stored: somebody who lit you started before you
-    /// did, somebody who lit with you started at the same instant. The
-    /// second of slack is for clock jitter, not for doubt - the two cases
-    /// are minutes apart in practice.
-    ///
-    /// It decides how they arrive on screen. One of them walks over from
-    /// your lit end, because that is literally where they were standing a
-    /// moment ago; the other was never near your cigarette at all.
-    var companionLitYou: Bool {
-        guard case .together(let companion, let since) = self else { return false }
-        return companion.startedAt < since.addingTimeInterval(-1)
+    /// Their own side if it is free, the other one if it is not, and nothing
+    /// at all if both are taken. Sides are kept rather than recomputed so
+    /// nobody shuffles across when the person on the other side finishes.
+    func standing(with newcomer: Companion, since: Date) -> CompanyState {
+        
+        var all = companions
+        guard all.count < 2 else { return self }
+        guard all.contains(where: { $0.name == newcomer.name }) == false else { return self }
+        
+        var placed = newcomer
+        if all.contains(where: { $0.side == placed.side }) {
+            placed.side = placed.side.opposite
+        }
+        all.append(placed)
+        
+        // The earlier instant wins the same tiebreak it always has: two
+        // people who lit together must agree on when that was.
+        if case .together(_, let already) = self {
+            return .together(all, since: min(already, since))
+        }
+        return .together(all, since: since)
     }
+    
+    /// Whoever is left once somebody's cigarette is finished.
+    func without(_ name: String) -> CompanyState {
+        guard case .together(let all, let since) = self else { return self }
+        let left = all.filter { $0.name != name }
+        return left.isEmpty ? .idle : .together(left, since: since)
+    }
+}
+
+
+/// Which side of you somebody is standing on. There are two, which is why
+/// two is the most people who can stand with you.
+enum CompanionSide: Equatable {
+
+    case left, right
+
+    var opposite: CompanionSide { self == .left ? .right : .left }
 }

@@ -55,26 +55,48 @@ final class PresenceTests: XCTestCase {
         XCTAssertFalse(p.isLive(at: p.endsAt.addingTimeInterval(1)))
     }
     
-    // MARK: "06:41 there"
+    // MARK: Where they are in their own day
     
-    func testLocalTimeUsesTheirOffsetNotOurs() {
+    /// The clock was replaced by a sun or a moon. A time of day gets read
+    /// against your own and, beside a cigarette already counting down, it
+    /// looked like a second timer. The hour behind it still has to be theirs.
+    func testTheHourUsesTheirOffsetNotOurs() {
         // 12:00 UTC on some arbitrary day
         let dayStart: Int = 1_700_000_000 - (1_700_000_000 % 86_400)
         let noonUTC = Date(timeIntervalSince1970: TimeInterval(dayStart + 43_200))
         
-        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 0).localTimeString(at: noonUTC), "12:00")
-        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 3600).localTimeString(at: noonUTC), "13:00")
-        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 9 * 3600).localTimeString(at: noonUTC), "21:00")
-        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: -3 * 3600).localTimeString(at: noonUTC), "09:00")
+        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 0).localHour(at: noonUTC), 12)
+        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 3600).localHour(at: noonUTC), 13)
+        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: 9 * 3600).localHour(at: noonUTC), 21)
+        XCTAssertEqual(presence(startedAt: noonUTC, tzOffset: -3 * 3600).localHour(at: noonUTC), 9)
     }
     
-    func testLocalTimeIsAlwaysZeroPaddedFiveCharacters() {
-        let t = Date(timeIntervalSince1970: 1_700_000_000)
-        for offset in stride(from: -12 * 3600, through: 14 * 3600, by: 1800) {
-            let s = presence(startedAt: t, tzOffset: offset).localTimeString(at: t)
-            XCTAssertEqual(s.count, 5, "\(s) is not HH:mm")
-            XCTAssertEqual(s[s.index(s.startIndex, offsetBy: 2)], ":")
+    func testEveryHourHasSomewhereToBeInTheDay() {
+        
+        var seen: Set<Daylight> = []
+        for hour in 0..<24 {
+            seen.insert(daylight(atHour: hour))
         }
+        
+        XCTAssertEqual(seen, [.dawn, .day, .dusk, .night],
+                       "some part of the day has no symbol to stand for it")
+    }
+    
+    func testTheDayRunsDawnThroughNight() {
+        XCTAssertEqual(daylight(atHour: 3), .night)
+        XCTAssertEqual(daylight(atHour: 6), .dawn)
+        XCTAssertEqual(daylight(atHour: 12), .day)
+        XCTAssertEqual(daylight(atHour: 19), .dusk)
+        XCTAssertEqual(daylight(atHour: 23), .night)
+    }
+    
+    /// Moves the clock rather than the offset. A timezone is only valid
+    /// within eighteen hours of GMT, so faking a late hour with a huge
+    /// offset silently falls back to GMT and tests nothing.
+    private func daylight(atHour hour: Int) -> Daylight {
+        let dayStart: Int = 1_700_000_000 - (1_700_000_000 % 86_400)
+        let t = Date(timeIntervalSince1970: TimeInterval(dayStart + hour * 3600))
+        return presence(startedAt: t, tzOffset: 0).daylight(at: t)
     }
     
     // MARK: Building one

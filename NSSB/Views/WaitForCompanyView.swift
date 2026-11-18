@@ -77,18 +77,22 @@ struct ReachOutView: View {
             case .answered(let giver):
                 line("\(giver.name) gave you a light")
 
-            case .together(let companion):
-
+            case .together(let companions):
+                
                 // For as long as they are out here, because this is who you
-                // are standing with rather than something that just happened.
-                // Their name, their flag and their clock - the same three
-                // things a tapped stranger tells you, and nothing more.
+                // are standing with rather than something that just
+                // happened. Their names and where in their day they are -
+                // nothing that counts, because the cigarettes already do.
                 HStack(spacing: 6) {
-                    Text("with \(companion.name)")
-                    if let flag = companion.flag {
-                        Text(flag)
+                    Text("with")
+                    ForEach(Array(companions.enumerated()), id: \.element.name) { index, companion in
+                        if index > 0 { Text("and") }
+                        Text(companion.name)
+                        if let flag = companion.flag {
+                            Text(flag)
+                        }
+                        DaylightView(daylight: companion.daylight())
                     }
-                    Text("· \(companion.localTimeString()) there")
                 }
                 .font(.footnote)
                 .foregroundStyle(.gray)
@@ -165,67 +169,15 @@ private struct ReachingLineView: View {
     }
 }
 
-/// What you learn by tapping somebody who is waiting.
+/// Somebody you are smoking with, standing next to your own cigarette.
 ///
-/// The same card as every other stranger's, with the second of the two
-/// buttons in this app that do something to another person. Taking the chair
-/// is not asking permission - the chair is free, and nobody is refused.
-struct WaitDetailView: View {
-    
-    let wait: BreakWait
-    let join: () -> Void
-    
-    var body: some View {
-        
-        VStack(spacing: 8) {
-            
-            VStack(spacing: 2) {
-                
-                Text(wait.name)
-                    .font(.headline)
-                    .foregroundStyle(.white)
-                
-                HStack(spacing: 6) {
-                    if let flag = wait.flag {
-                        Text(flag)
-                    }
-                    Text("\(wait.localTimeString()) there")
-                }
-                .font(.footnote)
-                .foregroundStyle(.gray)
-            }
-            
-            Text("smoke with them")
-                .font(.footnote)
-                .foregroundStyle(Color.accent)
-                .padding(.horizontal, 14)
-                .padding(.vertical, 6)
-                .background(
-                    Capsule().stroke(Color.accent.opacity(0.6), lineWidth: 1)
-                )
-                .contentShape(Capsule())
-                .onTapGesture(perform: join)
-        }
-        .padding(.horizontal, 14)
-        .padding(.vertical, 12)
-        .background(
-            RoundedRectangle(cornerRadius: 10)
-                .fill(.black.opacity(0.92))
-                .overlay(
-                    RoundedRectangle(cornerRadius: 10)
-                        .stroke(Color.white.opacity(0.12), lineWidth: 1)
-                )
-        )
-    }
-}
-
-/// The person you are smoking with, standing next to your own cigarette.
-///
-/// Drawn from your own clock rather than from the network, which is the one
-/// real dividend of starting together: you lit at the same instant, so their
-/// burn position is your burn position for the whole five minutes and there
-/// is nothing to keep in sync. Their cigarette goes out when yours does
-/// because it was always going to.
+/// Drawn from their own ignition instant rather than from the network, and
+/// rather than from yours. Two people who lit together share that instant
+/// exactly, so their cigarette does go out when yours does - but somebody
+/// who stopped to light you started earlier and goes in first, and somebody
+/// you stopped to light started later and is still out here after you have
+/// gone. One rule covers all three: whoever has been burning longest leaves
+/// first, and nobody's cigarette ever lies about how long they have got.
 struct CompanionCigaretteView: View {
     
     let companion: Companion
@@ -399,10 +351,10 @@ enum CompanionArrival {
 
         ReachOutView(state: .idle, unlit: true, reach: {}, clear: {})
         ReachOutView(state: .reaching(until: outgoing.expiresAt), unlit: true, reach: {}, clear: {})
-        ReachOutView(state: .together(together), unlit: false, reach: {}, clear: {})
+        ReachOutView(state: .together([together]), unlit: false, reach: {}, clear: {})
+        ReachOutView(state: .together([together, lighter]), unlit: false, reach: {}, clear: {})
         ReachOutView(state: .alone, unlit: true, reach: {}, clear: {})
 
-        WaitDetailView(wait: outgoing, join: {})
 
         HStack(spacing: 40) {
             CompanionCigaretteView(companion: together, height: 180)

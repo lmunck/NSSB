@@ -94,11 +94,11 @@ final class LiveSynchronyTests: XCTestCase {
         try await stranger.join(wait: mine.id, as: "Paper Kestrel", at: litAt)
         
         try await until("the pairing to arrive over the listener") {
-            self.repository.company.companion != nil
+            self.repository.company.companions.first != nil
         }
         
-        XCTAssertEqual(repository.company.companion?.name, "Paper Kestrel")
-        XCTAssertEqual(repository.company.companion?.country, "JP")
+        XCTAssertEqual(repository.company.companions.first?.name, "Paper Kestrel")
+        XCTAssertEqual(repository.company.companions.first?.country, "JP")
         
         let shared = try XCTUnwrap(repository.company.litAt)
         XCTAssertEqual(shared.timeIntervalSince1970, litAt.timeIntervalSince1970, accuracy: 1,
@@ -117,7 +117,7 @@ final class LiveSynchronyTests: XCTestCase {
         
         await repository.waitWith(theirs, design: design())
         
-        XCTAssertEqual(repository.company.companion?.name, "Hollow Lantern")
+        XCTAssertEqual(repository.company.companions.first?.name, "Hollow Lantern")
         let litAt = try XCTUnwrap(repository.company.litAt)
         
         let onServer = try await stranger.read(wait: theirs.id)

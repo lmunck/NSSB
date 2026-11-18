@@ -40,17 +40,61 @@ protocol CourtyardStranger {
 }
 
 extension CourtyardStranger {
-    
-    /// "06:41" where they are. The cheapest detail in the whole feature and
-    /// the one that does the most work.
-    func localTimeString(at now: Date = .now) -> String {
-        
+
+    /// The hour where they are, 0 to 23.
+    func localHour(at now: Date = .now) -> Int {
+
         var calendar = Calendar(identifier: .gregorian)
         calendar.timeZone = TimeZone(secondsFromGMT: tzOffset) ?? .gmt
-        
-        let parts = calendar.dateComponents([.hour, .minute], from: now)
-        
-        return String(format: "%02d:%02d", parts.hour ?? 0, parts.minute ?? 0)
+
+        return calendar.dateComponents([.hour], from: now).hour ?? 0
+    }
+
+    /// What it is like where they are.
+    ///
+    /// This used to be their clock, "06:41 there", and the clock was wrong
+    /// for the job. A time of day is a number you end up reading against
+    /// your own, and next to a cigarette that is already counting down it
+    /// read as a second timer. What you actually want to know is whether
+    /// somebody is out there before work, in the middle of their afternoon,
+    /// or standing in the dark - their context, not their minutes.
+    ///
+    /// Weather would say it better still, and is not on offer: it would need
+    /// to know where they are far more precisely than a country, and this
+    /// app does not ask that of anybody.
+    func daylight(at now: Date = .now) -> Daylight {
+
+        switch localHour(at: now) {
+        case 5...7:   return .dawn
+        case 8...16:  return .day
+        case 17...20: return .dusk
+        default:      return .night
+        }
+    }
+}
+
+/// Roughly where somebody is in their own day.
+enum Daylight: String, Equatable {
+
+    case dawn, day, dusk, night
+
+    var symbol: String {
+        switch self {
+        case .dawn:  return "sunrise"
+        case .day:   return "sun.max"
+        case .dusk:  return "sunset"
+        case .night: return "moon.stars"
+        }
+    }
+
+    /// Spoken aloud for anybody who cannot see the symbol.
+    var spoken: String {
+        switch self {
+        case .dawn:  return "early morning there"
+        case .day:   return "daytime there"
+        case .dusk:  return "evening there"
+        case .night: return "night there"
+        }
     }
 }
 

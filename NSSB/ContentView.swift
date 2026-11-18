@@ -22,10 +22,8 @@ struct ContentView: View {
     
     /// The stranger asking for a light whose cigarette is currently tapped.
     /// Separate from the above, because this card has a button on it.
-    @State private var selectedAsk:BreakAsk? = nil
     
     /// The stranger waiting for company whose cigarette is currently tapped.
-    @State private var selectedWait:BreakWait? = nil
     
     /// Set at the moment the two tips touch, which is what lights the
     /// cigarette. Nothing else writes it.
@@ -75,8 +73,8 @@ struct ContentView: View {
                     waits: presence.waiting,
                     referenceHeight: cigHeight,
                     selected: $selectedOther,
-                    selectedAsk: $selectedAsk,
-                    selectedWait: $selectedWait
+                    offer: { asking in Task { await presence.offerLight(to: asking) } },
+                    join: waitWith
                 )
                 .opacity(cigOpacity)
                 .allowsHitTesting(menu == .cigarette)
@@ -190,34 +188,11 @@ struct ContentView: View {
                     .allowsHitTesting(false)
                 }
                 
-                // Somebody waiting. Taking the free chair next to them.
-                if let waiting = selectedWait {
-                    VStack {
-                        WaitDetailView(wait: waiting) {
-                            withAnimation(.easeInOut(duration: 0.25)) { selectedWait = nil }
-                            waitWith(waiting)
-                        }
-                        .padding(.top, geo.size.height * 0.08)
-                        Spacer()
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-                
-                // Somebody asking. The same card, with the one button in the
-                // app that does something to another person.
-                if let asking = selectedAsk {
-                    VStack {
-                        AskDetailView(ask: asking) {
-                            withAnimation(.easeInOut(duration: 0.25)) { selectedAsk = nil }
-                            Task { await presence.offerLight(to: asking) }
-                        }
-                        .padding(.top, geo.size.height * 0.08)
-                        Spacer()
-                    }
-                    .transition(.opacity.combined(with: .move(edge: .top)))
-                }
-                
-                
+                // There were two cards here, each with a button on it, for
+                // the two people you can do something for. Both are gone.
+                // Aiming at somebody who is asking is already the decision -
+                // a card that asks whether you meant it is a click charged
+                // for nothing, and these gestures are meant to cost nothing.
             }
             .foregroundColor(Color.foregroundInactive)
             .onChange(of: presence.courtyard) { current in
@@ -226,26 +201,6 @@ struct ContentView: View {
                    current.contains(where: { $0.id == selected.id }) == false {
                     withAnimation(.easeInOut(duration: 0.3)) { selectedOther = nil }
                 }
-            }
-            .onChange(of: presence.offers) { current in
-                // Their eight seconds ran out, or somebody else answered.
-                if let asking = selectedAsk,
-                   current.contains(where: { $0.id == asking.id }) == false {
-                    withAnimation(.easeInOut(duration: 0.3)) { selectedAsk = nil }
-                }
-            }
-            .onChange(of: presence.waiting) { current in
-                // They went in, or somebody else took the chair.
-                if let waiting = selectedWait,
-                   current.contains(where: { $0.id == waiting.id }) == false {
-                    withAnimation(.easeInOut(duration: 0.3)) { selectedWait = nil }
-                }
-            }
-            .onChange(of: selectedAsk) { asking in
-                if asking != nil { selectedOther = nil; selectedWait = nil }
-            }
-            .onChange(of: selectedWait) { waiting in
-                if waiting != nil { selectedOther = nil; selectedAsk = nil }
             }
             .onChange(of: presence.company) { state in
                 
@@ -339,13 +294,12 @@ extension ContentView {
     @ViewBuilder
     private func companion(height: CGFloat, width: CGFloat) -> some View {
         
-        if let companion = presence.company.companion {
-            
-            // Whichever side of you they would have been standing on out in
-            // the courtyard, so somebody who was over to your left comes to
-            // stand on your left.
-            let spot = Courtyard.position(for: companion.name)
-            let side: CGFloat = spot.x < 0.5 ? -1 : 1
+        // Up to two, one on each side. Whoever got here first kept the side
+        // they would have been standing on in the courtyard; the second took
+        // what was left. Neither moves when the other finishes.
+        ForEach(presence.company.companions, id: \.name) { companion in
+
+            let side: CGFloat = companion.side == .left ? -1 : 1
 
             // Measured from the two cigarettes rather than from the layout
             // frame, and clear of what already hangs beside your own: the
@@ -361,7 +315,8 @@ extension ContentView {
                 companion: companion,
                 height: height,
                 mirrored: side < 0,
-                arrival: presence.company.companionLitYou ? .fromYourTip : .fromTheDark,
+                arrival: companion.metAtYourTip(whenYouLitAt: presence.company.litAt ?? .now)
+                    ? .fromYourTip : .fromTheDark,
                 restingOffset: rest
             )
             .offset(x: side * rest, y: 0)

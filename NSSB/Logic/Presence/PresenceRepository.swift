@@ -87,9 +87,11 @@ final class PresenceRepository: ObservableObject {
     /// joins, so company that arrives at 29.9 seconds is not thrown away.
     private var waitTimeout: Task<Void, Never>?
 
-    /// Fires when a companion's own cigarette runs out, which is only ever
-    /// before yours - somebody who lit you was already burning.
-    private var companionGone: Task<Void, Never>?
+    /// One per companion, firing when that person's own cigarette runs
+    /// out. Keyed by name because the two of them finish at different times:
+    /// somebody who lit you goes in before you do, somebody you lit stays
+    /// out here after you have gone.
+    private var companionTimers: [String: Task<Void, Never>] = [:]
     
     /// Survives being killed mid-break. Without it, a relaunch publishes a
     /// second document for the same cigarette and the user appears twice in
@@ -189,7 +191,12 @@ final class PresenceRepository: ObservableObject {
 
         if publishedBreak != nil {
             guard courtyardSeen else { return nil }
-            return courtyard.count
+            
+            // Everybody out here, not everybody lit. Somebody standing
+            // right there asking is present - they just have not got their
+            // cigarette going yet - and counting only embers put "quiet out
+            // here right now" on screen with a person visibly in it.
+            return courtyard.count + offers.count
         }
 
         guard let liveCount = liveCount else { return nil }
@@ -322,7 +329,7 @@ final class PresenceRepository: ObservableObject {
                         print("Presence - courtyard: nobody else out there")
                     } else {
                         let who = others.map {
-                            "\($0.name) (\($0.country ?? "--"), \($0.localTimeString()), \(Int($0.progress() * 100))% burnt)"
+                            "\($0.name) (\($0.country ?? "--"), \($0.daylight().rawValue), \(Int($0.progress() * 100))% burnt)"
                         }
                         print("Presence - courtyard: \(others.count) other(s) - \(who.joined(separator: ", "))")
                     }
@@ -362,8 +369,8 @@ final class PresenceRepository: ObservableObject {
         // Company lasts exactly as long as the cigarettes do. Whoever you
         // stood with, you are not standing with them any more, and nothing
         // about it is kept - which is the first principle of the whole layer.
-        companionGone?.cancel()
-        companionGone = nil
+        companionTimers.values.forEach { $0.cancel() }
+        companionTimers = [:]
         if case .idle = company {} else { self.company = .idle }
         
         // A break that ran its course is left in place, to linger as an ember
@@ -417,7 +424,7 @@ final class PresenceRepository: ObservableObject {
     /// comes last because it is only the absence of the others.
     var outreach: Outreach {
 
-        if case .together(let companion, _) = company { return .together(companion) }
+        if case .together(let companions, _) = company { return .together(companions) }
         if case .lit(let giver) = ask { return .lit(giver) }
         if case .done(let giver) = ask, let giver = giver { return .answered(giver) }
 
@@ -467,10 +474,16 @@ final class PresenceRepository: ObservableObject {
     /// running, and announcing here would light the cigarette while somebody
     /// could still walk out.
     private func askEndedUnanswered() {
-        guard reaching == false else {
+        
+        // Still reaching, or somebody is already out here with you. Either
+        // way "nobody answered" is not true, and saying it would strand the
+        // row on a result that never clears, because the line it belongs to
+        // is not the one on screen.
+        guard reaching == false, company.companions.isEmpty else {
             self.ask = .idle
             return
         }
+        
         self.ask = .done(givenBy: nil)
     }
 
@@ -611,7 +624,7 @@ final class PresenceRepository: ObservableObject {
     /// anything.
     private func stayWith(_ giver: AskGiver) {
 
-        guard case .idle = company else { return }
+        guard company.isFull == false else { return }
 
         let met = Date.now
         let companion = Companion(giver: giver, metAt: met)
@@ -622,29 +635,16 @@ final class PresenceRepository: ObservableObject {
         guard companion.hasGone(at: met) == false else { return }
 
         print("Presence - \(companion.name) is staying for the rest of theirs")
-        self.company = .together(companion, since: met)
-
-        // And then they go. Somebody you lit up with leaves when you do, so
-        // the end of the break takes care of them; somebody who lit you
-        // leaves before you, and nothing else would notice.
-        companionGone?.cancel()
-        companionGone = Task { [weak self] in
-            let left = Date.breakLength - met.timeIntervalSince(companion.startedAt)
-            if left > 0 {
-                try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
-            }
-            guard Task.isCancelled == false else { return }
-            await self?.companionLeft()
-        }
+        stand(with: companion, since: met)
     }
-
-    /// Their cigarette is finished. They go back inside, the line under yours
-    /// stops naming them, and you smoke the last of it on your own.
-    private func companionLeft() {
-        companionGone = nil
-        guard case .together = company else { return }
-        print("Presence - your company has gone back in")
-        self.company = .idle
+    
+    /// Their cigarette is finished. They go back inside, the line under
+    /// yours stops naming them, and whoever is left stays.
+    private func companionLeft(_ name: String) {
+        companionTimers[name] = nil
+        guard company.companions.contains(where: { $0.name == name }) else { return }
+        print("Presence - \(name) has gone back in")
+        self.company = company.without(name)
     }
     
     private func armHandoffNet(giver: AskGiver) {
@@ -734,10 +734,32 @@ final class PresenceRepository: ObservableObject {
     }
     
     /// Their cigarette caught and the handoff is over.
+    ///
+    /// And then they stayed. This used to drop them straight back into the
+    /// courtyard as one more distant cigarette, which made the app's answer
+    /// to "are we smoking together" depend on which of us had asked. Now it
+    /// does not: whoever lights whom, the two of you stand together
+    /// afterwards.
+    ///
+    /// The asymmetry that is real stays. They lit at the moment the tips
+    /// touched and you were already burning, so you finish first - you go
+    /// back inside and leave them out here with most of theirs ahead of
+    /// them. Which is the same rule as every other arrival: whoever has
+    /// been burning longest goes in first.
     func offerFinished() {
+
         offerNet?.cancel()
         offerNet = nil
+
+        guard let lit = giving else { return }
         self.giving = nil
+
+        // Both sides of you already taken. The light was still theirs to
+        // have - capping the company is reasonable, capping that is not.
+        guard company.isFull == false else { return }
+
+        let since = publishedBreak?.startedAt ?? .now
+        stand(with: Companion(lit: lit, at: .now), since: since)
     }
     
     // MARK: - Smoking together
@@ -901,12 +923,40 @@ final class PresenceRepository: ObservableObject {
         reaching = false
         if ask.isAsking { Task { await cancelAsk() } }
         
-        if case .together(_, let already) = company {
-            self.company = .together(companion, since: min(already, litAt))
+        stand(with: companion, since: litAt)
+    }
+    
+    /// Somebody takes their place beside you, if there is a place left.
+    ///
+    /// Three things lead here and they are one arrival: a stranger answered
+    /// your ask, a stranger took your chair, or you stopped and lit a
+    /// stranger. Each is now out here with you, each on their own clock.
+    private func stand(with companion: Companion, since: Date) {
+        
+        let before = company.companions.count
+        self.company = company.standing(with: companion, since: since)
+        
+        guard company.companions.count > before else {
+            print("Presence - no room beside you for \(companion.name)")
             return
         }
         
-        self.company = .together(companion, since: litAt)
+        armDeparture(of: companion)
+    }
+    
+    /// And then they go, each on their own cigarette, which is the only
+    /// clock any of this runs on.
+    private func armDeparture(of companion: Companion) {
+        
+        companionTimers[companion.name]?.cancel()
+        companionTimers[companion.name] = Task { [weak self] in
+            let left = Date.breakLength * (1 - companion.progress())
+            if left > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
+            }
+            guard Task.isCancelled == false else { return }
+            await self?.companionLeft(companion.name)
+        }
     }
     
     /// Thirty seconds of nobody.

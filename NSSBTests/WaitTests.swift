@@ -169,12 +169,13 @@ final class WaitTests: XCTestCase {
         XCTAssertEqual(CompanyState.waiting(wait).openWait, wait)
         XCTAssertNil(CompanyState.alone.openWait)
         
-        let together = CompanyState.together(companion, since: litAt)
-        XCTAssertEqual(together.companion, companion)
+        let together = CompanyState.together([companion], since: litAt)
+        XCTAssertEqual(together.companions, [companion])
         XCTAssertEqual(together.litAt, litAt)
         XCTAssertFalse(together.isWaiting)
+        XCTAssertFalse(together.isFull, "one person is not both sides of you")
         XCTAssertNil(together.openWait, "you are not waiting once somebody came")
-        XCTAssertNil(CompanyState.idle.companion)
+        XCTAssertTrue(CompanyState.idle.companions.isEmpty)
         XCTAssertNil(CompanyState.idle.litAt)
     }
     
