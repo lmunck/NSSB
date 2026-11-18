@@ -15,33 +15,46 @@
 
 import SwiftUI
 
-struct WaitForCompanyView: View {
-    
-    let state: CompanyState
-    
-    /// Only an unlit cigarette can start together with anybody.
+/// The one thing you can do before lighting up.
+///
+/// There used to be two offers side by side here - "got a light?" and "wait
+/// for someone" - because underneath there are two mechanisms. That was the
+/// plumbing showing through. Nobody standing outside has two intentions;
+/// they have one, and it is that they would rather not smoke alone. So there
+/// is one line, one tap, and one bar, and which of the two mechanisms
+/// answers is never something the person has to know.
+struct ReachOutView: View {
+
+    let state: Outreach
+
+    /// Only an unlit cigarette has anything to reach out for.
     let unlit: Bool
-    
-    /// True while the ask is doing something, so the two offers never both
-    /// claim the row. Asking for a light and waiting for company are both
-    /// things you do before lighting up, and doing both at once would mean
-    /// two unlit cigarettes of yours standing in the same courtyard.
-    let suppressed: Bool
-    
-    let wait: () -> Void
-    
-    /// Clears the line about nobody coming, so the offer can come back.
+
+    let reach: () -> Void
+
+    /// Called once the line about what happened has been up long enough to
+    /// read. Without it the row would go on saying "nobody came out" for the
+    /// whole five minutes, and the offer would never come back.
     let clear: () -> Void
-    
+
     var body: some View {
-        
+
+        // A fixed row rather than one that appears and disappears: the
+        // cigarette must not shuffle up and down the screen because somebody
+        // somewhere lit up.
         ZStack {
-            
+
             switch state {
-                
+
             case .idle:
-                if unlit, suppressed == false {
-                    Text("wait for someone")
+
+                // No count test any more. The old ask needed somebody lit to
+                // answer it, so offering in an empty courtyard was an
+                // eight-second pause with a foregone conclusion. Half of this
+                // gesture is a wait, which anybody unlit can answer - so it
+                // is worth offering even when there is nobody out there yet.
+                if unlit {
+                    Text("got a light?")
                         .font(.footnote)
                         .foregroundStyle(Color.accent)
                         .padding(.horizontal, 12)
@@ -49,20 +62,25 @@ struct WaitForCompanyView: View {
                         .background(
                             Capsule().stroke(Color.accent.opacity(0.5), lineWidth: 1)
                         )
-                        .padding(.horizontal, 5)
                         .contentShape(Capsule())
-                        .onTapGesture(perform: wait)
+                        .onTapGesture(perform: reach)
                         .transition(.opacity)
                 }
-                
-            case .waiting(let outgoing):
-                WaitingLineView(wait: outgoing)
+
+            case .reaching(let until):
+                ReachingLineView(until: until)
                     .transition(.opacity)
-                
-            case .together(let companion, _):
-                
-                // For the whole five minutes, because this is who you are
-                // standing with rather than something that just happened.
+
+            case .lit(let giver):
+                line("\(giver.name) is giving you a light")
+
+            case .answered(let giver):
+                line("\(giver.name) gave you a light")
+
+            case .together(let companion):
+
+                // For as long as they are out here, because this is who you
+                // are standing with rather than something that just happened.
                 // Their name, their flag and their clock - the same three
                 // things a tapped stranger tells you, and nothing more.
                 HStack(spacing: 6) {
@@ -75,16 +93,13 @@ struct WaitForCompanyView: View {
                 .font(.footnote)
                 .foregroundStyle(.gray)
                 .transition(.opacity)
-                
+
             case .alone:
-                Text("nobody came out - lighting your own")
-                    .font(.footnote)
-                    .foregroundStyle(.gray)
-                    .transition(.opacity)
+                line("nobody came out - lighting your own")
             }
         }
-        .task(id: isAlone) {
-            guard isAlone else { return }
+        .task(id: isOver) {
+            guard isOver else { return }
             try? await Task.sleep(nanoseconds: 3_500_000_000)
             guard Task.isCancelled == false else { return }
             clear()
@@ -92,42 +107,58 @@ struct WaitForCompanyView: View {
         .frame(height: 30)
         .animation(.easeInOut(duration: 0.3), value: state)
     }
-    
-    private var isAlone: Bool {
-        if case .alone = state { return true }
-        return false
+
+    /// Both endings that need clearing: nobody came, or somebody lit you and
+    /// had too little left of their own to stay.
+    private var isOver: Bool {
+        switch state {
+        case .alone, .answered: return true
+        default: return false
+        }
+    }
+
+    private func line(_ text: String) -> some View {
+        Text(text)
+            .font(.footnote)
+            .foregroundStyle(.gray)
+            .transition(.opacity)
     }
 }
 
-/// The thirty seconds, draining.
+/// The wait, draining.
 ///
-/// Thirty seconds of standing about is long enough to wonder whether the app
+/// Half a minute of standing about is long enough to wonder whether the app
 /// has forgotten you, so the bar is the reassurance that this ends by itself.
-/// Slower and calmer than the ask's: asking is a question in flight, waiting
-/// is just waiting.
-private struct WaitingLineView: View {
-    
-    let wait: BreakWait
-    
+/// It drains once for the whole gesture: the ask underneath gives up earlier
+/// than the wait does, and that seam is not the person's business.
+private struct ReachingLineView: View {
+
+    /// When the longer half gives up. From the document rather than from
+    /// now, so a slow round trip eats into the wait instead of extending it.
+    let until: Date
+
     @State private var left: Double = 1
-    
+
     var body: some View {
-        
+
         VStack(spacing: 5) {
-            
-            Text("waiting for company")
+
+            Text("asking the courtyard")
                 .font(.footnote)
                 .foregroundStyle(.gray)
-            
+
             Capsule()
                 .fill(Color.accent.opacity(0.7))
                 .frame(width: 90 * left, height: 2)
                 .frame(width: 90, alignment: .leading)
         }
-        .onAppear {
-            // From the document, not from now, so the bar tells the truth
-            // about how long is actually left.
-            withAnimation(.linear(duration: max(wait.expiresAt.timeIntervalSinceNow, 0.2))) {
+        // Keyed on the deadline, not just on appearing: the ask is usually
+        // written a moment before the wait, so this view's first deadline is
+        // the short one and it has to pick up the long one when it arrives.
+        .task(id: until) {
+            left = 1
+            await Task.yield()
+            withAnimation(.linear(duration: max(until.timeIntervalSinceNow, 0.2))) {
                 left = 0
             }
         }
@@ -198,22 +229,32 @@ struct WaitDetailView: View {
 struct CompanionCigaretteView: View {
     
     let companion: Companion
-    
-    /// Your own burn position, which is also theirs.
-    let progress: Double
-    
+
     let height: CGFloat
 
     /// Which side of you they are standing on. Their name hangs on the far
     /// side, so nothing is written in the gap between the two cigarettes.
     var mirrored: Bool = false
 
+    /// Their own clock.
+    ///
+    /// This used to be handed your burn position, on the reasoning that you
+    /// lit together so there was nothing to keep in sync. That was true of
+    /// the only way company could happen then, and it is false now that
+    /// somebody already burning can stop and light you. It was also frozen:
+    /// a computed value only changes when something else happens to publish,
+    /// so it ticks for itself now, from their ignition instant.
+    @State private var now: Date = .now
+    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
+
+    private var progress: Double { companion.progress(at: now) }
+
     private var design: CigDesign { companion.design }
     private var width: CGFloat { max(1, height * design.widthPercentage) }
     private var glowHeight: CGFloat { height * design.glowPercentage }
     private var filterHeight: CGFloat { height * design.filterPercentage }
 
-    /// The body is what burns away, at your pace because it is your pace.
+    /// The body is what burns away, at their pace.
     private var bodyHeight: CGFloat {
         let full = (design.bodyPercentage + design.glowPercentage) * height - glowHeight
         return max(0, full - full * progress)
@@ -279,6 +320,7 @@ struct CompanionCigaretteView: View {
         }
         // Near, but never competing with the cigarette in your own hand.
         .opacity(0.9)
+        .onReceive(clock) { now = $0 }
     }
 }
 
@@ -288,25 +330,41 @@ struct CompanionCigaretteView: View {
     design.title = "Charcoal Gull"
     
     let outgoing = BreakWait.opening(uid: "preview", design: design)
-    let companion = Companion(waiter: outgoing)
-    
+    let together = Companion(waiter: outgoing, litAt: .now)
+
+    // Somebody who stopped to light you: already two fifths through their
+    // own, so they will go back inside well before you do.
+    let lighter = Companion(
+        giver: AskGiver(claimed(design))!,
+        metAt: .now
+    )
+
     return VStack(spacing: 40) {
-        
-        WaitForCompanyView(state: .idle, unlit: true, suppressed: false, wait: {}, clear: {})
-        WaitForCompanyView(state: .waiting(outgoing), unlit: true, suppressed: false, wait: {}, clear: {})
-        WaitForCompanyView(
-            state: .together(companion, since: .now),
-            unlit: false,
-            suppressed: false,
-            wait: {},
-            clear: {}
-        )
-        WaitForCompanyView(state: .alone, unlit: true, suppressed: false, wait: {}, clear: {})
-        
+
+        ReachOutView(state: .idle, unlit: true, reach: {}, clear: {})
+        ReachOutView(state: .reaching(until: outgoing.expiresAt), unlit: true, reach: {}, clear: {})
+        ReachOutView(state: .together(together), unlit: false, reach: {}, clear: {})
+        ReachOutView(state: .alone, unlit: true, reach: {}, clear: {})
+
         WaitDetailView(wait: outgoing, join: {})
-        
-        CompanionCigaretteView(companion: companion, progress: 0.4, height: 180)
+
+        HStack(spacing: 40) {
+            CompanionCigaretteView(companion: together, height: 180)
+            CompanionCigaretteView(companion: lighter, height: 180, mirrored: true)
+        }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(.black)
+}
+
+/// An ask that somebody already two fifths through their own answered.
+private func claimed(_ design: CigDesign) -> BreakAsk {
+    var ask = BreakAsk.opening(uid: "preview", design: design)
+    ask.claimed = true
+    ask.giverName = "Brass Kestrel"
+    ask.giverDesign = design
+    ask.giverProgress = 0.4
+    ask.giverCountry = "JP"
+    ask.giverTzOffset = 32400
+    return ask
 }

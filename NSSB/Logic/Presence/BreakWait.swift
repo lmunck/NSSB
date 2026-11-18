@@ -118,29 +118,92 @@ extension BreakWait {
 /// No progress field, unlike `AskGiver`. There is nothing to carry: you lit
 /// at the same instant, so their burn position is your burn position, and the
 /// view draws theirs from your own clock without asking the network.
+/// One reach-out, seen from the outside.
+///
+/// The app runs two mechanisms underneath - an ask that a burning stranger
+/// can answer, a wait that an unlit one can join - but a person tapped once
+/// and wants one thing. This is that one thing, so the row under the
+/// cigarette never has to explain which of the two is currently in play.
+enum Outreach: Equatable {
+
+    case idle
+
+    /// Standing out there, both halves live. The date is when the longer of
+    /// the two gives up, so the bar drains once rather than twice.
+    case reaching(until: Date)
+
+    /// Somebody is giving you a light. The tips are touching.
+    case lit(AskGiver)
+
+    /// Somebody is out here with you.
+    case together(Companion)
+
+    /// They lit you and went straight back in - there was not enough of
+    /// their cigarette left to stay for.
+    case answered(AskGiver)
+
+    /// Nobody came. You are lighting your own, which is what happens most
+    /// times and has never been the bad outcome.
+    case alone
+}
+
 struct Companion: Equatable, CourtyardStranger {
     
     let name: String
     let design: CigDesign
     let country: String?
     let tzOffset: Int
-    
+
+    /// When *their* cigarette was lit, which is not always when yours was.
+    ///
+    /// Two people who light together share this instant exactly, and their
+    /// cigarettes go out on the same second. Somebody who came over and lit
+    /// you was already burning, so theirs started earlier and will be gone
+    /// before yours is - which is what happens outside, and is the honest
+    /// thing to draw.
+    let startedAt: Date
+
     /// Seen from the waiter's side: the person who joined them.
     init?(partnerOf wait: BreakWait) {
-        guard let name = wait.partnerName, name.isEmpty == false else { return nil }
+        guard let name = wait.partnerName, name.isEmpty == false,
+              let litAt = wait.litAt
+        else { return nil }
         self.name = name
         self.design = wait.partnerDesign ?? CigDesign()
         self.country = wait.partnerCountry
         self.tzOffset = wait.partnerTzOffset ?? 0
+        self.startedAt = litAt
     }
-    
+
     /// Seen from the joiner's side: the person who was already standing there.
-    init(waiter wait: BreakWait) {
+    init(waiter wait: BreakWait, litAt: Date) {
         self.name = wait.name
         self.design = wait.design
         self.country = wait.country
         self.tzOffset = wait.tzOffset
+        self.startedAt = litAt
     }
+
+    /// Somebody who was already out here and stopped to light you.
+    ///
+    /// Their burn position is the one thing the ask carries about them, so it
+    /// is where their cigarette comes from: wind it back from the moment the
+    /// tips touched and you have the instant they lit their own.
+    init(giver: AskGiver, metAt: Date) {
+        self.name = giver.name
+        self.design = giver.design
+        self.country = giver.country
+        self.tzOffset = giver.tzOffset
+        self.startedAt = metAt.addingTimeInterval(-giver.progress * Date.breakLength)
+    }
+
+    /// How far down their cigarette is, 0 to 1. Theirs, not yours.
+    func progress(at now: Date = .now) -> Double {
+        min(max(now.timeIntervalSince(startedAt) / Date.breakLength, 0), 1)
+    }
+
+    /// True once their cigarette has gone out and they have gone back in.
+    func hasGone(at now: Date = .now) -> Bool { progress(at: now) >= 1 }
 }
 
 /// The whole life of a shared break, the same on both sides.

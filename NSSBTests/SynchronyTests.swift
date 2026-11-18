@@ -33,6 +33,7 @@ final class SynchronyTests: XCTestCase {
     
     override func tearDown() async throws {
         BreakWait.window = 30
+        BreakAsk.window = 8
         service = nil
         repository = nil
     }
@@ -232,8 +233,13 @@ final class SynchronyTests: XCTestCase {
         try await waitUntil("the wait to run out") {
             self.repository.company == .alone
         }
-        
-        XCTAssertTrue(service.waitIds.isEmpty, "nothing is left standing out there")
+
+        // The line comes up first and the document goes afterwards - you are
+        // told immediately and the bins are taken out behind it - so this
+        // polls rather than asserting on the same tick.
+        try await waitUntil("the chair to be cleared away") {
+            self.service.waitIds.isEmpty
+        }
     }
     
     func testTheLineClearsSoYouCanWaitAgain() async throws {
@@ -312,6 +318,151 @@ final class SynchronyTests: XCTestCase {
     
     // MARK: - Helpers
     
+    // MARK: - Reaching out: one tap, both halves
+
+    /// The split was never a human one. One tap has to put the question to
+    /// everybody already lit and stand you out there for anybody unlit, or
+    /// the person is picking between two mechanisms they never asked about.
+    func testOneTapGoesOutBothWays() async throws {
+
+        await repository.reachOut(design: design())
+
+        XCTAssertNotNil(repository.ask.openAsk, "nothing was asked of the lit strangers")
+        XCTAssertNotNil(repository.company.openWait, "nobody unlit could have joined")
+    }
+
+    func testTheRowShowsOneGestureWithTheLongerDeadline() async throws {
+
+        await repository.reachOut(design: design())
+
+        let wait = try XCTUnwrap(repository.company.openWait)
+
+        // The wait outlives the ask, so the bar has to drain on its clock -
+        // otherwise it empties while half the gesture is still running.
+        XCTAssertEqual(repository.outreach, .reaching(until: wait.expiresAt))
+    }
+
+    /// The whole point of merging them. On its own an unanswered ask is a
+    /// result worth saying out loud; inside a reach-out it is nothing, and
+    /// announcing would light the cigarette with twenty seconds of wait left.
+    func testAnUnansweredAskSaysNothingWhileTheWaitIsStillOut() async throws {
+
+        BreakAsk.window = 0.3
+
+        await repository.reachOut(design: design())
+        let outgoing = try XCTUnwrap(repository.ask.openAsk)
+
+        try await waitUntil("the ask to give up") { self.service.askIds.isEmpty }
+
+        XCTAssertEqual(repository.ask, .idle, "the ask announced a result of its own")
+        XCTAssertNotEqual(repository.outreach, .alone, "the cigarette would have been lit early")
+        XCTAssertTrue(repository.company.isWaiting, "the wait should still be running")
+        XCTAssertFalse(service.askIds.contains(outgoing.id), "the ask should have been taken down")
+    }
+
+    /// Asked on its own - no reach-out - it still announces, because then it
+    /// really is the end of the gesture.
+    func testAnUnansweredAskOnItsOwnStillAnnounces() async throws {
+
+        BreakAsk.window = 0.3
+
+        await repository.askForALight(design: design())
+        try await waitUntil("the ask to give up") {
+            self.repository.ask == .done(givenBy: nil)
+        }
+
+        XCTAssertEqual(repository.ask, .done(givenBy: nil))
+        XCTAssertEqual(repository.outreach, .alone)
+    }
+
+    func testSomebodyComingOutTakesDownTheAsk() async throws {
+
+        await repository.reachOut(design: design())
+
+        let mine = try XCTUnwrap(repository.company.openWait)
+        let litAt = Date.now
+        try await somebodyJoins(mine, as: "Paper Kestrel", at: litAt)
+
+        try await waitUntil("the pairing to land") {
+            if case .together = self.repository.company { return true }
+            return false
+        }
+        try await waitUntil("the ask to be withdrawn") {
+            self.repository.ask.openAsk == nil
+        }
+
+        XCTAssertEqual(repository.ask, .idle, "a question was left standing for a light you have")
+    }
+
+    // MARK: - The person who lit you stays
+
+    /// Somebody who stopped to light you was already burning. Winding their
+    /// start back from the progress on the ask is the only thing that makes
+    /// their cigarette shorter than yours, which is the honest picture.
+    func testAGiverBurnsAheadOfYou() {
+
+        let met = Date(timeIntervalSince1970: 1_000_000)
+        var ask = BreakAsk.opening(uid: "me", design: design())
+        ask.claimed = true
+        ask.giverName = "Brass Kestrel"
+        ask.giverDesign = design(title: "Brass Kestrel")
+        ask.giverProgress = 0.4
+        ask.giverCountry = "JP"
+        ask.giverTzOffset = 32400
+
+        let giver = AskGiver(ask)!
+        let companion = Companion(giver: giver, metAt: met)
+
+        XCTAssertEqual(companion.name, "Brass Kestrel")
+        XCTAssertEqual(companion.country, "JP")
+        XCTAssertEqual(companion.tzOffset, 32400)
+
+        // Two fifths of five minutes ago.
+        XCTAssertEqual(companion.startedAt.timeIntervalSince(met), -0.4 * Date.breakLength, accuracy: 0.01)
+        XCTAssertEqual(companion.progress(at: met), 0.4, accuracy: 0.001)
+
+        // And they go out before you do, by exactly what they had burned.
+        XCTAssertTrue(companion.hasGone(at: met.addingTimeInterval(0.61 * Date.breakLength)))
+        XCTAssertFalse(companion.hasGone(at: met.addingTimeInterval(0.59 * Date.breakLength)))
+    }
+
+    /// Two people who lit together share the instant exactly, so neither is
+    /// ahead - this is the case that ends on the same second.
+    func testPeopleWhoLitTogetherBurnAsOne() {
+
+        let litAt = Date(timeIntervalSince1970: 1_000_000)
+        let theirs = BreakWait.opening(uid: "them", design: design(title: "Paper Kestrel"))
+        let companion = Companion(waiter: theirs, litAt: litAt)
+
+        XCTAssertEqual(companion.startedAt, litAt)
+        XCTAssertEqual(companion.progress(at: litAt.addingTimeInterval(Date.breakLength / 2)), 0.5, accuracy: 0.001)
+        XCTAssertFalse(companion.hasGone(at: litAt.addingTimeInterval(Date.breakLength - 1)))
+    }
+
+    // MARK: - What the row says
+
+    func testCompanyOutranksEverythingElse() async throws {
+
+        await repository.reachOut(design: design())
+        let mine = try XCTUnwrap(repository.company.openWait)
+        let litAt = Date.now
+        try await somebodyJoins(mine, as: "Paper Kestrel", at: litAt)
+
+        try await waitUntil("the pairing to land") {
+            if case .together = self.repository.company { return true }
+            return false
+        }
+
+        guard case .together(let companion) = repository.outreach else {
+            return XCTFail("the row is not naming the person standing next to you")
+        }
+        XCTAssertEqual(companion.name, "Paper Kestrel")
+    }
+
+    func testAnIdleRepositoryOffersTheOneThing() {
+        XCTAssertEqual(repository.outreach, .idle)
+    }
+
     private func design(title: String = "Charcoal Gull") -> CigDesign {
         var design = CigDesign()
         design.title = title

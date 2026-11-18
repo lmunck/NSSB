@@ -51,6 +51,13 @@ struct BreakAsk: Codable, Equatable, Identifiable, CourtyardStranger {
     /// finished looks different from being lit by someone who just started,
     /// and it should.
     var giverProgress: Double?
+
+    /// Where the giver is, on the same terms as everybody else: a country at
+    /// most, and only if they chose to say. Carried because somebody who
+    /// lights you now stays and smokes with you, so the line naming them
+    /// shows a flag and their local clock exactly as the courtyard does.
+    var giverCountry: String?
+    var giverTzOffset: Int?
 }
 
 extension BreakAsk {
@@ -83,7 +90,9 @@ extension BreakAsk {
             claimed: false,
             giverName: nil,
             giverDesign: nil,
-            giverProgress: nil
+            giverProgress: nil,
+            giverCountry: nil,
+            giverTzOffset: nil
         )
     }
     
@@ -112,12 +121,16 @@ struct AskGiver: Equatable {
     let name: String
     let design: CigDesign
     let progress: Double
-    
+    let country: String?
+    let tzOffset: Int
+
     init?(_ ask: BreakAsk) {
         guard let name = ask.giverName, name.isEmpty == false else { return nil }
         self.name = name
         self.design = ask.giverDesign ?? CigDesign()
         self.progress = ask.giverProgress ?? 0
+        self.country = ask.giverCountry
+        self.tzOffset = ask.giverTzOffset ?? 0
     }
 }
 

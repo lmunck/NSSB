@@ -87,9 +87,11 @@ protocol PresenceService: AnyObject {
         id: String,
         giverName: String,
         giverDesign: CigDesign,
-        giverProgress: Double
+        giverProgress: Double,
+        giverCountry: String?,
+        giverTzOffset: Int
     ) async throws
-    
+
     /// Removes your own ask - answered, timed out, or cancelled. Same
     /// reasoning as `withdraw`: nothing else will.
     func withdrawAsk(id: String) async throws
@@ -284,17 +286,21 @@ final class SimulatedPresenceService: PresenceService {
         id: String,
         giverName: String,
         giverDesign: CigDesign,
-        giverProgress: Double
+        giverProgress: Double,
+        giverCountry: String?,
+        giverTzOffset: Int
     ) async throws {
-        
+
         guard var ask = asks[id], ask.claimed == false else {
             throw PresenceError.askAlreadyAnswered
         }
-        
+
         ask.claimed = true
         ask.giverName = giverName
         ask.giverDesign = giverDesign
         ask.giverProgress = giverProgress
+        ask.giverCountry = giverCountry
+        ask.giverTzOffset = giverTzOffset
         asks[id] = ask
         
         emitAsks()

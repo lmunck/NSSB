@@ -319,20 +319,26 @@ final class FirestorePresenceService: PresenceService {
         id: String,
         giverName: String,
         giverDesign: CigDesign,
-        giverProgress: Double
+        giverProgress: Double,
+        giverCountry: String?,
+        giverTzOffset: Int
     ) async throws {
-        
+
         guard uid != nil else { throw PresenceError.notSignedIn }
-        
+
         let design = try Firestore.Encoder().encode(giverDesign)
-        
+
         try await db.collection(asksCollection)
             .document(id)
             .updateData([
                 "claimed": true,
                 "giverName": giverName,
                 "giverDesign": design,
-                "giverProgress": giverProgress
+                "giverProgress": giverProgress,
+                // Same as pairing a wait: a dictionary with a nil value in it
+                // is a dictionary with the key missing, so say absent out loud.
+                "giverCountry": giverCountry ?? NSNull(),
+                "giverTzOffset": giverTzOffset
             ])
     }
     

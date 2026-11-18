@@ -65,6 +65,14 @@ final class PresenceRepository: ObservableObject {
     
     /// Fires when the eight seconds are up. Cancelled the moment somebody
     /// answers, so a light that arrives at 7.9 seconds is not thrown away.
+    /// True while one tap is out as both an ask and a wait.
+    ///
+    /// Asking and waiting are two mechanisms for one intention, and while
+    /// they are running together the ask is only the first of two chances.
+    /// So an unanswered ask must not announce a result or light anything -
+    /// the wait is still out there, and it owns the ending.
+    private var reaching = false
+
     private var askTimeout: Task<Void, Never>?
     
     /// The handoff is an animation, and an animation can be interrupted - the
@@ -78,6 +86,10 @@ final class PresenceRepository: ObservableObject {
     /// Fires when the thirty seconds are up. Cancelled the moment somebody
     /// joins, so company that arrives at 29.9 seconds is not thrown away.
     private var waitTimeout: Task<Void, Never>?
+
+    /// Fires when a companion's own cigarette runs out, which is only ever
+    /// before yours - somebody who lit you was already burning.
+    private var companionGone: Task<Void, Never>?
     
     /// Survives being killed mid-break. Without it, a relaunch publishes a
     /// second document for the same cigarette and the user appears twice in
@@ -339,6 +351,8 @@ final class PresenceRepository: ObservableObject {
         // Company lasts exactly as long as the cigarettes do. Whoever you
         // stood with, you are not standing with them any more, and nothing
         // about it is kept - which is the first principle of the whole layer.
+        companionGone?.cancel()
+        companionGone = nil
         if case .idle = company {} else { self.company = .idle }
         
         // A break that ran its course is left in place, to linger as an ember
@@ -384,6 +398,71 @@ final class PresenceRepository: ObservableObject {
     
     // MARK: - Got a light?
     
+    /// The two machines read as the single gesture they are.
+    ///
+    /// Company outranks everything: once somebody is out here with you, how
+    /// they got here stopped mattering. Below that the ask leads, because
+    /// being lit is a thing happening to you right now, and the draining bar
+    /// comes last because it is only the absence of the others.
+    var outreach: Outreach {
+
+        if case .together(let companion, _) = company { return .together(companion) }
+        if case .lit(let giver) = ask { return .lit(giver) }
+        if case .done(let giver) = ask, let giver = giver { return .answered(giver) }
+
+        // The wait first: it is the longer of the two, so it owns the bar.
+        if let out = company.openWait { return .reaching(until: out.expiresAt) }
+        if let out = ask.openAsk { return .reaching(until: out.expiresAt) }
+
+        if case .alone = company { return .alone }
+        if case .done(let giver) = ask, giver == nil { return .alone }
+
+        return .idle
+    }
+
+    /// One tap, both ways of not smoking alone.
+    ///
+    /// A lit stranger can hand you a light; an unlit one can light at the
+    /// same instant as you. Those are two mechanisms, and giving each its own
+    /// button made the plumbing into the interface - nobody standing outside
+    /// has two intentions, they have one, and it is that they would rather
+    /// not smoke alone. So both go out on one tap, whichever is answered
+    /// first wins, and the other is taken down.
+    func reachOut(design: CigDesign) async {
+
+        guard case .idle = ask, case .idle = company else { return }
+
+        reaching = true
+
+        async let asked: Void = askForALight(design: design)
+        async let waited: Void = waitForCompany(design: design)
+        _ = await (asked, waited)
+
+        // Neither could be opened - no backend, or both writes refused. Land
+        // where the silence would have landed anyway rather than leaving the
+        // row saying nothing and the cigarette unlit.
+        guard reaching else { return }
+        if ask.openAsk == nil, company.openWait == nil {
+            reaching = false
+            self.ask = .idle
+            self.company = .alone
+        }
+    }
+
+    /// Where an ask ends when nobody answers it.
+    ///
+    /// On its own that is a result worth saying out loud. Inside a reach-out
+    /// it is nothing at all: the longer half of the same gesture is still
+    /// running, and announcing here would light the cigarette while somebody
+    /// could still walk out.
+    private func askEndedUnanswered() {
+        guard reaching == false else {
+            self.ask = .idle
+            return
+        }
+        self.ask = .done(givenBy: nil)
+    }
+
     /// Asks the whole courtyard.
     ///
     /// Not a person. Tapping one stranger would create declining, and a
@@ -397,7 +476,7 @@ final class PresenceRepository: ObservableObject {
             print("Presence - not signed in yet, cannot ask")
             // Without a backend there is nobody to ask, so fall through to
             // the same place eight seconds of silence would have led.
-            self.ask = .done(givenBy: nil)
+            askEndedUnanswered()
             return
         }
         
@@ -418,7 +497,7 @@ final class PresenceRepository: ObservableObject {
             try await service.openAsk(outgoing)
         } catch {
             print("Presence - ask failed: \(error.localizedDescription)")
-            self.ask = .done(givenBy: nil)
+            askEndedUnanswered()
             return
         }
         
@@ -455,6 +534,12 @@ final class PresenceRepository: ObservableObject {
         print("Presence - \(giver.name) gave you a light")
         self.ask = .lit(by: giver)
         armHandoffNet(giver: giver)
+
+        // The gesture is answered. Take the other half down before the
+        // handoff plays, or somebody could come out and sit in a chair you
+        // are already walking away from.
+        reaching = false
+        if company.isWaiting { Task { await cancelWait() } }
         
         // Answered means finished. Nothing is left behind, and nobody else
         // can offer a light to an ask that has already been granted.
@@ -469,9 +554,13 @@ final class PresenceRepository: ObservableObject {
         service.stopObservingOwnAsk()
         askTimeout = nil
         
-        print("Presence - nobody answered, lighting your own")
-        self.ask = .done(givenBy: nil)
-        
+        if reaching {
+            print("Presence - nobody lit was out there, still waiting")
+        } else {
+            print("Presence - nobody answered, lighting your own")
+        }
+        askEndedUnanswered()
+
         await removeOwnAsk(id: outgoing.id)
     }
     
@@ -484,7 +573,10 @@ final class PresenceRepository: ObservableObject {
         askTimeout = nil
         service.stopObservingOwnAsk()
         self.ask = .idle
-        
+
+        // Taking the question back by hand ends the whole gesture.
+        reaching = false
+
         await removeOwnAsk(id: outgoing.id)
     }
     
@@ -494,6 +586,54 @@ final class PresenceRepository: ObservableObject {
         handoffNet = nil
         guard case .lit(let giver) = ask else { return }
         self.ask = .done(givenBy: giver)
+        stayWith(giver)
+    }
+
+    /// The person who lit you does not simply vanish.
+    ///
+    /// They were out here before you and they stay for what is left of their
+    /// own cigarette, which is less than yours because theirs was already
+    /// burning. So this is company with an end written into it: they finish,
+    /// they go back inside, and you smoke the last of yours alone. Two
+    /// strangers lighting together remains the only case where both go out
+    /// on the same second, and it stays rare, which is what makes it worth
+    /// anything.
+    private func stayWith(_ giver: AskGiver) {
+
+        guard case .idle = company else { return }
+
+        let met = Date.now
+        let companion = Companion(giver: giver, metAt: met)
+
+        // They were on their last mouthful. Lighting you was the whole of
+        // the encounter, and drawing them beside you for two seconds would
+        // be worse than not drawing them at all.
+        guard companion.hasGone(at: met) == false else { return }
+
+        print("Presence - \(companion.name) is staying for the rest of theirs")
+        self.company = .together(companion, since: met)
+
+        // And then they go. Somebody you lit up with leaves when you do, so
+        // the end of the break takes care of them; somebody who lit you
+        // leaves before you, and nothing else would notice.
+        companionGone?.cancel()
+        companionGone = Task { [weak self] in
+            let left = Date.breakLength - met.timeIntervalSince(companion.startedAt)
+            if left > 0 {
+                try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
+            }
+            guard Task.isCancelled == false else { return }
+            await self?.companionLeft()
+        }
+    }
+
+    /// Their cigarette is finished. They go back inside, the line under yours
+    /// stops naming them, and you smoke the last of it on your own.
+    private func companionLeft() {
+        companionGone = nil
+        guard case .together = company else { return }
+        print("Presence - your company has gone back in")
+        self.company = .idle
     }
     
     private func armHandoffNet(giver: AskGiver) {
@@ -509,6 +649,7 @@ final class PresenceRepository: ObservableObject {
         guard case .lit = ask else { return }
         print("Presence - the handoff never finished, moving on without it")
         self.ask = .done(givenBy: giver)
+        stayWith(giver)
     }
     
     /// Clears the line of text that says what happened, once it has been
@@ -556,7 +697,9 @@ final class PresenceRepository: ObservableObject {
                 id: wanted.id,
                 giverName: mine.name,
                 giverDesign: mine.design,
-                giverProgress: mine.progress()
+                giverProgress: mine.progress(),
+                giverCountry: mine.country,
+                giverTzOffset: mine.tzOffset
             )
             
             print("Presence - gave \(wanted.name) a light")
@@ -719,7 +862,7 @@ final class PresenceRepository: ObservableObject {
         // somebody to give their five minutes to.
         let mine = company.openWait
         
-        enterTogether(Companion(waiter: other), since: litAt)
+        enterTogether(Companion(waiter: other, litAt: litAt), since: litAt)
         
         // Your own wait, if you had one out, is over: you found company.
         if let mine = mine { await removeOwnWait(id: mine.id) }
@@ -734,12 +877,18 @@ final class PresenceRepository: ObservableObject {
     /// two ignition instants a fraction of a second apart. Both sides can see
     /// both values, so both sides keep the earlier one and stay in step.
     private func enterTogether(_ companion: Companion, since litAt: Date) {
-        
+
         waitTimeout?.cancel()
         waitTimeout = nil
         service.stopObservingOwnWait()
         service.stopObservingWaits()
         self.waiting = []
+
+        // Somebody came out, so the other half of the gesture is over. An
+        // ask still standing in strangers' courtyards would be asking for a
+        // light you no longer need.
+        reaching = false
+        if ask.isAsking { Task { await cancelAsk() } }
         
         if case .together(_, let already) = company {
             self.company = .together(companion, since: min(already, litAt))
@@ -760,6 +909,7 @@ final class PresenceRepository: ObservableObject {
         self.waiting = []
         
         print("Presence - nobody came out, lighting your own")
+        reaching = false
         self.company = .alone
         
         await removeOwnWait(id: outgoing.id)
@@ -776,7 +926,10 @@ final class PresenceRepository: ObservableObject {
         service.stopObservingWaits()
         self.waiting = []
         self.company = .idle
-        
+
+        // Going back inside ends the whole gesture, both halves of it.
+        reaching = false
+
         await removeOwnWait(id: outgoing.id)
     }
     

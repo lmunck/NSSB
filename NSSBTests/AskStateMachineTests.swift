@@ -302,7 +302,9 @@ final class AskStateMachineTests: XCTestCase {
             id: ask.id,
             giverName: name,
             giverDesign: design(title: name),
-            giverProgress: progress
+            giverProgress: progress,
+            giverCountry: "JP",
+            giverTzOffset: 32400
         )
     }
 

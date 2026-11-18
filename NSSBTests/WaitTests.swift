@@ -102,12 +102,29 @@ final class WaitTests: XCTestCase {
         wait.partnerDesign = design(title: "Paper Kestrel")
         wait.partnerCountry = "JP"
         wait.partnerTzOffset = 32400
-        
+        wait.litAt = Date(timeIntervalSince1970: 1_000_000)
+
         let companion = try XCTUnwrap(Companion(partnerOf: wait))
-        
+
         XCTAssertEqual(companion.name, "Paper Kestrel")
         XCTAssertEqual(companion.country, "JP")
         XCTAssertEqual(companion.tzOffset, 32400)
+
+        // Their cigarette starts at the instant you both lit, which is the
+        // whole of layer 3: the two burn from one second and end on one.
+        XCTAssertEqual(companion.startedAt, Date(timeIntervalSince1970: 1_000_000))
+    }
+
+    /// A pairing with no ignition instant cannot say when their cigarette
+    /// was lit, so it cannot be drawn. The rules require litAt on every
+    /// pairing, so this is a corrupt document rather than a person.
+    func testAPairingWithNoInstantIsNotACompanion() {
+
+        var wait = BreakWait.opening(uid: "me", design: design())
+        wait.paired = true
+        wait.partnerName = "Paper Kestrel"
+
+        XCTAssertNil(Companion(partnerOf: wait))
     }
     
     func testThereIsNoCompanionUntilSomebodyJoins() {
@@ -132,7 +149,7 @@ final class WaitTests: XCTestCase {
     func testTheJoinerSeesTheWaiter() {
         
         let wait = BreakWait.opening(uid: "them", design: design(title: "Paper Kestrel"))
-        let companion = Companion(waiter: wait)
+        let companion = Companion(waiter: wait, litAt: .now)
         
         XCTAssertEqual(companion.name, "Paper Kestrel")
         XCTAssertEqual(companion.design.title, "Paper Kestrel")
@@ -144,7 +161,7 @@ final class WaitTests: XCTestCase {
     func testTheStateKnowsWhatItIs() {
         
         let wait = BreakWait.opening(uid: "me", design: design())
-        let companion = Companion(waiter: wait)
+        let companion = Companion(waiter: wait, litAt: .now)
         let litAt = Date(timeIntervalSince1970: 1_000_000)
         
         XCTAssertTrue(CompanyState.waiting(wait).isWaiting)

@@ -155,26 +155,16 @@ struct ContentView: View {
                     // HStack would otherwise leave half a gap behind it.
                     HStack(spacing: 0) {
                         
-                        AskForALightView(
-                            state: presence.ask,
+                        ReachOutView(
+                            state: presence.outreach,
                             unlit: model.data.breakStarted == nil,
-                            othersCount: presence.othersCount,
-                            suppressed: presence.company != .idle,
-                            ask: askForALight,
-                            clear: presence.clearAsk
-                        )
-                        
-                        // No count here, unlike the ask. You are waiting for
-                        // somebody else who is also standing out here unlit,
-                        // and they are not in the count - so this is the one
-                        // social thing in the app that is worth offering in a
-                        // completely empty courtyard.
-                        WaitForCompanyView(
-                            state: presence.company,
-                            unlit: model.data.breakStarted == nil,
-                            suppressed: presence.ask != .idle,
-                            wait: waitForCompany,
-                            clear: presence.clearCompany
+                            reach: reachOut,
+                            clear: {
+                                // Both machines, because either of them can
+                                // be the one holding the line that is up.
+                                presence.clearAsk()
+                                presence.clearCompany()
+                            }
                         )
                     }
                     .opacity(cigOpacity)
@@ -321,16 +311,15 @@ extension ContentView {
         return temp.cigDesign
     }
     
-    /// Asks the courtyard for a light.
-    private func askForALight() {
+    /// Asks the courtyard, one tap.
+    ///
+    /// Underneath this puts the question to everybody already lit and stands
+    /// you out there unlit for anybody else at the same time. Whoever reaches
+    /// you first is who you end up smoking with, and you never had to decide
+    /// which kind of company you were hoping for.
+    private func reachOut() {
         let design = rolledDesign()
-        Task { await presence.askForALight(design: design) }
-    }
-    
-    /// Steps outside and waits for somebody to light up with.
-    private func waitForCompany() {
-        let design = rolledDesign()
-        Task { await presence.waitForCompany(design: design) }
+        Task { await presence.reachOut(design: design) }
     }
     
     /// Takes the free chair next to somebody already waiting.
@@ -339,12 +328,14 @@ extension ContentView {
         Task { await presence.waitWith(other, design: design) }
     }
     
-    /// The person you lit up with, standing beside your own cigarette.
+    /// Whoever is out here with you, standing beside your own cigarette.
     ///
-    /// Their burn position is `ownProgress` - not an approximation of it, the
-    /// same number. You lit at one instant, so there is nothing to keep in
-    /// sync and nothing to ask the network for; the two cigarettes shorten
-    /// together and go out together because they were lit together.
+    /// Two people who lit together burn at the same position and go out on
+    /// the same second, with nothing to keep in sync and nothing to ask the
+    /// network for - they were lit at one instant. Somebody who stopped to
+    /// light you was already burning, so theirs runs ahead of yours and goes
+    /// out first, and the view draws that from their own ignition instant
+    /// rather than borrowing yours.
     @ViewBuilder
     private func companion(height: CGFloat, width: CGFloat) -> some View {
         
@@ -366,7 +357,6 @@ extension ContentView {
 
             CompanionCigaretteView(
                 companion: companion,
-                progress: ownProgress,
                 height: height,
                 mirrored: side < 0
             )
