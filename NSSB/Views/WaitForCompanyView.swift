@@ -203,17 +203,68 @@ struct CompanionCigaretteView: View {
     let progress: Double
     
     let height: CGFloat
-    
+
+    /// Which side of you they are standing on. Their name hangs on the far
+    /// side, so nothing is written in the gap between the two cigarettes.
+    var mirrored: Bool = false
+
+    private var design: CigDesign { companion.design }
+    private var width: CGFloat { max(1, height * design.widthPercentage) }
+    private var glowHeight: CGFloat { height * design.glowPercentage }
+    private var filterHeight: CGFloat { height * design.filterPercentage }
+
+    /// The body is what burns away, at your pace because it is your pace.
+    private var bodyHeight: CGFloat {
+        let full = (design.bodyPercentage + design.glowPercentage) * height - glowHeight
+        return max(0, full - full * progress)
+    }
+
+    private var spacerHeight: CGFloat {
+        max(0, height - (glowHeight + bodyHeight + filterHeight))
+    }
+
     var body: some View {
-        
+
         ZStack {
-            
-            DistantCigaretteView(
-                design: companion.design,
-                progress: progress,
-                height: height
-            )
-            
+
+            // The same wash of their own colour your cigarette has, at half
+            // strength. Without it a custom design comes down to a tip and a
+            // filter, and the thing that makes it theirs never reads.
+            design.background
+                .mask(Ellipse())
+                .frame(width: height * 0.22, height: height * 1.1)
+                .blur(radius: height * 0.09)
+                .opacity(0.4)
+
+            VStack(spacing: 0) {
+
+                Color.clear
+                    .frame(width: width, height: spacerHeight)
+
+                // The real ember, not the flat glow the courtyard draws.
+                // Across the courtyard that simplification is invisible; here
+                // it is standing at full height beside a cigarette that is
+                // burning properly, and it read as an unlit tip painted
+                // orange - which is exactly what it was.
+                CigaretteAshView(design: design, height: glowHeight, width: width)
+                    .frame(width: width, height: glowHeight)
+
+                LinearGradient(gradient: Gradient(colors: design.bodyArray),
+                               startPoint: .leading, endPoint: .trailing)
+                    .frame(width: width, height: bodyHeight)
+
+                ZStack {
+
+                    LinearGradient(gradient: Gradient(colors: design.filterArray),
+                                   startPoint: .leading, endPoint: .trailing)
+
+                    CigaretteGlowDots(height: filterHeight, width: width,
+                                      color: design.filterDots, animated: false)
+                }
+                .frame(width: width, height: filterHeight)
+            }
+            .frame(width: width, height: height)
+
             // Quieter than your own name, which sits on the other side of
             // your cigarette in white. Theirs is a label on somebody else's
             // cigarette, not a title.
@@ -223,11 +274,11 @@ struct CompanionCigaretteView: View {
                 .foregroundStyle(.gray)
                 .frame(width: height, alignment: .trailing)
                 .rotationEffect(.degrees(90), anchor: .center)
-                .offset(x: height * companion.design.widthPercentage / 2 + 9, y: 0)
+                .offset(x: (mirrored ? -1 : 1) * (width / 2 + 9), y: 0)
                 .opacity(0.8)
         }
         // Near, but never competing with the cigarette in your own hand.
-        .opacity(0.85)
+        .opacity(0.9)
     }
 }
 

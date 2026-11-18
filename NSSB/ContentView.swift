@@ -355,13 +355,22 @@ extension ContentView {
             // stand on your left.
             let spot = Courtyard.position(for: companion.name)
             let side: CGFloat = spot.x < 0.5 ? -1 : 1
-            
+
+            // Measured from the two cigarettes rather than from the layout
+            // frame, and clear of what already hangs beside your own: the
+            // share button to the right of it, the title to the left. The
+            // old offset was a fraction of the frame width and stood them
+            // straight through the share button.
+            let mine = height * model.data.cigDesign.widthPercentage
+            let theirs = height * companion.design.widthPercentage
+
             CompanionCigaretteView(
                 companion: companion,
                 progress: ownProgress,
-                height: height
+                height: height,
+                mirrored: side < 0
             )
-            .offset(x: side * (width * 0.75 + 12), y: 0)
+            .offset(x: side * (mine / 2 + 52 + theirs / 2), y: 0)
             .transition(.opacity)
             .allowsHitTesting(false)
         }
