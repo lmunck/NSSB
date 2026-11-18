@@ -1070,6 +1070,65 @@ final class LiveViewTests: XCTestCase {
         XCTAssertGreaterThan(max(late.left, late.right), 0.01, "nobody is standing there")
     }
 
+    /// The last gap: the real repository driving the real view.
+    ///
+    /// Everything else tests one or the other. The reported fault - a second
+    /// companion that arrives and then vanishes - could live in the seam, so
+    /// this runs the actual sequence through PresenceRepository with the
+    /// view watching, and keeps watching afterwards.
+    func testTheWholeSequenceThroughTheRealRepository() async throws {
+
+        UserDefaults.standard.removeObject(forKey: "presence.liveBreakId")
+        UserDefaults.standard.removeObject(forKey: "presence.liveBreakStart")
+
+        let service = SimulatedPresenceService()
+        let repository = PresenceRepository(service: service)
+        await repository.start()
+
+        let size = CGSize(width: 402, height: 874)
+        show(CourtyardStageView(presence: repository, size: size), size: size)
+        try await settle(0.3)
+
+        var design = CigDesign()
+        design.title = "Sunlit Parchment"
+
+        // Somebody takes your chair.
+        await repository.reachOut(design: design)
+        let mine = try XCTUnwrap(repository.company.openWait)
+        try await service.pairWith(id: mine.id, partnerName: "Paper Kestrel",
+                                   partnerDesign: design, partnerCountry: "JP",
+                                   partnerTzOffset: 32400, litAt: .now)
+        try await settle(1.0)
+        let one = brightness(try frame("real-1"))
+
+        await repository.breakStarted(at: .now, design: design)
+        try await settle(0.4)
+
+        // And then you light somebody.
+        var sparrow = CigDesign()
+        sparrow.title = "Quiet Sparrow"
+        let theirs = BreakAsk.opening(uid: "a-stranger", design: sparrow)
+        try await service.openAsk(theirs)
+        try await settle(0.3)
+        await repository.offerLight(to: theirs)
+        repository.offerFinished()
+
+        try await settle(1.2)
+        let two = brightness(try frame("real-2"))
+        try await settle(3.0)
+        let later = brightness(try frame("real-2-later"))
+
+        print("  companions: \(repository.company.companions.map { "\($0.name)/\($0.side)" })")
+        print(String(format: "  one   L%.3f R%.3f", one.left, one.right))
+        print(String(format: "  two   L%.3f R%.3f", two.left, two.right))
+        print(String(format: "  +3s   L%.3f R%.3f", later.left, later.right))
+
+        XCTAssertEqual(repository.company.companions.count, 2)
+        XCTAssertGreaterThan(min(two.left, two.right), 0.01, "one of them never drew")
+        XCTAssertGreaterThan(min(later.left, later.right), 0.01,
+                             "somebody vanished three seconds after arriving")
+    }
+
     private func settle(_ seconds: Double) async throws {
         try await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
     }
@@ -1123,6 +1182,41 @@ struct CompanionStageView: View {
                         height: height,
                         mirrored: side < 0,
                         arrival: arrival,
+                        restingOffset: rest
+                    )
+                    .offset(x: side * rest, y: 0)
+                }
+            }
+            .frame(width: size.width, height: size.height)
+    }
+}
+
+
+/// ContentView's cigarette frame, fed by a real repository.
+struct CourtyardStageView: View {
+
+    @ObservedObject var presence: PresenceRepository
+    let size: CGSize
+
+    var body: some View {
+
+        let height = size.height * 0.7
+        let width = size.width * 0.2
+        let mine = CigDesign()
+
+        return DistantCigaretteView(design: mine, progress: 0.3, height: height)
+            .frame(width: width, height: height)
+            .overlay {
+                ForEach(presence.company.companions, id: \.name) { companion in
+                    let side: CGFloat = companion.side == .left ? -1 : 1
+                    let theirs = height * companion.design.widthPercentage
+                    let rest = height * mine.widthPercentage / 2 + 52 + theirs / 2
+                    CompanionCigaretteView(
+                        companion: companion,
+                        height: height,
+                        mirrored: side < 0,
+                        arrival: companion.metAtYourTip(whenYouLitAt: presence.company.litAt ?? .now)
+                            ? .fromYourTip : .fromTheDark,
                         restingOffset: rest
                     )
                     .offset(x: side * rest, y: 0)
