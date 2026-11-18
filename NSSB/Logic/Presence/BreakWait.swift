@@ -296,6 +296,18 @@ enum CompanyState: Equatable {
         return nil
     }
 
+    /// Which side somebody of this name would end up on.
+    ///
+    /// Their own side if it is free, the other one if it is not. The view
+    /// asks this too, before they have arrived, so that the walk over and
+    /// the place they stop are the same side - they used to be worked out
+    /// separately and somebody could cross the screen to stand where they
+    /// had just come from.
+    func sideFor(_ name: String) -> CompanionSide {
+        let natural = Companion.naturalSide(for: name)
+        return companions.contains(where: { $0.side == natural }) ? natural.opposite : natural
+    }
+    
     /// Adds somebody to your side, if there is a side left.
     ///
     /// Their own side if it is free, the other one if it is not, and nothing
@@ -308,9 +320,7 @@ enum CompanyState: Equatable {
         guard all.contains(where: { $0.name == newcomer.name }) == false else { return self }
         
         var placed = newcomer
-        if all.contains(where: { $0.side == placed.side }) {
-            placed.side = placed.side.opposite
-        }
+        placed.side = sideFor(placed.name)
         all.append(placed)
         
         // The earlier instant wins the same tiebreak it always has: two

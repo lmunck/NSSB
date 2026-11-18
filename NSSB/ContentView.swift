@@ -108,21 +108,21 @@ struct ContentView: View {
                         //.offset(x: viewOffset, y: 0)
                         .ignoresSafeArea(.keyboard)
                         
-                        // The handoff is drawn over your own cigarette's
-                        // frame, so the meeting point is your own lit end
-                        // wherever it has burned down to.
+                        // Whoever is out here with you, standing next to
+                        // your own cigarette. Drawn in the same frame and at
+                        // the same height, because they are not across the
+                        // courtyard - they are here.
                         .overlay {
-                            handoff(height: cigHeight, width: cigWidth)
+                            companion(height: cigHeight, width: cigWidth)
                                 .opacity(cigOpacity)
                         }
                         
-                        // Whoever you lit up with, standing next to you for
-                        // the whole five minutes. Drawn in the same frame as
-                        // your own cigarette and at the same height, because
-                        // they are not across the courtyard - they are here,
-                        // burning down at exactly your pace.
+                        // The handoff goes over the top of them. Somebody
+                        // being lit right now is the thing happening, and it
+                        // was drawing underneath a companion who had been
+                        // standing there for minutes.
                         .overlay {
-                            companion(height: cigHeight, width: cigWidth)
+                            handoff(height: cigHeight, width: cigWidth)
                                 .opacity(cigOpacity)
                         }
                            
@@ -345,13 +345,17 @@ extension ContentView {
             
             // Somebody is lighting you. Your cigarette is still unlit, so the
             // meeting point is its very tip.
+            //
+            // They come in from the side they will end up standing on, so
+            // the walk over and the place they stop agree.
             let spot = Courtyard.position(for: giver.name)
+            let side = presence.company.sideFor(giver.name)
             
             HandoffView(
                 visitor: giver.design,
                 visitorProgress: giver.progress,
                 meeting: CGPoint(x: width / 2, y: 0),
-                fromLeft: spot.x < 0.5,
+                fromLeft: side == .left,
                 depth: spot.depth,
                 referenceHeight: height,
                 referenceWidth: height * giver.design.widthPercentage,
@@ -368,7 +372,12 @@ extension ContentView {
             
             // You are lighting somebody. Your own tip has burned down to
             // wherever it has, and that is where they lean in to.
-            let spot = Courtyard.position(for: asking.id)
+            // Their name, not the ask's id. The id is a uuid, so this used
+            // to pick a side with nothing to do with where they were about
+            // to stand - they would walk in from one side of you and then
+            // cross to the other, or land on top of somebody already there.
+            let spot = Courtyard.position(for: asking.name)
+            let side = presence.company.sideFor(asking.name)
             let design = model.data.cigDesign
             
             HandoffView(
@@ -378,7 +387,7 @@ extension ContentView {
                     x: width / 2,
                     y: design.tipOffset(height: height, progress: ownProgress)
                 ),
-                fromLeft: spot.x < 0.5,
+                fromLeft: side == .left,
                 depth: spot.depth,
                 referenceHeight: height,
                 referenceWidth: height * design.widthPercentage,

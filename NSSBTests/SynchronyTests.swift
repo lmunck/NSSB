@@ -511,27 +511,46 @@ final class SynchronyTests: XCTestCase {
         XCTAssertEqual(repository.outreach, .idle)
     }
 
-    // MARK: - Two of you, one each side
+    // MARK: - Where somebody will stand, asked before they get there
 
-    private func companion(_ name: String, side: CompanionSide, startedAt: Date) -> Companion {
-        var one = Companion(waiter: BreakWait.opening(uid: "x", design: design(title: name)),
-                            litAt: startedAt)
-        one.side = side
-        return one
+    private func companion(_ name: String, startedAt: Date) -> Companion {
+        Companion(waiter: BreakWait.opening(uid: "x", design: design(title: name)),
+                  litAt: startedAt)
+    }
+
+    /// The walk over and the place they stop have to be the same side. They
+    /// were worked out separately, and the giving handoff took its direction
+    /// from the ask's uuid - a hash with nothing to do with the person - so
+    /// somebody could cross the screen to stand where they came from, or
+    /// land on top of whoever was already there.
+    func testAskingWhereSomebodyWillStandMatchesWhereTheyDo() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+
+        let asked = CompanyState.idle.sideFor("Paper Kestrel")
+        let one = CompanyState.idle.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+
+        XCTAssertEqual(one.companions[0].side, asked, "they did not stand where they were walking")
+
+        let askedAgain = one.sideFor("Quiet Sparrow")
+        let two = one.standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
+
+        XCTAssertEqual(two.companions[1].side, askedAgain)
     }
 
     func testTheSecondPersonTakesTheOtherSide() {
 
         let now = Date(timeIntervalSince1970: 1_000_000)
-        let first = companion("Paper Kestrel", side: .left, startedAt: now)
-        let second = companion("Brass Kestrel", side: .left, startedAt: now)
 
-        let one = CompanyState.idle.standing(with: first, since: now)
-        let two = one.standing(with: second, since: now)
+        let two = CompanyState.idle
+            .standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+            .standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
 
         XCTAssertEqual(two.companions.count, 2)
-        XCTAssertEqual(two.companions[0].side, .left, "the first one should not have moved")
-        XCTAssertEqual(two.companions[1].side, .right, "they cannot stand in the same place")
+        XCTAssertNotEqual(two.companions[0].side, two.companions[1].side,
+                          "they cannot stand in the same place")
+        XCTAssertEqual(two.companions[0].side, Companion.naturalSide(for: "Paper Kestrel"),
+                       "whoever got here first keeps the side they would have had")
         XCTAssertTrue(two.isFull)
     }
 
@@ -539,13 +558,13 @@ final class SynchronyTests: XCTestCase {
 
         let now = Date(timeIntervalSince1970: 1_000_000)
         let two = CompanyState.idle
-            .standing(with: companion("A", side: .left, startedAt: now), since: now)
-            .standing(with: companion("B", side: .right, startedAt: now), since: now)
+            .standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+            .standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
 
-        let three = two.standing(with: companion("C", side: .left, startedAt: now), since: now)
+        let three = two.standing(with: companion("Brass Kestrel", startedAt: now), since: now)
 
         XCTAssertEqual(three.companions.count, 2, "there are only two sides of a person")
-        XCTAssertEqual(three.companions.map(\.name), ["A", "B"])
+        XCTAssertEqual(three.companions.map(\.name), ["Paper Kestrel", "Quiet Sparrow"])
     }
 
     /// Whoever finishes first goes in alone, and nobody shuffles across to
@@ -554,23 +573,24 @@ final class SynchronyTests: XCTestCase {
 
         let now = Date(timeIntervalSince1970: 1_000_000)
         let two = CompanyState.idle
-            .standing(with: companion("A", side: .left, startedAt: now), since: now)
-            .standing(with: companion("B", side: .right, startedAt: now), since: now)
+            .standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+            .standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
 
-        let one = two.without("A")
+        let theirSide = two.companions[1].side
+        let one = two.without("Paper Kestrel")
 
-        XCTAssertEqual(one.companions.map(\.name), ["B"])
-        XCTAssertEqual(one.companions[0].side, .right, "B should not have slid over")
+        XCTAssertEqual(one.companions.map(\.name), ["Quiet Sparrow"])
+        XCTAssertEqual(one.companions[0].side, theirSide, "they should not have slid over")
         XCTAssertEqual(one.litAt, now, "the break did not restart because somebody left")
 
-        XCTAssertEqual(one.without("B"), .idle, "the last one out leaves you alone")
+        XCTAssertEqual(one.without("Quiet Sparrow"), .idle, "the last one out leaves you alone")
     }
 
     func testTheSamePersonCannotStandWithYouTwice() {
 
         let now = Date(timeIntervalSince1970: 1_000_000)
-        let once = CompanyState.idle.standing(with: companion("A", side: .left, startedAt: now), since: now)
-        let twice = once.standing(with: companion("A", side: .right, startedAt: now), since: now)
+        let once = CompanyState.idle.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+        let twice = once.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
 
         XCTAssertEqual(twice.companions.count, 1)
     }

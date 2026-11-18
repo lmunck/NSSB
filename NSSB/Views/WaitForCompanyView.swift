@@ -281,36 +281,45 @@ struct CompanionCigaretteView: View {
                 .opacity(0.8)
         }
         // Near, but never competing with the cigarette in your own hand.
-        .opacity(settled ? 0.9 : 0)
+        //
+        // Opacity is not part of the arrival. It used to be, and that made
+        // the whole of somebody's presence depend on one animation having
+        // run: when it did not, they were in the right place and completely
+        // invisible. Now the worst a missed animation can do is put them
+        // there without the walk.
+        .opacity(0.9)
+        .scaleEffect(settled ? 1 : 0.72)
         .offset(entry)
         .onReceive(clock) { now = $0 }
         .onAppear {
             withAnimation(.easeOut(duration: arrival.duration)) { settled = true }
         }
     }
-
+    
     /// Where they come in from, measured back from where they end up.
+    ///
+    /// Never the middle. They used to start at your own cigarette, because
+    /// that is literally where the handoff left them - but a second
+    /// full-height cigarette on top of yours reads as a glitch rather than
+    /// as somebody stepping back, so they start partway out and small.
     private var entry: CGSize {
-
+        
         guard settled == false else { return .zero }
-
+        
         // Toward you is whichever way your cigarette is from theirs.
         let inward: CGFloat = mirrored ? restingOffset : -restingOffset
-
+        
         switch arrival {
-
+            
         case .fromYourTip:
-            // The handoff left them with their tip against yours, up at the
-            // top of the frame. So they walk back out and their ember comes
-            // down to where it actually is - which is the movement that was
-            // missing, and why it read as a jump.
-            return CGSize(width: inward, height: -height * progress * 0.7)
-
+            // Just lit, tip to tip with you, on this side of you already.
+            // All that is left is to step back and stand up straight.
+            return CGSize(width: inward * 0.45, height: 0)
+            
         case .fromTheDark:
-            // No handoff happened here. They were never near your hand, so
-            // they step in from further out, which is all the courtyard has
-            // ever shown of somebody arriving.
-            return CGSize(width: -inward * 0.22, height: 0)
+            // No handoff happened here - they were never near your hand, so
+            // they come in from further out instead.
+            return CGSize(width: -inward * 0.25, height: 0)
         }
     }
 }
