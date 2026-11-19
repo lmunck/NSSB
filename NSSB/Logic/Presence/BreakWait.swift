@@ -342,7 +342,7 @@ enum CompanyState: Equatable {
 
 /// Which side of you somebody is standing on. There are two, which is why
 /// two is the most people who can stand with you.
-enum CompanionSide: Equatable {
+enum CompanionSide: Equatable, Hashable {
 
     case left, right
 

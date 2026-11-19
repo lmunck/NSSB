@@ -77,26 +77,14 @@ struct ReachOutView: View {
             case .answered(let giver):
                 line("\(giver.name) gave you a light")
 
-            case .together(let companions):
-                
-                // For as long as they are out here, because this is who you
-                // are standing with rather than something that just
-                // happened. Their names and where in their day they are -
-                // nothing that counts, because the cigarettes already do.
-                HStack(spacing: 6) {
-                    Text("with")
-                    ForEach(Array(companions.enumerated()), id: \.element.name) { index, companion in
-                        if index > 0 { Text("and") }
-                        Text(companion.name)
-                        if let flag = companion.flag {
-                            Text(flag)
-                        }
-                        DaylightView(daylight: companion.daylight())
-                    }
-                }
-                .font(.footnote)
-                .foregroundStyle(.gray)
-                .transition(.opacity)
+            case .together:
+
+                // Nothing. Their names are on their own cigarettes now,
+                // with their flag and where they are in their own day, and
+                // this line was the same three facts written again at the
+                // bottom of the screen - where you had to match each one
+                // back up to a cigarette by guesswork.
+                EmptyView()
 
             case .alone:
                 line("nobody came out - lighting your own")
@@ -169,207 +157,6 @@ private struct ReachingLineView: View {
     }
 }
 
-/// Somebody you are smoking with, standing next to your own cigarette.
-///
-/// Drawn from their own ignition instant rather than from the network, and
-/// rather than from yours. Two people who lit together share that instant
-/// exactly, so their cigarette does go out when yours does - but somebody
-/// who stopped to light you started earlier and goes in first, and somebody
-/// you stopped to light started later and is still out here after you have
-/// gone. One rule covers all three: whoever has been burning longest leaves
-/// first, and nobody's cigarette ever lies about how long they have got.
-struct CompanionCigaretteView: View {
-    
-    let companion: Companion
-
-    let height: CGFloat
-
-    /// Which side of you they are standing on. Their name hangs on the far
-    /// side, so nothing is written in the gap between the two cigarettes.
-    var mirrored: Bool = false
-
-    /// How they got here, which is the only thing that decides how they
-    /// arrive. Nobody should appear beside your hand out of nothing.
-    var arrival: CompanionArrival = .fromTheDark
-
-    /// How far out they finally stand, so somebody walking over from your
-    /// lit end starts at your cigarette rather than near it.
-    var restingOffset: CGFloat = 0
-
-    /// Starts arrived, for a still picture of where somebody ends up. The
-    /// app never passes this; the rendering harness does, because a
-    /// screenshot cannot wait for an animation it is not running.
-    var arrived: Bool = false
-    
-    @State private var settled: Bool
-    
-    init(companion: Companion,
-         height: CGFloat,
-         mirrored: Bool = false,
-         arrival: CompanionArrival = .fromTheDark,
-         restingOffset: CGFloat = 0,
-         arrived: Bool = false) {
-        self.companion = companion
-        self.height = height
-        self.mirrored = mirrored
-        self.arrival = arrival
-        self.restingOffset = restingOffset
-        self.arrived = arrived
-        _settled = State(initialValue: arrived)
-    }
-
-    /// Their own clock.
-    ///
-    /// This used to be handed your burn position, on the reasoning that you
-    /// lit together so there was nothing to keep in sync. That was true of
-    /// the only way company could happen then, and it is false now that
-    /// somebody already burning can stop and light you. It was also frozen:
-    /// a computed value only changes when something else happens to publish,
-    /// so it ticks for itself now, from their ignition instant.
-    @State private var now: Date = .now
-    private let clock = Timer.publish(every: 1, on: .main, in: .common).autoconnect()
-
-    private var progress: Double { companion.progress(at: now) }
-
-    private var design: CigDesign { companion.design }
-    private var width: CGFloat { max(1, height * design.widthPercentage) }
-    private var glowHeight: CGFloat { height * design.glowPercentage }
-    private var filterHeight: CGFloat { height * design.filterPercentage }
-
-    /// The body is what burns away, at their pace.
-    private var bodyHeight: CGFloat {
-        let full = (design.bodyPercentage + design.glowPercentage) * height - glowHeight
-        return max(0, full - full * progress)
-    }
-
-    private var spacerHeight: CGFloat {
-        max(0, height - (glowHeight + bodyHeight + filterHeight))
-    }
-
-    var body: some View {
-
-        ZStack {
-
-            // The same wash of their own colour your cigarette has, at half
-            // strength. Without it a custom design comes down to a tip and a
-            // filter, and the thing that makes it theirs never reads.
-            design.background
-                .mask(Ellipse())
-                .frame(width: height * 0.22, height: height * 1.1)
-                .blur(radius: height * 0.09)
-                .opacity(0.4)
-
-            VStack(spacing: 0) {
-
-                Color.clear
-                    .frame(width: width, height: spacerHeight)
-
-                // The real ember, not the flat glow the courtyard draws.
-                // Across the courtyard that simplification is invisible; here
-                // it is standing at full height beside a cigarette that is
-                // burning properly, and it read as an unlit tip painted
-                // orange - which is exactly what it was.
-                CigaretteAshView(design: design, height: glowHeight, width: width)
-                    .frame(width: width, height: glowHeight)
-
-                LinearGradient(gradient: Gradient(colors: design.bodyArray),
-                               startPoint: .leading, endPoint: .trailing)
-                    .frame(width: width, height: bodyHeight)
-
-                ZStack {
-
-                    LinearGradient(gradient: Gradient(colors: design.filterArray),
-                                   startPoint: .leading, endPoint: .trailing)
-
-                    CigaretteGlowDots(height: filterHeight, width: width,
-                                      color: design.filterDots, animated: false)
-                }
-                .frame(width: width, height: filterHeight)
-            }
-            .frame(width: width, height: height)
-
-            // Quieter than your own name, which sits on the other side of
-            // your cigarette in white. Theirs is a label on somebody else's
-            // cigarette, not a title.
-            Text(companion.name)
-                .font(.caption2)
-                .fixedSize()
-                .foregroundStyle(.gray)
-                .frame(width: height, alignment: .trailing)
-                .rotationEffect(.degrees(90), anchor: .center)
-                .offset(x: (mirrored ? -1 : 1) * (width / 2 + 9), y: 0)
-                .opacity(0.8)
-        }
-        // Near, but never competing with the cigarette in your own hand.
-        //
-        // Opacity is not part of the arrival. It used to be, and that made
-        // the whole of somebody's presence depend on one animation having
-        // run: when it did not, they were in the right place and completely
-        // invisible. Now the worst a missed animation can do is put them
-        // there without the walk.
-        .opacity(0.9)
-        .scaleEffect(settled ? 1 : 0.72)
-        .offset(entry)
-        .onReceive(clock) { now = $0 }
-        // Attached to the change rather than wrapped around it. A
-        // withAnimation inside onAppear runs while SwiftUI is already
-        // settling the insert, and it was being swallowed - the walk simply
-        // did not happen. This way the animation belongs to `settled`
-        // wherever it is flipped, and the yield guarantees one frame in the
-        // entry position for it to move away from.
-        .animation(.easeOut(duration: arrival.duration), value: settled)
-        .task {
-            guard settled == false else { return }
-            await Task.yield()
-            settled = true
-        }
-    }
-    
-    /// Where they come in from, measured back from where they end up.
-    ///
-    /// Never the middle. They used to start at your own cigarette, because
-    /// that is literally where the handoff left them - but a second
-    /// full-height cigarette on top of yours reads as a glitch rather than
-    /// as somebody stepping back, so they start partway out and small.
-    private var entry: CGSize {
-        
-        guard settled == false else { return .zero }
-        
-        // Toward you is whichever way your cigarette is from theirs.
-        let inward: CGFloat = mirrored ? restingOffset : -restingOffset
-        
-        switch arrival {
-            
-        case .fromYourTip:
-            // Just lit, tip to tip with you, on this side of you already.
-            // All that is left is to step back and stand up straight.
-            return CGSize(width: inward * 0.45, height: 0)
-            
-        case .fromTheDark:
-            // No handoff happened here - they were never near your hand, so
-            // they come in from further out instead.
-            return CGSize(width: -inward * 0.25, height: 0)
-        }
-    }
-}
-
-/// The two ways somebody ends up standing next to you.
-enum CompanionArrival {
-
-    /// They stopped and lit you. The handoff just put them at your lit end.
-    case fromYourTip
-
-    /// They lit at the same instant as you, from wherever they were.
-    case fromTheDark
-
-    var duration: TimeInterval {
-        switch self {
-        case .fromYourTip: return 0.75
-        case .fromTheDark: return 1.1
-        }
-    }
-}
-
 #Preview {
     
     var design = CigDesign()
@@ -392,12 +179,6 @@ enum CompanionArrival {
         ReachOutView(state: .together([together]), unlit: false, reach: {}, clear: {})
         ReachOutView(state: .together([together, lighter]), unlit: false, reach: {}, clear: {})
         ReachOutView(state: .alone, unlit: true, reach: {}, clear: {})
-
-
-        HStack(spacing: 40) {
-            CompanionCigaretteView(companion: together, height: 180)
-            CompanionCigaretteView(companion: lighter, height: 180, mirrored: true)
-        }
     }
     .frame(maxWidth: .infinity, maxHeight: .infinity)
     .background(.black)

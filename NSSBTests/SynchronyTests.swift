@@ -842,33 +842,38 @@ final class RenderTests: XCTestCase {
     /// The whole composition: your cigarette in the middle with whoever is
     /// standing with you drawn in the same frame, exactly as ContentView
     /// lays it out.
+    ///
+    /// Through the app's own overlay rather than a copy of it. This used to
+    /// rebuild the arrangement by hand, which made the harness a second
+    /// implementation of the thing it was supposed to be checking - and a
+    /// second implementation cannot catch a mistake in the first.
     private func courtyard(_ companions: [Companion], yourProgress: Double) -> some View {
 
         let height = cigHeight
-        let mineWidth = height * mine.widthPercentage
 
-        // Exactly how ContentView puts it together: your own cigarette in
-        // its frame, with everybody else in an overlay on top of it. The
-        // structure is the point - a bare ForEach straight into .overlay
-        // behaves differently from one inside a ZStack, and this harness is
-        // worthless if it quietly builds the more forgiving of the two.
         return DistantCigaretteView(design: mine, progress: yourProgress, height: height)
             .frame(width: cigWidth, height: height)
             .overlay {
-                ForEach(companions, id: \.name) { companion in
-                    let side: CGFloat = companion.side == .left ? -1 : 1
-                    let theirs = height * companion.design.widthPercentage
-                    let rest = mineWidth / 2 + 52 + theirs / 2
-                    CompanionCigaretteView(
-                        companion: companion,
-                        height: height,
-                        mirrored: side < 0,
-                        restingOffset: rest,
-                        arrived: true
-                    )
-                    .offset(x: side * rest, y: 0)
-                }
+                BesideYouView(
+                    people: companions.map { standing($0) },
+                    mine: mine,
+                    height: height,
+                    yourProgress: yourProgress,
+                    courtyard: screen,
+                    settled: true
+                )
             }
+            .frame(width: screen.width, height: screen.height)
+            .coordinateSpace(name: Courtyard.space)
+    }
+
+    /// Somebody already standing there, at the spot they came from.
+    private func standing(_ companion: Companion) -> Visitor {
+        let spot = Courtyard.position(for: companion.name)
+        return Visitor(companion: companion,
+                       from: CGPoint(x: spot.x, y: spot.y),
+                       depth: spot.depth,
+                       handoff: nil)
     }
 
     func testRenderNobodyOneAndTwo() throws {
@@ -954,8 +959,14 @@ final class LiveViewTests: XCTestCase {
         window.layoutIfNeeded()
     }
 
+    /// A photograph of the window as it is this instant.
+    ///
+    /// Writing the PNG is optional, and filming leaves it out: measuring one
+    /// frame costs about a second in a debug build, which is slower than the
+    /// thing being filmed. So a film captures first and measures afterwards,
+    /// and only the frames worth looking at are written out.
     @discardableResult
-    private func frame(_ name: String) throws -> UIImage {
+    private func frame(_ name: String? = nil) throws -> UIImage {
         // drawHierarchy needs a real screen update and comes back black in a
         // test bundle. Rendering the layer tree works headless, and the
         // presentation layer is what is actually on screen this instant -
@@ -967,12 +978,22 @@ final class LiveViewTests: XCTestCase {
         window.layoutIfNeeded()
         RunLoop.current.run(until: Date().addingTimeInterval(0.05))
 
-        let renderer = UIGraphicsImageRenderer(bounds: window.bounds)
+        // One pixel per point. At the device's own scale a phone-sized
+        // window costs about a second to render and another to measure,
+        // which is slower than the animation being filmed - and nothing
+        // here is looking at a pixel.
+        let format = UIGraphicsImageRendererFormat()
+        format.scale = 1
+        let renderer = UIGraphicsImageRenderer(bounds: window.bounds, format: format)
         let image = renderer.image { ctx in
             window.layer.render(in: ctx.cgContext)
         }
-        try XCTUnwrap(image.pngData()).write(to: out.appendingPathComponent("\(name).png"))
+        if let name = name { try save(image, name) }
         return image
+    }
+
+    private func save(_ image: UIImage, _ name: String) throws {
+        try XCTUnwrap(image.pngData()).write(to: out.appendingPathComponent("\(name).png"))
     }
 
     /// Roughly how much of the frame is not black, per vertical third of the
@@ -999,6 +1020,53 @@ final class LiveViewTests: XCTestCase {
         }
         let n = Double((h / 4) * (w / 4)) / 3
         return (sums[0] / n, sums[1] / n, sums[2] / n)
+    }
+
+    private func pixels(_ image: UIImage) -> (bytes: [UInt8], w: Int, h: Int)? {
+        guard let cg = image.cgImage else { return nil }
+        let w = cg.width, h = cg.height
+        var bytes = [UInt8](repeating: 0, count: w * h * 4)
+        let ctx = CGContext(data: &bytes, width: w, height: h, bitsPerComponent: 8,
+                            bytesPerRow: w * 4, space: CGColorSpaceCreateDeviceRGB(),
+                            bitmapInfo: CGImageAlphaInfo.premultipliedLast.rawValue)
+        ctx?.draw(cg, in: CGRect(x: 0, y: 0, width: w, height: h))
+        return (bytes, w, h)
+    }
+
+    /// Where the visitor is, and how much of them there is, worked out by
+    /// taking away the frame with nobody in it.
+    ///
+    /// Your own cigarette sits in the middle of the screen and outweighs
+    /// everybody, so it has to be subtracted rather than worked around. What
+    /// is left is one person, and following them frame by frame is the only
+    /// way to tell a walk from a jump.
+    private func whereabouts(_ image: UIImage,
+                             without baseline: UIImage) -> Whereabouts {
+
+        guard let now = pixels(image), let was = pixels(baseline),
+              now.w == was.w, now.h == was.h else { return Whereabouts() }
+
+        var light = 0.0, sumX = 0.0, sumY = 0.0
+        var reach = 1.0
+
+        for y in stride(from: 0, to: now.h, by: 2) {
+            for x in stride(from: 0, to: now.w, by: 2) {
+                let i = (y * now.w + x) * 4
+                let a = (Double(now.bytes[i]) + Double(now.bytes[i + 1]) + Double(now.bytes[i + 2])) / 765
+                let b = (Double(was.bytes[i]) + Double(was.bytes[i + 1]) + Double(was.bytes[i + 2])) / 765
+                let d = max(0, a - b)
+                guard d > 0.02 else { continue }
+                light += d
+                let fx = Double(x) / Double(now.w)
+                sumX += d * fx
+                sumY += d * Double(y) / Double(now.h)
+                reach = min(reach, fx)
+            }
+        }
+
+        guard light > 0 else { return Whereabouts() }
+        let n = Double((now.h / 2) * (now.w / 2))
+        return Whereabouts(x: sumX / light, y: sumY / light, reach: reach, light: light / n)
     }
 
     // MARK: The experiment
@@ -1048,7 +1116,7 @@ final class LiveViewTests: XCTestCase {
         let stage = Stage()
         let size = CGSize(width: 402, height: 874)
 
-        show(CompanionStageView(stage: stage, size: size, arrival: .fromYourTip), size: size)
+        show(CompanionStageView(stage: stage, size: size), size: size)
         try await settle(0.3)
 
         stage.company = stage.company.standing(with: stage.someone("Brass Kestrel"), since: .now)
@@ -1068,6 +1136,158 @@ final class LiveViewTests: XCTestCase {
         XCTAssertGreaterThan(max(movedLeft, movedRight), 0.004,
                              "they arrived without moving - the walk was swallowed again")
         XCTAssertGreaterThan(max(late.left, late.right), 0.01, "nobody is standing there")
+    }
+
+    /// The reported fault, filmed frame by frame.
+    ///
+    /// "After the lighting animation the cigarette disappears for a fraction
+    /// of a second, and zooms in from background next to me." A fraction of
+    /// a second is invisible to a test that photographs the beginning and
+    /// the end, which is how the old ones passed while the thing was plainly
+    /// broken. So this follows one person across the whole walk and asks two
+    /// questions of every frame: are they there, and where are they.
+    ///
+    /// At about four frames a second it cannot prove the motion is smooth.
+    /// What it can prove is that there is motion at all: that the journey
+    /// has a middle. Somebody walking over is caught part of the way there,
+    /// part grown, part of the way back out - and a view handing over to a
+    /// different view has none of those frames, because there is nothing
+    /// between its last position and the next view's first one.
+    func testTheWalkOverNeverBlinks() async throws {
+
+        let journey = Journey()
+        let size = CGSize(width: 402, height: 874)
+
+        show(JourneyStageView(journey: journey, size: size), size: size)
+        try await settle(0.3)
+
+        // Your own cigarette, alone. Everything after this is measured
+        // against it, so what is being measured is the visitor.
+        let alone = try frame("walk-00-alone")
+
+        var theirs = CigDesign()
+        theirs.title = "Quiet Sparrow"
+        theirs.body = Color(red: 0.93, green: 0.94, blue: 0.96)
+        theirs.filter = Color(red: 0.88, green: 0.82, blue: 0.62)
+        theirs.glow = Color(red: 1, green: 0.38, blue: 0.06)
+        theirs.background = Color(red: 0.26, green: 0.52, blue: 0.86)
+
+        let ask = BreakAsk.opening(uid: "a-stranger", design: theirs)
+        var companion = Companion(lit: ask, at: .now)
+        companion.side = .right
+
+        let beats = Beats()
+
+        // Over on the right and well up the screen, so that coming in to
+        // your tip and going back out again are three different places
+        // rather than three numbers within noise of each other.
+        journey.people = [Visitor(
+            companion: companion,
+            from: CGPoint(x: 0.88, y: 0.26),
+            depth: 0.6,
+            handoff: Visitor.Handoff(
+                theirsCatches: true,
+                onContact: { beats.contacted = true },
+                onSettled: { beats.settled = true }
+            )
+        )]
+
+        // Timed rather than assumed, and captured before it is measured:
+        // working out where somebody is costs about a second a frame here,
+        // which is slower than the journey it is trying to film.
+        let began = Date.now
+        var shots: [(at: Double, image: UIImage)] = []
+        for _ in 1...40 {
+            shots.append((Date.now.timeIntervalSince(began), try frame()))
+            try await settle(0.05)
+        }
+
+        var film: [Whereabouts] = shots.map { shot in
+            var where_ = whereabouts(shot.image, without: alone)
+            where_.at = shot.at
+            return where_
+        }
+        film.sort { $0.at < $1.at }
+
+        for shot in film {
+            print(String(format: "  %.2fs  x%.3f y%.3f  reach %.3f  %.4f",
+                         shot.at, shot.x, shot.y, shot.reach, shot.light))
+        }
+
+        XCTAssertTrue(beats.contacted, "the tips never touched")
+        XCTAssertTrue(beats.settled, "they never straightened up")
+
+        // Not a threshold on how bright they are - a threshold on whether
+        // they exist. A view swapped for another one reads as zero here, and
+        // zero at any point in the walk is the bug that was reported.
+        let dimmest = film.map(\.light).min() ?? 0
+        print(String(format: "  dimmest %.4f", dimmest))
+        XCTAssertGreaterThan(dimmest, 0.0004,
+                             "they went missing partway over - something is still being swapped")
+
+        // The shape of the journey.
+        //
+        // Not the centroid: leaning in tips them 38 degrees about their own
+        // lit end, so the tip is on your cigarette while the body trails
+        // away out on their side, and the middle of them barely moves. What
+        // moves is the end that matters, so this follows how far across they
+        // reach rather than where their average pixel is.
+        let first = film.first!, last = film.last!
+        let nearest = film.min(by: { $0.reach < $1.reach })!
+
+        print(String(format: "  set off x%.3f y%.3f, reached in to %.3f at %.2fs, stands at x%.3f y%.3f",
+                     first.x, first.y, nearest.reach, nearest.at, last.x, last.y))
+
+        XCTAssertGreaterThan(first.x, 0.78, "they did not set off from the courtyard")
+        XCTAssertLessThan(nearest.reach, 0.55, "they never reached your cigarette")
+        XCTAssertGreaterThan(last.reach, 0.60, "they ended up overlapping your own cigarette")
+        XCTAssertGreaterThan(nearest.at, 0, "nothing was filmed")
+        XCTAssertLessThan(nearest.at, last.at, "they never came back out again")
+
+        // Out there they are small and dim; here they are a cigarette the
+        // size of your own. Both ends of that have to be true, or they
+        // arrived without ever having been out there.
+        XCTAssertLessThan(first.light * 3, last.light, "they never grew as they came over")
+
+        // And they come down from the back of the courtyard to your own
+        // height, because standing beside somebody is the point of going.
+        XCTAssertLessThan(first.y + 0.05, last.y, "they stayed up at the back")
+
+        // The middle of the journey, which is the whole question.
+        //
+        // Coming in, how far they reach across says where they are. Going
+        // back out it does not - what reaches furthest then is the pool of
+        // light at the meeting point, and that is going out - so the way
+        // back is measured by how much of them there is, growing from a
+        // cigarette at the back of the courtyard to one the size of yours.
+        let span = first.reach - nearest.reach
+        let walkingIn = film.filter {
+            $0.at < nearest.at
+                && $0.reach < first.reach - span * 0.15
+                && $0.reach > nearest.reach + span * 0.15
+        }
+
+        let grew = last.light - nearest.light
+        let steppingBack = film.filter {
+            $0.at > nearest.at
+                && $0.light > nearest.light + grew * 0.2
+                && $0.light < last.light - grew * 0.2
+        }
+
+        print("  caught part way in: \(walkingIn.count), part way back out: \(steppingBack.count)")
+
+        XCTAssertGreaterThanOrEqual(walkingIn.count, 2,
+                                    "they reached your cigarette without crossing the gap")
+        XCTAssertGreaterThanOrEqual(steppingBack.count, 1,
+                                    "they appeared beside you rather than moving there")
+
+        // The three frames worth looking at, now that there is something to
+        // choose them by.
+        if let i = film.firstIndex(where: { $0.at == nearest.at }) {
+            try save(shots[i].image, "walk-leaning")
+        }
+        try save(shots[0].image, "walk-away")
+        try save(shots[shots.count - 1].image, "walk-standing")
     }
 
     /// The last gap: the real repository driving the real view.
@@ -1161,7 +1381,6 @@ struct CompanionStageView: View {
 
     @ObservedObject var stage: Stage
     let size: CGSize
-    var arrival: CompanionArrival = .fromTheDark
 
     var body: some View {
 
@@ -1173,21 +1392,59 @@ struct CompanionStageView: View {
         return DistantCigaretteView(design: mine, progress: 0.3, height: height)
             .frame(width: width, height: height)
             .overlay {
-                ForEach(stage.company.companions, id: \.name) { companion in
-                    let side: CGFloat = companion.side == .left ? -1 : 1
-                    let theirs = height * companion.design.widthPercentage
-                    let rest = height * mine.widthPercentage / 2 + 52 + theirs / 2
-                    CompanionCigaretteView(
-                        companion: companion,
-                        height: height,
-                        mirrored: side < 0,
-                        arrival: arrival,
-                        restingOffset: rest
-                    )
-                    .offset(x: side * rest, y: 0)
-                }
+                BesideYouView(
+                    people: stage.company.companions.map { companion in
+                        let spot = Courtyard.position(for: companion.name)
+                        return Visitor(companion: companion,
+                                       from: CGPoint(x: spot.x, y: spot.y),
+                                       depth: spot.depth,
+                                       handoff: nil)
+                    },
+                    mine: mine,
+                    height: height,
+                    yourProgress: 0.3,
+                    courtyard: size
+                )
             }
             .frame(width: size.width, height: size.height)
+            .coordinateSpace(name: Courtyard.space)
+    }
+}
+
+/// A list of visitors the harness can change while the view is on screen,
+/// handoff and all. The one thing `Stage` cannot do: a companion standing
+/// there is the end of the journey, and the journey is what broke.
+@MainActor
+final class Journey: ObservableObject {
+    @Published var people: [Visitor] = []
+}
+
+/// ContentView's cigarette frame, with whoever is walking over.
+struct JourneyStageView: View {
+
+    @ObservedObject var journey: Journey
+    let size: CGSize
+
+    var body: some View {
+
+        let height = size.height * 0.7
+        let width = size.width * 0.2
+        var mine = CigDesign()
+        let _ = { mine.title = "Sunlit Parchment" }()
+
+        return DistantCigaretteView(design: mine, progress: 0.3, height: height)
+            .frame(width: width, height: height)
+            .overlay {
+                BesideYouView(
+                    people: journey.people,
+                    mine: mine,
+                    height: height,
+                    yourProgress: 0.3,
+                    courtyard: size
+                )
+            }
+            .frame(width: size.width, height: size.height)
+            .coordinateSpace(name: Courtyard.space)
     }
 }
 
@@ -1207,21 +1464,38 @@ struct CourtyardStageView: View {
         return DistantCigaretteView(design: mine, progress: 0.3, height: height)
             .frame(width: width, height: height)
             .overlay {
-                ForEach(presence.company.companions, id: \.name) { companion in
-                    let side: CGFloat = companion.side == .left ? -1 : 1
-                    let theirs = height * companion.design.widthPercentage
-                    let rest = height * mine.widthPercentage / 2 + 52 + theirs / 2
-                    CompanionCigaretteView(
-                        companion: companion,
-                        height: height,
-                        mirrored: side < 0,
-                        arrival: companion.metAtYourTip(whenYouLitAt: presence.company.litAt ?? .now)
-                            ? .fromYourTip : .fromTheDark,
-                        restingOffset: rest
-                    )
-                    .offset(x: side * rest, y: 0)
-                }
+                BesideYouView(
+                    people: presence.company.companions.map { companion in
+                        let spot = Courtyard.position(for: companion.name)
+                        return Visitor(companion: companion,
+                                       from: CGPoint(x: spot.x, y: spot.y),
+                                       depth: spot.depth,
+                                       handoff: nil)
+                    },
+                    mine: mine,
+                    height: height,
+                    yourProgress: 0.3,
+                    courtyard: size
+                )
             }
             .frame(width: size.width, height: size.height)
+            .coordinateSpace(name: Courtyard.space)
     }
+}
+
+/// One frame of the film: where the visitor was, how much of them there was,
+/// and how far across the screen their lit end reached.
+struct Whereabouts {
+    var x: Double = 0
+    var y: Double = 0
+    var reach: Double = 0
+    var light: Double = 0
+    var at: Double = 0
+}
+
+/// Whether the two moments in a handoff actually happened. A box, because
+/// the callbacks that set them outlive the line that made them.
+final class Beats {
+    var contacted = false
+    var settled = false
 }

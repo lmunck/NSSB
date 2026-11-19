@@ -38,6 +38,14 @@ struct CourtyardView: View {
     /// against so the courtyard scales with the screen.
     let referenceHeight: CGFloat
     
+    /// Which sides of you are already taken.
+    ///
+    /// The courtyard's two columns and the two places somebody can stand
+    /// beside you are the same two columns, so an unlit cigarette asking for
+    /// a light was landing directly behind a companion about half the time -
+    /// and something you have to aim at cannot be behind something else.
+    let taken: Set<CompanionSide>
+    
     /// Ticks so the distant cigarettes burn down rather than freezing at the
     /// position they had when the snapshot arrived.
     @State private var now: Date = .now
@@ -61,7 +69,7 @@ struct CourtyardView: View {
                 
                 ForEach(echoes) { ember in
                     
-                    let spot = Courtyard.position(for: ember.id)
+                    let spot = Courtyard.position(for: ember.name)
                     
                     DistantCigaretteView(
                         design: ember.design,
@@ -76,9 +84,9 @@ struct CourtyardView: View {
                     .allowsHitTesting(false)
                 }
                 
-                ForEach(others) { other in
+                ForEach(crowd) { other in
                     
-                    let spot = Courtyard.position(for: other.id)
+                    let spot = Courtyard.position(for: other.name)
                     let height = referenceHeight * (0.17 + spot.depth * 0.25)
                     
                     DistantCigaretteView(
@@ -109,7 +117,7 @@ struct CourtyardView: View {
                 // delete the document would otherwise stand there forever.
                 ForEach(waits.filter { $0.isOpen(at: now) }) { wait in
                     
-                    let spot = Courtyard.position(for: wait.id)
+                    let spot = Courtyard.position(for: wait.name, avoiding: taken)
                     
                     WaitingCigaretteView(
                         wait: wait,
@@ -130,7 +138,7 @@ struct CourtyardView: View {
                 // within a tick of its eight seconds either way.
                 ForEach(asks.filter { $0.isOpen(at: now) }) { ask in
                     
-                    let spot = Courtyard.position(for: ask.id)
+                    let spot = Courtyard.position(for: ask.name, avoiding: taken)
                     
                     AskingCigaretteView(
                         ask: ask,
@@ -144,12 +152,28 @@ struct CourtyardView: View {
                     .transition(.opacity)
                 }
             }
+            .animation(.easeInOut(duration: 0.5), value: taken)
             .animation(.easeInOut(duration: 0.6), value: others.map(\.id))
             .animation(.easeInOut(duration: 0.4), value: asks.map(\.id))
             .animation(.easeInOut(duration: 0.5), value: waits.map(\.id))
         }
         .allowsHitTesting(true)
         .onReceive(clock) { now = $0 }
+    }
+    
+    /// Enough lit cigarettes to read as a courtyard, few enough to stay one.
+    ///
+    /// There is no number on screen any more saying how many people are out
+    /// here - the cigarettes are the number, and a count was telling you in
+    /// words what you could already see. Which means this view is now the
+    /// only thing standing between a busy night and a wall of cigarettes, so
+    /// it keeps the nearest handful and lets the rest be dark.
+    private var crowd: [BreakPresence] {
+        guard others.count > Courtyard.crowd else { return others }
+        return others
+            .sorted { Courtyard.position(for: $0.name).depth > Courtyard.position(for: $1.name).depth }
+            .prefix(Courtyard.crowd)
+            .map { $0 }
     }
 }
 
@@ -275,6 +299,15 @@ struct WaitingCigaretteView: View {
 /// must not make the whole courtyard rearrange itself.
 enum Courtyard {
     
+    /// The screen the courtyard is drawn across, named so that somebody
+    /// walking out of it can work out where they were standing. Your own
+    /// cigarette's overlay is somewhere in the middle of this and has no
+    /// other way to know it.
+    static let space = "courtyard"
+    
+    /// How many lit strangers to draw at once.
+    static let crowd = 14
+    
     static func position(for id: String) -> (x: Double, y: Double, depth: Double) {
         
         var hash: UInt64 = 5381
@@ -301,6 +334,33 @@ enum Courtyard {
         let y = 0.12 + slice(16) * 0.5 + (1 - depth) * 0.12
         
         return (x, y, depth)
+    }
+    
+    /// The same spot, kept clear of whoever is already standing beside you.
+    ///
+    /// If their own side is taken they come out on the other one. If both are
+    /// taken they come out at the very edge, where the only thing behind them
+    /// is the dark. Nobody is ever drawn behind somebody else, which for an
+    /// unlit cigarette that has eight seconds to be noticed and tapped is not
+    /// a nicety.
+    static func position(for id: String,
+                         avoiding taken: Set<CompanionSide>) -> (x: Double, y: Double, depth: Double) {
+        
+        var spot = position(for: id)
+        guard taken.isEmpty == false else { return spot }
+        
+        let side: CompanionSide = spot.x < 0.5 ? .left : .right
+        guard taken.contains(side) else { return spot }
+        
+        guard taken.contains(side.opposite) else {
+            // Mirrored rather than nudged, so they land in the other column
+            // at the same distance out - the courtyard keeps its shape.
+            spot.x = 1 - spot.x
+            return spot
+        }
+        
+        spot.x = side == .left ? 0.035 : 0.965
+        return spot
     }
 }
 

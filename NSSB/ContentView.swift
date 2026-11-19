@@ -64,14 +64,16 @@ struct ContentView: View {
                 // unless a break is running, because the listener is only
                 // attached for the length of a cigarette.
                 CourtyardView(
-                    others: presence.courtyard,
-                    echoes: presence.echoes,
-                    // Whoever you are in the middle of lighting is not
-                    // standing out there any more - they are over here, in
-                    // the handoff, and drawing them twice would break it.
+                    // Whoever is over here beside you is not standing out
+                    // there as well. They were drawn in both places at
+                    // once: their lit cigarette kept its spot in the
+                    // courtyard while a copy of it came over and stayed.
+                    others: presence.courtyard.filter { nearby.contains($0.name) == false },
+                    echoes: presence.echoes.filter { nearby.contains($0.name) == false },
                     asks: presence.offers.filter { $0.id != presence.giving?.id },
                     waits: presence.waiting,
                     referenceHeight: cigHeight,
+                    taken: taken,
                     selected: $selectedOther,
                     offer: { asking in Task { await presence.offerLight(to: asking) } },
                     join: waitWith
@@ -108,24 +110,24 @@ struct ContentView: View {
                         //.offset(x: viewOffset, y: 0)
                         .ignoresSafeArea(.keyboard)
                         
-                        // Whoever is out here with you, standing next to
-                        // your own cigarette. Drawn in the same frame and at
-                        // the same height, because they are not across the
-                        // courtyard - they are here.
+                        // Whoever is out here with you: the one walking
+                        // over right now and the ones already standing,
+                        // in one overlay because they are one list of
+                        // people. There used to be two - a handoff drawn
+                        // over the top of a separate companion - and the
+                        // moment one handed over to the other was the
+                        // moment the cigarette blinked out and jumped.
                         .overlay {
-                            companion(height: cigHeight, width: cigWidth)
-                                .opacity(cigOpacity)
+                            BesideYouView(
+                                people: people,
+                                mine: model.data.cigDesign,
+                                height: cigHeight,
+                                yourProgress: ownProgress,
+                                courtyard: geo.size
+                            )
+                            .opacity(cigOpacity)
                         }
                         
-                        // The handoff goes over the top of them. Somebody
-                        // being lit right now is the thing happening, and it
-                        // was drawing underneath a companion who had been
-                        // standing there for minutes.
-                        .overlay {
-                            handoff(height: cigHeight, width: cigWidth)
-                                .opacity(cigOpacity)
-                        }
-                           
                         
                         SettingsView(menu: $menu, data: $model.data)
                             .opacity(settingsOpacity)
@@ -137,10 +139,13 @@ struct ContentView: View {
                     }
                     .frame(width: geo.size.width)
                     
-                    // Who else is out here. Fades with the cigarette, so it
-                    // stays out of the way while a panel is open.
-                    CourtyardCountView()
-                        .opacity(cigOpacity)
+                    // There was a line here saying how many other people
+                    // were out. It is gone, and so is the number: when
+                    // nobody was there it said so, which is telling
+                    // somebody there is nothing to tell them, and when
+                    // somebody was there it put a figure under a courtyard
+                    // you could already see. The lit cigarettes behind your
+                    // own are the count.
                     
                     // The two things you can do before lighting up, in one
                     // row: ask somebody already out there for a light, or
@@ -194,6 +199,11 @@ struct ContentView: View {
                 // a card that asks whether you meant it is a click charged
                 // for nothing, and these gestures are meant to cost nothing.
             }
+            // Named so that somebody walking out of the courtyard and over
+            // to your hand can work out where they were standing. The two
+            // live in different frames, and the walk between them is the
+            // whole feature.
+            .coordinateSpace(name: Courtyard.space)
             .foregroundColor(Color.foregroundInactive)
             .onChange(of: presence.courtyard) { current in
                 // Their cigarette went out, so the card goes with it.
@@ -283,119 +293,101 @@ extension ContentView {
         Task { await presence.waitWith(other, design: design) }
     }
     
-    /// Whoever is out here with you, standing beside your own cigarette.
+    /// Which sides of you are already taken.
     ///
-    /// Two people who lit together burn at the same position and go out on
-    /// the same second, with nothing to keep in sync and nothing to ask the
-    /// network for - they were lit at one instant. Somebody who stopped to
-    /// light you was already burning, so theirs runs ahead of yours and goes
-    /// out first, and the view draws that from their own ignition instant
-    /// rather than borrowing yours.
-    @ViewBuilder
-    private func companion(height: CGFloat, width: CGFloat) -> some View {
+    /// Read by the courtyard as well as by the overlay, so the two agree
+    /// about where somebody is standing - which is what lets a walk start
+    /// exactly where the courtyard drew them.
+    private var taken: Set<CompanionSide> {
+        Set(presence.company.companions.map(\.side))
+    }
+    
+    /// Whoever is over here beside you rather than out in the courtyard.
+    private var nearby: Set<String> {
+        Set(people.map(\.id))
+    }
+    
+    /// Everybody who is out here with you: the one walking over right now,
+    /// and the ones already standing there.
+    ///
+    /// One list, keyed by name, and that is the whole of the fix to an
+    /// animation that used to be three. A handoff and a companion were two
+    /// different views of the same person, so when the first finished and
+    /// the second appeared, SwiftUI was quite correctly told that one
+    /// cigarette had left and a different one had arrived - and drew exactly
+    /// that. Here the person stays the same person; only their `handoff`
+    /// goes nil, and the view that is already on screen carries on moving.
+    private var people: [Visitor] {
+        
+        var out: [Visitor] = []
+        
+        if case .lit(let giver) = presence.ask {
+            
+            // Somebody is lighting you. Your cigarette is still unlit, so
+            // the tip that catches is your own.
+            var companion = Companion(giver: giver, metAt: .now)
+            companion.side = presence.company.sideFor(giver.name)
+            
+            out.append(visitor(companion, handoff: Visitor.Handoff(
+                theirsCatches: false,
+                onContact: {
+                    litByStranger = .now
+                    knock()
+                    model.tellWatchYouWereLit()
+                },
+                onSettled: { presence.handoffFinished() }
+            )))
+            
+        } else if let asking = presence.giving {
+            
+            // You are lighting somebody. Your own tip has burned down to
+            // wherever it has, and that is where they lean in to.
+            var companion = Companion(lit: asking, at: .now)
+            companion.side = presence.company.sideFor(asking.name)
+            
+            out.append(visitor(companion, handoff: Visitor.Handoff(
+                theirsCatches: true,
+                onContact: { knock() },
+                onSettled: { presence.offerFinished() }
+            )))
+        }
         
         // Up to two, one on each side. Whoever got here first kept the side
         // they would have been standing on in the courtyard; the second took
         // what was left. Neither moves when the other finishes.
-        ForEach(presence.company.companions, id: \.name) { companion in
-
-            let side: CGFloat = companion.side == .left ? -1 : 1
-
-            // Measured from the two cigarettes rather than from the layout
-            // frame, and clear of what already hangs beside your own: the
-            // share button to the right of it, the title to the left. The
-            // old offset was a fraction of the frame width and stood them
-            // straight through the share button.
-            let mine = height * model.data.cigDesign.widthPercentage
-            let theirs = height * companion.design.widthPercentage
-
-            let rest = mine / 2 + 52 + theirs / 2
-
-            CompanionCigaretteView(
-                companion: companion,
-                height: height,
-                mirrored: side < 0,
-                arrival: companion.metAtYourTip(whenYouLitAt: presence.company.litAt ?? .now)
-                    ? .fromYourTip : .fromTheDark,
-                restingOffset: rest
-            )
-            .offset(x: side * rest, y: 0)
-            // No transition here: the view walks itself in, and a crossfade
-            // laid over that read as a second, competing arrival.
-            .allowsHitTesting(false)
+        for companion in presence.company.companions
+        where out.contains(where: { $0.id == companion.name }) == false {
+            out.append(visitor(companion, handoff: nil))
         }
+        
+        // One order, always, so nobody is torn down and rebuilt for having
+        // moved along the list.
+        return out.sorted { $0.id < $1.id }
+    }
+    
+    /// Somebody, and the spot in the courtyard they came from.
+    ///
+    /// Their own side is left out of what they are avoiding, because the
+    /// only thing they would be dodging there is themselves.
+    private func visitor(_ companion: Companion, handoff: Visitor.Handoff?) -> Visitor {
+        
+        let spot = Courtyard.position(
+            for: companion.name,
+            avoiding: taken.subtracting([companion.side])
+        )
+        
+        return Visitor(
+            companion: companion,
+            from: CGPoint(x: spot.x, y: spot.y),
+            depth: spot.depth,
+            handoff: handoff
+        )
     }
     
     /// Your own burn position, without ExtDate's debug print on every frame.
     private var ownProgress: Double {
         guard let startedAt = model.data.breakStarted else { return 0 }
         return min(max(startedAt.elapsedTime / Date.breakLength, 0), 1)
-    }
-    
-    /// Whichever side of the handoff this device is on, if either.
-    ///
-    /// Both sides see the same thing from opposite ends: somebody comes over,
-    /// the tips touch, a cigarette catches. Receiving it, the visitor is the
-    /// stranger and the tip that catches is your own. Giving it, the visitor
-    /// is the stranger and the tip that catches is theirs.
-    @ViewBuilder
-    private func handoff(height: CGFloat, width: CGFloat) -> some View {
-        
-        if case .lit(let giver) = presence.ask {
-            
-            // Somebody is lighting you. Your cigarette is still unlit, so the
-            // meeting point is its very tip.
-            //
-            // They come in from the side they will end up standing on, so
-            // the walk over and the place they stop agree.
-            let spot = Courtyard.position(for: giver.name)
-            let side = presence.company.sideFor(giver.name)
-            
-            HandoffView(
-                visitor: giver.design,
-                visitorProgress: giver.progress,
-                meeting: CGPoint(x: width / 2, y: 0),
-                fromLeft: side == .left,
-                depth: spot.depth,
-                referenceHeight: height,
-                referenceWidth: height * giver.design.widthPercentage,
-                flame: giver.design.glow,
-                onContact: {
-                    litByStranger = .now
-                    knock()
-                    model.tellWatchYouWereLit()
-                },
-                onFinished: { presence.handoffFinished() }
-            )
-            
-        } else if let asking = presence.giving {
-            
-            // You are lighting somebody. Your own tip has burned down to
-            // wherever it has, and that is where they lean in to.
-            // Their name, not the ask's id. The id is a uuid, so this used
-            // to pick a side with nothing to do with where they were about
-            // to stand - they would walk in from one side of you and then
-            // cross to the other, or land on top of somebody already there.
-            let spot = Courtyard.position(for: asking.name)
-            let side = presence.company.sideFor(asking.name)
-            let design = model.data.cigDesign
-            
-            HandoffView(
-                visitor: asking.design,
-                visitorProgress: nil,
-                meeting: CGPoint(
-                    x: width / 2,
-                    y: design.tipOffset(height: height, progress: ownProgress)
-                ),
-                fromLeft: side == .left,
-                depth: spot.depth,
-                referenceHeight: height,
-                referenceWidth: height * design.widthPercentage,
-                flame: design.glow,
-                onContact: { knock() },
-                onFinished: { presence.offerFinished() }
-            )
-        }
     }
     
     /// The click of a lighter. Soft, once, at the moment of contact.

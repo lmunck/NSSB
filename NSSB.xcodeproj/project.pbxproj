@@ -7,7 +7,7 @@
 	objects = {
 
 /* Begin PBXBuildFile section */
-		C0117A00000000000000000D /* HandoffView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000C /* HandoffView.swift */; };
+		C0117A00000000000000000D /* BesideYouView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000C /* BesideYouView.swift */; };
 		C0117A00000000000000000B /* AskForALightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000A /* AskForALightView.swift */; };
 		DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA17000000000000000A /* WaitForCompanyView.swift */; };
 		DA17WA1T000000000000000B /* BreakWait.swift in Sources */ = {isa = PBXBuildFile; fileRef = DA17WA1T000000000000000A /* BreakWait.swift */; };
@@ -67,7 +67,6 @@
 		68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CBC284E6DC400607600 /* ReminderRepository.swift */; };
 		C0117A000000000000000004 /* CourtyardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A000000000000000003 /* CourtyardView.swift */; };
 		C0117A000000000000000002 /* DistantCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A000000000000000001 /* DistantCigaretteView.swift */; };
-		C0A17A000000000000000002 /* CourtyardCountView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0A17A000000000000000001 /* CourtyardCountView.swift */; };
 		68A14A59285207D500154D84 /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A58285207D500154D84 /* AppMenu.swift */; };
 		68A14A5A285207EA00154D84 /* AppMenu.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A58285207D500154D84 /* AppMenu.swift */; };
 		68A14A5D28520E1E00154D84 /* WCSessionPhone.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */; };
@@ -140,7 +139,7 @@
 /* End PBXCopyFilesBuildPhase section */
 
 /* Begin PBXFileReference section */
-		C0117A00000000000000000C /* HandoffView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = HandoffView.swift; sourceTree = "<group>"; };
+		C0117A00000000000000000C /* BesideYouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BesideYouView.swift; sourceTree = "<group>"; };
 		C0117A00000000000000000A /* AskForALightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskForALightView.swift; sourceTree = "<group>"; };
 		DA17WA17000000000000000A /* WaitForCompanyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WaitForCompanyView.swift; sourceTree = "<group>"; };
 		DA17WA1T000000000000000A /* BreakWait.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakWait.swift; sourceTree = "<group>"; };
@@ -187,7 +186,6 @@
 		68372CBC284E6DC400607600 /* ReminderRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ReminderRepository.swift; sourceTree = "<group>"; };
 		C0117A000000000000000003 /* CourtyardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardView.swift; sourceTree = "<group>"; };
 		C0117A000000000000000001 /* DistantCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistantCigaretteView.swift; sourceTree = "<group>"; };
-		C0A17A000000000000000001 /* CourtyardCountView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardCountView.swift; sourceTree = "<group>"; };
 		68A14A58285207D500154D84 /* AppMenu.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppMenu.swift; sourceTree = "<group>"; };
 		68A14A5C28520E1E00154D84 /* WCSessionPhone.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionPhone.swift; sourceTree = "<group>"; };
 		68A14A60285215BA00154D84 /* WCSessionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionWatch.swift; sourceTree = "<group>"; };
@@ -469,12 +467,11 @@
 		68D2FD1C2843656700529BB1 /* Views */ = {
 			isa = PBXGroup;
 			children = (
-				C0117A00000000000000000C /* HandoffView.swift */,
+				C0117A00000000000000000C /* BesideYouView.swift */,
 				C0117A00000000000000000A /* AskForALightView.swift */,
 				DA17WA17000000000000000A /* WaitForCompanyView.swift */,
 				C0117A000000000000000003 /* CourtyardView.swift */,
 				C0117A000000000000000001 /* DistantCigaretteView.swift */,
-				C0A17A000000000000000001 /* CourtyardCountView.swift */,
 				68D2FD1F2843659600529BB1 /* SettingsView.swift */,
 				68A14A79285CF5AC00154D84 /* SettingsSubviews */,
 				68EE927828474A7500E90BDB /* InfoView.swift */,
@@ -658,7 +655,7 @@
 			isa = PBXSourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
-				C0117A00000000000000000D /* HandoffView.swift in Sources */,
+				C0117A00000000000000000D /* BesideYouView.swift in Sources */,
 				C0117A00000000000000000B /* AskForALightView.swift in Sources */,
 				DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */,
 				DA17WA1T000000000000000B /* BreakWait.swift in Sources */,
@@ -674,7 +671,6 @@
 				68372CBD284E6DC400607600 /* ReminderRepository.swift in Sources */,
 				C0117A000000000000000004 /* CourtyardView.swift in Sources */,
 				C0117A000000000000000002 /* DistantCigaretteView.swift in Sources */,
-				C0A17A000000000000000002 /* CourtyardCountView.swift in Sources */,
 				CD0FACE00000000000000005 /* BreakPresence.swift in Sources */,
 				CD0FACE00000000000000006 /* PresenceService.swift in Sources */,
 				CD0FACE00000000000000007 /* FirestorePresenceService.swift in Sources */,

@@ -115,8 +115,13 @@ in `NSSBTests` close most of that gap. Neither replaces using the app.
 `ImageRenderer` draws a view once, with nothing running: no `onAppear`, no
 `task`, no timers. It answers "is it there, and where", and nothing about
 motion. Views that animate themselves into place therefore render in their
-starting position, which is why `CompanionCigaretteView` takes an `arrived`
-flag — the app never passes it, the harness does.
+starting position, which is why `BesideYouView` takes a `settled` flag — the
+app never passes it, the harness does.
+
+It draws through the app's own views rather than rebuilding the arrangement.
+An earlier version assembled the overlay by hand, which made the harness a
+second implementation of the thing it was meant to be checking, and a second
+implementation cannot catch a mistake in the first.
 
 ```
 xcodebuild test -scheme NSSB \
@@ -133,7 +138,8 @@ Puts the view in a real `UIWindow` with a real runloop, lets time pass, and
 photographs it. This is the only way to see an arrival actually arrive, or to
 catch something that appears correctly and then vanishes.
 
-Two things about it are easy to get wrong and cost an evening each:
+Four things about it are easy to get wrong, and the first two cost an evening
+each:
 
 - **Capture.** `drawHierarchy(in:afterScreenUpdates:)` comes back black in a
   test bundle. Render the layer tree instead.
@@ -141,10 +147,46 @@ Two things about it are easy to get wrong and cost an evening each:
   pass on its own here, and its overlay renders as nothing — which looks
   exactly like the bug you are hunting. Call `setNeedsLayout` and
   `layoutIfNeeded` on the root view before every frame.
+- **Frame rate.** Render at `scale = 1`. At the device's own scale a
+  phone-sized window costs about a second a frame, which is slower than the
+  animation being filmed, and a film at one frame a second cannot tell a walk
+  from a jump.
+- **Measure afterwards.** Working out where somebody is costs about another
+  second a frame in a debug build. Capture the whole film into `[UIImage]`
+  first and measure it once it is over, or the measuring sets the frame rate.
 
-The assertions are on how much of each vertical third of the frame is not
-black, so "somebody is on the left and somebody is on the right" fails the
-test rather than waiting for a person to notice a picture.
+With those, a film runs at roughly four frames a second — enough to catch a
+cigarette part of the way over, which is the only thing that distinguishes one
+view moving from one view being replaced by another.
+
+Two measures. `brightness` gives how much of each vertical third of the frame
+is not black, so "somebody is on the left and somebody is on the right" fails
+the test rather than waiting for a person to notice a picture. `whereabouts`
+subtracts the frame with nobody in it and reports where what is left sits, how
+far across it reaches, and how much of it there is — your own cigarette is in
+the middle of the screen and outweighs everybody, so it has to be taken away
+rather than worked around.
+
+### One view per person
+
+`testTheWalkOverNeverBlinks` exists because of a bug worth not having twice.
+Somebody coming over used to be drawn by three views in turn: a cigarette at a
+courtyard position, a handoff in a different coordinate space with a different
+renderer, and then a companion that appeared afterwards. Each handover was a
+frame with nobody in it followed by a cigarette of a different size in a
+different place, and from the outside that is three arrivals rather than one.
+
+So: one view per person, held by name, from the courtyard to the end of their
+cigarette (`Visitor` / `BesideYouView`). When a handoff ends, that person's
+`handoff` goes nil and nothing else about them changes, so SwiftUI keeps the
+same view and it carries on moving. `onSettled` is called as the last movement
+*begins* rather than after it, so the state behind the view can catch up
+without interrupting anything.
+
+Animations go on `.animation(_:value:)` rather than in `withAnimation`. A
+`withAnimation` that runs while SwiftUI is still settling a newly inserted view
+gets swallowed, and a swallowed arrival is indistinguishable from somebody who
+teleported — which is exactly how this was first reported.
 
 ### Writing the files out
 

@@ -12,6 +12,88 @@ import XCTest
 
 final class CourtyardTests: XCTestCase {
     
+    // MARK: Keeping out of the way of whoever is already with you
+    
+    /// The two places somebody can stand beside you and the courtyard's two
+    /// columns are the same two columns, so an unlit cigarette asking for a
+    /// light was coming out directly behind a companion about half the time.
+    /// Something you have to find and tap in eight seconds cannot be behind
+    /// something else.
+    
+    func testAnEmptyCourtyardChangesNobodysSpot() {
+        
+        for i in 0..<40 {
+            let name = "Paper Kestrel \(i)"
+            let plain = Courtyard.position(for: name)
+            let avoiding = Courtyard.position(for: name, avoiding: [])
+            
+            XCTAssertEqual(plain.x, avoiding.x)
+            XCTAssertEqual(plain.y, avoiding.y)
+            XCTAssertEqual(plain.depth, avoiding.depth)
+        }
+    }
+    
+    func testSomebodyComesOutOnTheFreeSide() {
+        
+        for i in 0..<40 {
+            
+            let name = "Quiet Sparrow \(i)"
+            let natural = Courtyard.position(for: name)
+            let side: CompanionSide = natural.x < 0.5 ? .left : .right
+            
+            let moved = Courtyard.position(for: name, avoiding: [side])
+            XCTAssertEqual(moved.x > 0.5, side == .left,
+                           "\(name) stayed on a side that was taken")
+            
+            let stayed = Courtyard.position(for: name, avoiding: [side.opposite])
+            XCTAssertEqual(stayed.x, natural.x,
+                           "\(name) moved out of a column nobody was standing in")
+        }
+    }
+    
+    func testWithBothSidesTakenTheyComeOutAtTheEdge() {
+        
+        for i in 0..<40 {
+            
+            let name = "Brass Kestrel \(i)"
+            let edge = Courtyard.position(for: name, avoiding: [.left, .right])
+            
+            // Outside both columns, which start at 0.06 and end at 0.94.
+            XCTAssertTrue(edge.x < 0.06 || edge.x > 0.94,
+                          "\(name) came out at \(edge.x), still in front of somebody")
+            XCTAssertTrue(edge.x > 0 && edge.x < 1, "\(name) came out off the screen")
+        }
+    }
+    
+    /// Dodging must not become a second kind of randomness: the same person,
+    /// in the same courtyard, stands in the same place.
+    func testDodgingIsStillDeterministic() {
+        
+        let a = Courtyard.position(for: "Hollow Lantern", avoiding: [.left])
+        let b = Courtyard.position(for: "Hollow Lantern", avoiding: [.left])
+        
+        XCTAssertEqual(a.x, b.x)
+        XCTAssertEqual(a.y, b.y)
+        XCTAssertEqual(a.depth, b.depth)
+    }
+    
+    /// Which side of you somebody ends up on and which column they come out
+    /// of are two answers to one question, so they have to come from the
+    /// same place. They did not: the side was hashed from the name and the
+    /// spot from the document id, so somebody standing on your right walked
+    /// across you to stand on your left.
+    func testWhereTheyStandAndWhereTheyStoodAgree() {
+        
+        for i in 0..<40 {
+            let name = "Paper Kestrel \(i)"
+            let spot = Courtyard.position(for: name)
+            let side = Companion.naturalSide(for: name)
+            
+            XCTAssertEqual(side, spot.x < 0.5 ? .left : .right,
+                           "\(name) comes from one side and stands on the other")
+        }
+    }
+    
     func testAPositionIsStableForTheSameBreak() {
         let a = Courtyard.position(for: "break-abc")
         let b = Courtyard.position(for: "break-abc")
