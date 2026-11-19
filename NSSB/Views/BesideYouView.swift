@@ -48,7 +48,27 @@ struct Visitor: Identifiable {
     /// is simply standing there - including this same person, a moment later.
     let handoff: Handoff?
 
-    var id: String { companion.name }
+    /// Where they end up once the tips have touched.
+    var goes: Destination = .besideYou
+
+    /// The document they came from, not their name. Two people can be
+    /// called the same thing, and the same person coming back out certainly
+    /// is - and keying this on the name made them one entry, so the one
+    /// standing beside you was replaced by the one walking over.
+    var id: String { companion.id }
+
+    /// There are two places beside you, and that is all there are.
+    enum Destination: Equatable {
+
+        /// There is room, and they stay for the rest of their cigarette.
+        case besideYou
+
+        /// Both sides of you are taken, or theirs has almost burned away.
+        /// The light was still theirs to have - capping the company is
+        /// reasonable, capping that is not - so they take it and go back to
+        /// where the rest of the courtyard is standing.
+        case backOutside(CGPoint)
+    }
 
     /// The handoff, from whichever side of it you are on.
     ///
@@ -130,6 +150,7 @@ struct BesideYouView: View {
                         height: height,
                         mirrored: side < 0,
                         from: less(spot(visitor.from, from: here), centre),
+                        leaves: leaving(visitor).map { less(spot($0, from: here), centre) },
                         distant: height * (0.17 + visitor.depth * 0.25),
                         meeting: less(yourTip, centre),
                         settled: settled
@@ -141,6 +162,12 @@ struct BesideYouView: View {
             .frame(width: me.size.width, height: me.size.height)
         }
         .allowsHitTesting(false)
+    }
+
+    /// Where somebody with nowhere to stand goes back to, if they do.
+    private func leaving(_ visitor: Visitor) -> CGPoint? {
+        guard case .backOutside(let spot) = visitor.goes else { return nil }
+        return spot
     }
 
     /// A courtyard spot, as an offset from the centre of this overlay.
@@ -183,6 +210,10 @@ struct VisitorCigaretteView: View {
     /// Where their lit end starts, as an offset from where it comes to rest.
     let from: CGSize
 
+    /// Where they go once the tips have touched, when there is nowhere
+    /// beside you for them to stand. Nil when they are staying.
+    let leaves: CGSize?
+
     /// How tall they were out there.
     let distant: CGFloat
 
@@ -211,6 +242,7 @@ struct VisitorCigaretteView: View {
          height: CGFloat,
          mirrored: Bool = false,
          from: CGSize,
+         leaves: CGSize? = nil,
          distant: CGFloat,
          meeting: CGSize,
          settled: Bool = false) {
@@ -219,6 +251,7 @@ struct VisitorCigaretteView: View {
         self.height = height
         self.mirrored = mirrored
         self.from = from
+        self.leaves = leaves
         self.distant = distant
         self.meeting = meeting
         self.settled = settled
@@ -235,7 +268,7 @@ struct VisitorCigaretteView: View {
     /// Five beats and about two and a half seconds, which is slower than it
     /// needs to be to convey the information. That is the point: this is the
     /// one moment in the app worth watching.
-    enum Phase { case away, leaning, touching, caught, standing }
+    enum Phase { case away, leaning, touching, caught, standing, leaving }
 
     // MARK: Their cigarette
 
@@ -304,12 +337,13 @@ struct VisitorCigaretteView: View {
         case .away:              return less(from, tipRest)
         case .leaning:           return less(held, tipRest)
         case .touching, .caught: return less(contact, tipRest)
+        case .leaving:           return less(leaves ?? from, tipRest)
         }
     }
 
     private var scale: CGFloat {
         switch phase {
-        case .away:                        return max(distant / height, 0.05)
+        case .away, .leaving:              return max(distant / height, 0.05)
         case .leaning, .touching, .caught: return 0.62
         case .standing:                    return 1
         }
@@ -317,7 +351,7 @@ struct VisitorCigaretteView: View {
 
     private var angle: Double {
         switch phase {
-        case .away, .standing:             return 0
+        case .away, .standing, .leaving:   return 0
         case .leaning, .touching, .caught: return lean
         }
     }
@@ -334,6 +368,7 @@ struct VisitorCigaretteView: View {
         case .leaning:           return 0.92
         case .touching, .caught: return 1
         case .standing:          return 0.9
+        case .leaving:           return 0
         }
     }
 
@@ -341,7 +376,7 @@ struct VisitorCigaretteView: View {
     /// here rather than out there: their colour on the wall, their name.
     private var arrived: Double {
         switch phase {
-        case .away:                return 0
+        case .away, .leaving:      return 0
         case .leaning, .touching:  return 0.35
         case .caught:              return 0.7
         case .standing:            return 1
@@ -352,11 +387,11 @@ struct VisitorCigaretteView: View {
     /// of it as the tip catches, and a warmth left over as they straighten up.
     private var bloom: Double {
         switch phase {
-        case .away:      return 0
-        case .leaning:   return 0.12
-        case .touching:  return 0.65
-        case .caught:    return 1
-        case .standing:  return 0
+        case .away, .leaving: return 0
+        case .leaning:        return 0.12
+        case .touching:       return 0.65
+        case .caught:         return 1
+        case .standing:       return 0
         }
     }
 
@@ -379,6 +414,7 @@ struct VisitorCigaretteView: View {
         case .leaning:  return .easeInOut(duration: 0.78)
         case .touching: return .easeOut(duration: 0.24)
         case .caught:   return .easeOut(duration: 0.3)
+        case .leaving:  return .easeInOut(duration: 0.9)
         case .standing: return ceremony ? .easeInOut(duration: 0.9) : .easeOut(duration: 1.1)
         }
     }
@@ -553,6 +589,18 @@ struct VisitorCigaretteView: View {
 
         phase = .caught
         await pause(0.6)
+
+        guard case .besideYou = visitor.goes else {
+
+            // Nowhere for them to stand. They got what they came for and go
+            // back to the courtyard, which is where they were anyway - and
+            // which is a great deal better than standing on top of whoever
+            // is already beside you, which is what this used to do.
+            phase = .leaving
+            await pause(0.95)
+            handoff.onSettled()
+            return
+        }
 
         // The state behind this view and the last movement, together.
         handoff.onSettled()

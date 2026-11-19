@@ -88,7 +88,8 @@ final class PresenceRepository: ObservableObject {
     private var waitTimeout: Task<Void, Never>?
 
     /// One per companion, firing when that person's own cigarette runs
-    /// out. Keyed by name because the two of them finish at different times:
+    /// out. Keyed by the document they came from, because the two of them
+    /// finish at different times:
     /// somebody who lit you goes in before you do, somebody you lit stays
     /// out here after you have gone.
     private var companionTimers: [String: Task<Void, Never>] = [:]
@@ -654,11 +655,11 @@ final class PresenceRepository: ObservableObject {
     
     /// Their cigarette is finished. They go back inside, the line under
     /// yours stops naming them, and whoever is left stays.
-    private func companionLeft(_ name: String) {
-        companionTimers[name] = nil
-        guard company.companions.contains(where: { $0.name == name }) else { return }
-        print("Presence - \(name) has gone back in")
-        self.company = company.without(name)
+    private func companionLeft(_ id: String) {
+        companionTimers[id] = nil
+        guard let gone = company.companions.first(where: { $0.id == id }) else { return }
+        print("Presence - \(gone.name) has gone back in")
+        self.company = company.without(id)
     }
     
     private func armHandoffNet(giver: AskGiver) {
@@ -962,14 +963,14 @@ final class PresenceRepository: ObservableObject {
     /// clock any of this runs on.
     private func armDeparture(of companion: Companion) {
         
-        companionTimers[companion.name]?.cancel()
-        companionTimers[companion.name] = Task { [weak self] in
+        companionTimers[companion.id]?.cancel()
+        companionTimers[companion.id] = Task { [weak self] in
             let left = Date.breakLength * (1 - companion.progress())
             if left > 0 {
                 try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
             }
             guard Task.isCancelled == false else { return }
-            await self?.companionLeft(companion.name)
+            await self?.companionLeft(companion.id)
         }
     }
     

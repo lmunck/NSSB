@@ -624,22 +624,66 @@ final class SynchronyTests: XCTestCase {
             .standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
 
         let theirSide = two.companions[1].side
-        let one = two.without("Paper Kestrel")
+        let one = two.without(two.companions[0].id)
 
         XCTAssertEqual(one.companions.map(\.name), ["Quiet Sparrow"])
         XCTAssertEqual(one.companions[0].side, theirSide, "they should not have slid over")
         XCTAssertEqual(one.litAt, now, "the break did not restart because somebody left")
 
-        XCTAssertEqual(one.without("Quiet Sparrow"), .idle, "the last one out leaves you alone")
+        XCTAssertEqual(one.without(one.companions[0].id), .idle, "the last one out leaves you alone")
     }
 
     func testTheSamePersonCannotStandWithYouTwice() {
 
         let now = Date(timeIntervalSince1970: 1_000_000)
-        let once = CompanyState.idle.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
-        let twice = once.standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+        let them = companion("Paper Kestrel", startedAt: now)
+        let twice = CompanyState.idle
+            .standing(with: them, since: now)
+            .standing(with: them, since: now)
 
         XCTAssertEqual(twice.companions.count, 1)
+    }
+
+    /// Two people can draw the same two words out of the hat, and the same
+    /// person coming back out with a fresh cigarette certainly has.
+    ///
+    /// All of this used to be keyed on the name, which made them one entry:
+    /// standing next to somebody while they asked the courtyard for a light
+    /// again replaced the one beside you with the one walking over, and put
+    /// them on the other side on the way.
+    func testTwoPeopleOfTheSameNameAreTwoPeople() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let first = companion("Quiet Sparrow", startedAt: now)
+        let again = companion("Quiet Sparrow", startedAt: now)
+
+        XCTAssertNotEqual(first.id, again.id, "two cigarettes, two documents")
+
+        let both = CompanyState.idle
+            .standing(with: first, since: now)
+            .standing(with: again, since: now)
+
+        XCTAssertEqual(both.companions.count, 2, "one of them was mistaken for the other")
+        XCTAssertNotEqual(both.companions[0].side, both.companions[1].side,
+                          "they ended up standing in the same place")
+    }
+
+    /// With both sides of you taken, there is nowhere to put anybody - and
+    /// the answer to which side is the one they came from, so they lean in
+    /// from where they are standing rather than from across you.
+    func testWithNoRoomLeftTheSideIsSimplyWhereTheyCameFrom() {
+
+        let now = Date(timeIntervalSince1970: 1_000_000)
+        let two = CompanyState.idle
+            .standing(with: companion("Paper Kestrel", startedAt: now), since: now)
+            .standing(with: companion("Quiet Sparrow", startedAt: now), since: now)
+
+        XCTAssertTrue(two.isFull)
+
+        for name in ["Brass Kestrel", "Hollow Lantern", "Sunlit Parchment"] {
+            XCTAssertEqual(two.sideFor(name), Companion.naturalSide(for: name),
+                           "\(name) was sent to the far side of a full house")
+        }
     }
 
     // MARK: - Whoever has burned longest goes in first
@@ -1288,6 +1332,86 @@ final class LiveViewTests: XCTestCase {
         }
         try save(shots[0].image, "walk-away")
         try save(shots[shots.count - 1].image, "walk-standing")
+    }
+
+    /// Both sides of you taken, and a third person asks for a light.
+    ///
+    /// Reported as "the view breaks and they seem to appear next to me", and
+    /// it did: the view walked them to a resting place beside you while the
+    /// repository quietly declined to put them there, so they arrived on top
+    /// of whoever was already standing on that side - two cigarettes and two
+    /// names in one place - and then vanished. The light is still theirs to
+    /// have. The place beside you is not, so they take it and go.
+    func testWithNoRoomLeftTheyTakeTheLightAndGo() async throws {
+
+        let journey = Journey()
+        let size = CGSize(width: 402, height: 874)
+
+        show(JourneyStageView(journey: journey, size: size), size: size)
+        try await settle(0.3)
+
+        let alone = try frame("noroom-alone")
+
+        var theirs = CigDesign()
+        theirs.title = "Quiet Sparrow"
+        theirs.body = Color(red: 0.93, green: 0.94, blue: 0.96)
+        theirs.filter = Color(red: 0.88, green: 0.82, blue: 0.62)
+        theirs.glow = Color(red: 1, green: 0.38, blue: 0.06)
+        theirs.background = Color(red: 0.26, green: 0.52, blue: 0.86)
+
+        let ask = BreakAsk.opening(uid: "a-stranger", design: theirs)
+        var companion = Companion(lit: ask, at: .now)
+        companion.side = .right
+
+        let beats = Beats()
+        let home = CGPoint(x: 0.84, y: 0.24)
+
+        journey.people = [Visitor(
+            companion: companion,
+            from: CGPoint(x: 0.965, y: 0.3),
+            depth: 0.5,
+            handoff: Visitor.Handoff(
+                theirsCatches: true,
+                onContact: { beats.contacted = true },
+                onSettled: { beats.settled = true }
+            ),
+            goes: .backOutside(home)
+        )]
+
+        let began = Date.now
+        var shots: [(at: Double, image: UIImage)] = []
+        for _ in 1...40 {
+            shots.append((Date.now.timeIntervalSince(began), try frame()))
+            try await settle(0.05)
+        }
+
+        var film: [Whereabouts] = shots.map { shot in
+            var where_ = whereabouts(shot.image, without: alone)
+            where_.at = shot.at
+            return where_
+        }
+        film.sort { $0.at < $1.at }
+
+        for shot in film {
+            print(String(format: "  %.2fs  x%.3f y%.3f  reach %.3f  %.4f",
+                         shot.at, shot.x, shot.y, shot.reach, shot.light))
+        }
+
+        XCTAssertTrue(beats.contacted, "the tips never touched - they got nothing out of it")
+        XCTAssertTrue(beats.settled, "the handoff never finished, so the offer never cleared")
+
+        let brightest = film.max(by: { $0.light < $1.light })!
+        let last = film.last!
+        print(String(format: "  came to %.4f, left at %.4f", brightest.light, last.light))
+
+        XCTAssertGreaterThan(brightest.light, 0.004, "they never came over for the light")
+        XCTAssertLessThan(last.light, brightest.light * 0.2,
+                          "they stayed, with nowhere to stand")
+
+        // And they were never a full-height cigarette beside you on the way
+        // out, which is what standing there looks like from here.
+        let beside = film.filter { $0.light > 0.05 }
+        XCTAssertTrue(beside.isEmpty, "they took a place beside you that was not theirs")
     }
 
     /// The last gap: the real repository driving the real view.

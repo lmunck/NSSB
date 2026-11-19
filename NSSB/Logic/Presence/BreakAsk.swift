@@ -118,6 +118,12 @@ extension BreakAsk {
 /// started, and the handoff draws it.
 struct AskGiver: Equatable {
     
+    /// The ask they answered, which is the only thing about this encounter
+    /// that is certainly one of a kind. Names are two words out of a hat and
+    /// two people can draw the same one - the same person coming out twice
+    /// certainly will.
+    let id: String
+    
     let name: String
     let design: CigDesign
     let progress: Double
@@ -126,6 +132,7 @@ struct AskGiver: Equatable {
 
     init?(_ ask: BreakAsk) {
         guard let name = ask.giverName, name.isEmpty == false else { return nil }
+        self.id = ask.id
         self.name = name
         self.design = ask.giverDesign ?? CigDesign()
         self.progress = ask.giverProgress ?? 0

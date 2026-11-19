@@ -149,6 +149,17 @@ enum Outreach: Equatable {
 
 struct Companion: Equatable, CourtyardStranger {
     
+    /// The document that brought them here: the wait they took a chair in,
+    /// or the ask that was answered.
+    ///
+    /// Not the name. Names are two words out of a hat, and the same person
+    /// coming back out an hour later has the same one - so keying anything
+    /// on it made this person and that person a single entry. Standing next
+    /// to somebody while they asked the courtyard for a light again was
+    /// enough: the one beside you vanished and the one arriving took their
+    /// place, on the wrong side.
+    let id: String
+    
     let name: String
     let design: CigDesign
     let country: String?
@@ -186,6 +197,7 @@ struct Companion: Equatable, CourtyardStranger {
         guard let name = wait.partnerName, name.isEmpty == false,
               let litAt = wait.litAt
         else { return nil }
+        self.id = wait.id
         self.name = name
         self.design = wait.partnerDesign ?? CigDesign()
         self.country = wait.partnerCountry
@@ -196,6 +208,7 @@ struct Companion: Equatable, CourtyardStranger {
 
     /// Seen from the joiner's side: the person who was already standing there.
     init(waiter wait: BreakWait, litAt: Date) {
+        self.id = wait.id
         self.name = wait.name
         self.design = wait.design
         self.country = wait.country
@@ -210,6 +223,7 @@ struct Companion: Equatable, CourtyardStranger {
     /// is where their cigarette comes from: wind it back from the moment the
     /// tips touched and you have the instant they lit their own.
     init(giver: AskGiver, metAt: Date) {
+        self.id = giver.id
         self.name = giver.name
         self.design = giver.design
         self.country = giver.country
@@ -222,6 +236,7 @@ struct Companion: Equatable, CourtyardStranger {
     /// touched. The mirror of `giver`: this one is behind you rather than
     /// ahead, so you will go back inside and leave them out here.
     init(lit ask: BreakAsk, at litAt: Date) {
+        self.id = ask.id
         self.name = ask.name
         self.design = ask.design
         self.country = ask.country
@@ -304,7 +319,16 @@ enum CompanyState: Equatable {
     /// separately and somebody could cross the screen to stand where they
     /// had just come from.
     func sideFor(_ name: String) -> CompanionSide {
+        
         let natural = Companion.naturalSide(for: name)
+        
+        // Both sides taken, so nobody is standing anywhere new and the only
+        // thing left to answer is which way they lean in from: the side they
+        // came from. It used to hand out the opposite of a side that was
+        // also taken, and they leaned in from one side of you and landed on
+        // top of whoever was on the other.
+        guard isFull == false else { return natural }
+        
         return companions.contains(where: { $0.side == natural }) ? natural.opposite : natural
     }
     
@@ -317,7 +341,7 @@ enum CompanyState: Equatable {
         
         var all = companions
         guard all.count < 2 else { return self }
-        guard all.contains(where: { $0.name == newcomer.name }) == false else { return self }
+        guard all.contains(where: { $0.id == newcomer.id }) == false else { return self }
         
         var placed = newcomer
         placed.side = sideFor(placed.name)
@@ -332,9 +356,9 @@ enum CompanyState: Equatable {
     }
     
     /// Whoever is left once somebody's cigarette is finished.
-    func without(_ name: String) -> CompanyState {
+    func without(_ id: String) -> CompanyState {
         guard case .together(let all, let since) = self else { return self }
-        let left = all.filter { $0.name != name }
+        let left = all.filter { $0.id != id }
         return left.isEmpty ? .idle : .together(left, since: since)
     }
 }

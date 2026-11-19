@@ -303,8 +303,12 @@ extension ContentView {
     }
     
     /// Whoever is over here beside you rather than out in the courtyard.
+    ///
+    /// By name, because that is all a courtyard document and a companion
+    /// have in common - they come from different collections. Everything
+    /// else here goes by the document.
     private var nearby: Set<String> {
-        Set(people.map(\.id))
+        Set(people.map(\.companion.name))
     }
     
     /// Everybody who is out here with you: the one walking over right now,
@@ -356,7 +360,7 @@ extension ContentView {
         // they would have been standing on in the courtyard; the second took
         // what was left. Neither moves when the other finishes.
         for companion in presence.company.companions
-        where out.contains(where: { $0.id == companion.name }) == false {
+        where out.contains(where: { $0.id == companion.id }) == false {
             out.append(visitor(companion, handoff: nil))
         }
         
@@ -365,22 +369,33 @@ extension ContentView {
         return out.sorted { $0.id < $1.id }
     }
     
-    /// Somebody, and the spot in the courtyard they came from.
-    ///
-    /// Their own side is left out of what they are avoiding, because the
-    /// only thing they would be dodging there is themselves.
+    /// Somebody, the spot in the courtyard they came from, and whether
+    /// there is anywhere for them to stand when they get here.
     private func visitor(_ companion: Companion, handoff: Visitor.Handoff?) -> Visitor {
         
-        let spot = Courtyard.position(
-            for: companion.name,
-            avoiding: taken.subtracting([companion.side])
-        )
+        // Somebody already standing there is not dodging anybody, least of
+        // all themselves. Somebody walking over has to start from exactly
+        // where the courtyard drew them, which means dodging what the
+        // courtyard was dodging.
+        let avoiding = handoff == nil ? taken.subtracting([companion.side]) : taken
+        let spot = Courtyard.position(for: companion.name, avoiding: avoiding)
+        
+        // The same two rules the repository uses when it decides whether to
+        // keep them, asked here so the walk ends where they actually end up.
+        // They used to disagree: the view walked them to a place beside you
+        // and the repository quietly declined to put them there, so they
+        // arrived on top of somebody and then vanished.
+        let room = handoff == nil
+            || (presence.company.isFull == false && companion.hasGone() == false)
+        
+        let home = Courtyard.position(for: companion.name)
         
         return Visitor(
             companion: companion,
             from: CGPoint(x: spot.x, y: spot.y),
             depth: spot.depth,
-            handoff: handoff
+            handoff: handoff,
+            goes: room ? .besideYou : .backOutside(CGPoint(x: home.x, y: home.y))
         )
     }
     
