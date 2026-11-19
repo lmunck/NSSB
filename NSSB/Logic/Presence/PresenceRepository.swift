@@ -364,7 +364,21 @@ final class PresenceRepository: ObservableObject {
         self.waiting = []
         
         // The next unlit cigarette starts over, and can ask again.
-        if case .done = ask { self.ask = .idle }
+        //
+        // From any state, not only a finished one. An ask caught mid-gesture
+        // by the cigarette going out used to stay as it was - and both the
+        // row and `reachOut` read that as something still in flight, so the
+        // screen went on saying somebody was giving you a light and there
+        // was no way to ask anybody for one. Whatever the ask was doing, the
+        // cigarette it belonged to is gone.
+        askTimeout?.cancel()
+        askTimeout = nil
+        handoffNet?.cancel()
+        handoffNet = nil
+        offerNet?.cancel()
+        offerNet = nil
+        reaching = false
+        if case .idle = ask {} else { self.ask = .idle }
         
         // Company lasts exactly as long as the cigarettes do. Whoever you
         // stood with, you are not standing with them any more, and nothing

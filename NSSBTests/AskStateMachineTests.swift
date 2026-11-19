@@ -77,6 +77,37 @@ final class AskStateMachineTests: XCTestCase {
         XCTAssertEqual(service.askIds.count, 1)
     }
 
+    /// The cigarette going out has to end the ask with it, whatever the ask
+    /// was doing.
+    ///
+    /// It only ever cleared a finished one, so an ask caught mid-handoff -
+    /// by the break being cancelled, or by the watch overwriting it - stayed
+    /// `.lit` for good. The row went on saying somebody was giving you a
+    /// light, and `reachOut` refused to start because by its reading one was
+    /// already in flight.
+    func testTheCigaretteGoingOutMidHandoffLetsYouAskAgain() async throws {
+
+        await repository.askForALight(design: design())
+        let ask = try XCTUnwrap(repository.ask.openAsk)
+        try await answer(ask, as: "Hollow Lantern", progress: 0.4)
+
+        try await waitUntil("the light to arrive") {
+            if case .lit = self.repository.ask { return true }
+            return false
+        }
+
+        await repository.breakEnded()
+
+        guard case .idle = repository.ask else {
+            return XCTFail("the ask outlived the cigarette: \(repository.ask)")
+        }
+
+        await repository.reachOut(design: design())
+
+        XCTAssertNotNil(repository.ask.openAsk, "could not ask anybody for a light afterwards")
+        XCTAssertNotNil(repository.company.openWait, "could not wait for anybody afterwards")
+    }
+
     // MARK: Being answered
 
     func testSomebodyAnsweringLightsYou() async throws {

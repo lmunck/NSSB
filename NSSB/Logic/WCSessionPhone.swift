@@ -16,6 +16,12 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     // Cigrette
     @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) {
         didSet {
+            // When it changed, not when it was sent. See NonSmokingData.touch.
+            guard stamping == false else { return }
+            stamping = true
+            data.touch(ifChangedFrom: oldValue)
+            stamping = false
+
             // Persist break history and the name straight away - neither can
             // be recreated if the app is killed before it backgrounds, and a
             // rolled name is not something the user can simply type again.
@@ -31,6 +37,9 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         }
     }
     var lastReceived:NonSmokingData? = nil
+    
+    /// Stops the stamp from re-entering its own observer.
+    private var stamping = false
     
     // Session
     @Published var connected:Bool = false
@@ -154,8 +163,9 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     // Send new total to watch
     func sendUpdate() {
         
-        var sendObject = self.data
-        sendObject.lastUpdate = Date.now
+        // Sent exactly as it stands, stamp included: the stamp says when
+        // this was changed, and sending it is not changing it.
+        let sendObject = self.data
         
         // Check if watch is connected
         if session.isReachable {

@@ -12,8 +12,22 @@ import WatchKit
 class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     
     // Cigarette
-    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) { didSet { save(); sendUpdate() }}
+    @Published var data:NonSmokingData = NonSmokingData(lastUpdate: Date.distantPast) {
+        didSet {
+            // When it changed, not when it was sent. See NonSmokingData.touch
+            // - the phone does the same, and it has to be both or neither.
+            guard stamping == false else { return }
+            stamping = true
+            data.touch(ifChangedFrom: oldValue)
+            stamping = false
+            save()
+            sendUpdate()
+        }
+    }
     var lastReceived:NonSmokingData? = nil
+    
+    /// Stops the stamp from re-entering its own observer.
+    private var stamping = false
     
     // Session
     @Published var connected:Bool = false
@@ -109,8 +123,9 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     // Send new total to watch
     func sendUpdate() {
         
-        var sendObject = self.data
-        sendObject.lastUpdate = Date.now
+        // Sent exactly as it stands, stamp included: the stamp says when
+        // this was changed, and sending it is not changing it.
+        let sendObject = self.data
         
         // Check if watch is connected
         if session.isReachable {

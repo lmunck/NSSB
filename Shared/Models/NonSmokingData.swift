@@ -149,6 +149,37 @@ extension NonSmokingData {
     }
     
     
+    /// Everything except when it was last touched.
+    ///
+    /// `==` includes `lastUpdate`, which is the right answer for "is this the
+    /// same message" and the wrong one for "did anything actually change".
+    func differs(from other: NonSmokingData) -> Bool {
+        breaks != other.breaks
+            || breakStarted != other.breakStarted
+            || costPer20 != other.costPer20
+            || accentHue != other.accentHue
+            || cigDesign != other.cigDesign
+    }
+    
+    /// Marks this as changed now, unless it already carries somebody else's
+    /// stamp or nothing really changed.
+    ///
+    /// `lastUpdate` has to mean *when this last changed* for `older(than:)`
+    /// to be able to order two copies at all. It used to be set at send
+    /// time, by both devices, which made every message the newest thing
+    /// either of them had ever seen - so whichever device spoke last won the
+    /// merge outright. Raising your wrist is a device speaking: the watch
+    /// woke up, sent the copy it had been sitting on, and the phone adopted
+    /// it, cigarette and all. A watch that has never heard about a running
+    /// break sends `breakStarted` nil, and that put it out.
+    ///
+    /// An arriving copy keeps the stamp it came with, because that is the
+    /// moment the change was actually made, on the device that made it.
+    mutating func touch(ifChangedFrom old: NonSmokingData) {
+        guard differs(from: old), lastUpdate == old.lastUpdate else { return }
+        lastUpdate = .now
+    }
+    
     func older(than receivedObject:NonSmokingData) -> Bool {
         let isSame:Bool = Calendar.current.isDate(self.lastUpdate, equalTo: receivedObject.lastUpdate, toGranularity: .second)
         
