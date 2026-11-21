@@ -26,6 +26,7 @@
 // to agree about.
 
 import SwiftUI
+import Combine
 
 /// Somebody in your immediate company: on their way over, or standing there.
 ///
