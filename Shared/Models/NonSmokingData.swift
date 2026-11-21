@@ -29,6 +29,30 @@ struct NonSmokingData:Codable {
     
 }
 
+// The saved file and the watch payload. Decoded field by field, the way CigDesign
+// is: a field that is missing or unreadable falls back to its default instead of
+// failing the whole file, so a save written by an older or newer build still
+// loads. When adding a field, add it to CodingKeys and here.
+extension NonSmokingData {
+    
+    enum CodingKeys: String, CodingKey {
+        case breaks, breakStarted, costPer20, accentHue, cigDesign, lastUpdate
+    }
+    
+    init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        func field<T: Decodable>(_ type: T.Type, _ key: CodingKeys) -> T? {
+            (try? container.decodeIfPresent(type, forKey: key)) ?? nil
+        }
+        self.breaks = field([Date].self, .breaks) ?? []
+        self.breakStarted = field(Date.self, .breakStarted)
+        self.costPer20 = field(Double.self, .costPer20) ?? 0
+        self.accentHue = field(Int.self, .accentHue)
+        self.cigDesign = field(CigDesign.self, .cigDesign) ?? CigDesign()
+        self.lastUpdate = field(Date.self, .lastUpdate) ?? .distantPast
+    }
+}
+
 extension NonSmokingData: Equatable {
     static func ==(lhs: NonSmokingData, rhs: NonSmokingData) -> Bool {
         

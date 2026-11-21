@@ -29,17 +29,38 @@ class CodingFunctions {
         
         if let fileURL = getURL() {
             
+            // No save file yet: first launch, or an upgrade from v1, which kept
+            // its data in UserDefaults. Only then is the legacy data relevant.
+            guard FileManager.default.fileExists(atPath: fileURL.path) else {
+                return legacyLoad()
+            }
+            
             do {
                 let data = try Data(contentsOf: fileURL)
                 let save = try JSONDecoder().decode(NonSmokingData.self, from: data)
                 return save
             } catch {
+                // Not the legacy data: that is years old and would replace the
+                // whole history. Keep the unreadable file instead, so the next
+                // save cannot silently destroy it.
                 Log.storage.error("LocalRepository.load() - \(error)")
-                return legacyLoad()
+                setAsideUnreadableFile(at: fileURL)
+                return nil
             }
             
         } else {
             return legacyLoad()
+        }
+        
+        func setAsideUnreadableFile(at fileURL: URL) {
+            let aside = fileURL.deletingLastPathComponent()
+                .appendingPathComponent("userData-unreadable-\(Int(Date.now.timeIntervalSince1970))")
+            do {
+                try FileManager.default.moveItem(at: fileURL, to: aside)
+                Log.storage.error("LocalRepository.load() - unreadable save moved to \(aside.lastPathComponent)")
+            } catch {
+                Log.storage.error("LocalRepository.load() - could not move unreadable save: \(error)")
+            }
         }
         
         func legacyLoad() -> NonSmokingData? {
