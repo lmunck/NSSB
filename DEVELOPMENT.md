@@ -39,9 +39,21 @@ from the local cache and still fills the first snapshot. Anything that writes
 to Firestore should be checked against the server, never against the screen.
 
 
-The `NSSB` scheme is shared (`xcshareddata/xcschemes`) and its test action runs
-`NSSBTests`, so the command above works on a fresh clone without Xcode having
-to generate anything first.
+Both schemes are shared (`xcshareddata/xcschemes`) and the `NSSB` test action
+runs `NSSBTests`, so the commands above work on a fresh clone without Xcode
+having to generate anything first. Both have to be shared: once one scheme is,
+`xcodebuild` stops generating the others. Building `NSSB WatchKit App` also
+builds the `NSSBComplications` extension it embeds.
+
+### CI
+
+`.github/workflows/build.yml` runs the same builds (unsigned, generic
+simulator destinations), checks that `NSSBComplications.appex` is inside the
+watch app, and runs `NSSBTests` on the first available iPhone simulator, on
+every pull request and every push to `main`. It never sets
+`TEST_RUNNER_NSSB_LIVE`, so the live checks stay skipped there. The film test
+`testTheWalkOverNeverBlinks` is frame-rate sensitive and currently fails on the
+runner; see `docs/KNOWN_ISSUES.md`.
 
 The project builds with no warnings of its own. If you add one, it is yours.
 
