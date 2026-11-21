@@ -48,7 +48,7 @@ struct SavingsView: View, KeyboardReadable {
                         // instead of appending to the formatted "0,00" placeholder,
                         // and commit the value whenever focus is lost - not only
                         // when the Done button is used.
-                        .onChange(of: textfieldFocused) { isFocused in
+                        .onChange(of: textfieldFocused) { _, isFocused in
                             if isFocused {
                                 DispatchQueue.main.async {
                                     UIApplication.shared.sendAction(#selector(UIResponder.selectAll(_:)), to: nil, from: nil, for: nil)
@@ -72,7 +72,7 @@ struct SavingsView: View, KeyboardReadable {
                 .background( Rectangle().fill(.black).cornerRadius(3))
                     
             }
-            .onChange(of: self.costPer20) { newCost in
+            .onChange(of: self.costPer20) { _, newCost in
                 if self.tempCost != costPer20 {
                     self.tempCost = costPer20
                 }

@@ -46,10 +46,10 @@ struct HueSelectorView: View {
                 
             }
         }
-        .onChange(of: color) { newColor in
+        .onChange(of: color) { _, newColor in
             initSlider()
         }
-        .onChange(of: hueValue) { value in
+        .onChange(of: hueValue) { _, value in
             updateColorPreview(value)
         }
         .onAppear() {

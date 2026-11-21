@@ -42,7 +42,7 @@ struct DragToSelect: ViewModifier {
                         checkIfSelect(gesture: gesture)
                     }
             )
-            .onChange(of: self.menu) { newValue in
+            .onChange(of: self.menu) { _, newValue in
                 withAnimation(.easeOut(duration: 0.3)) {
                     self.offset = initOffset()
                 }
