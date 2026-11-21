@@ -54,10 +54,10 @@ struct ReminderView: View {
         .onAppear {
             checkPermissions()
         }
-        .onChange(of: remindersPerDay) { newReminder in
+        .onChange(of: remindersPerDay) { _, newReminder in
             checkPermissions()
         }
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .active {
                 checkPermissions()
             } else if newPhase == .inactive {

@@ -205,14 +205,14 @@ struct ContentView: View {
             // whole feature.
             .coordinateSpace(name: Courtyard.space)
             .foregroundColor(Color.foregroundInactive)
-            .onChange(of: presence.courtyard) { current in
+            .onChange(of: presence.courtyard) { _, current in
                 // Their cigarette went out, so the card goes with it.
                 if let selected = selectedOther,
                    current.contains(where: { $0.id == selected.id }) == false {
                     withAnimation(.easeInOut(duration: 0.3)) { selectedOther = nil }
                 }
             }
-            .onChange(of: presence.company) { state in
+            .onChange(of: presence.company) { _, state in
                 
                 // The wait is over, one way or the other, and either way the
                 // cigarette gets lit - the same contract as the ask.
@@ -237,7 +237,7 @@ struct ContentView: View {
                     break
                 }
             }
-            .onChange(of: presence.ask) { state in
+            .onChange(of: presence.ask) { _, state in
                 
                 // The ask is over, one way or the other, and either way the
                 // cigarette gets lit.

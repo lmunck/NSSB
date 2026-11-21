@@ -29,9 +29,7 @@ struct ContentView: View {
                 
                 ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)
                 
-                if #available(watchOS 10.0, *) {
-                    MenuView(data: $model.data)
-                }
+                MenuView(data: $model.data)
                 
                 /*Image(systemName: "circle.fill")
                     .foregroundStyle(model.connected ? Color.green : Color.red)
@@ -41,7 +39,7 @@ struct ContentView: View {
             
         }
         // Keep the local save in sync when the app leaves the screen
-        .onChange(of: scenePhase) { newPhase in
+        .onChange(of: scenePhase) { _, newPhase in
             if newPhase == .inactive || newPhase == .background {
                 model.save()
             }

@@ -61,7 +61,7 @@ struct FocusAnimation:AnimatableModifier {
         }
         .animation(getAnimation(), value: animation)
         .onAppear { startAnimation(self.active) }
-        .onChange(of: active, perform: { value in startAnimation(active)})
+        .onChange(of: active) { _, value in startAnimation(active)}
     }
     
     private func getAnimation() -> Animation {

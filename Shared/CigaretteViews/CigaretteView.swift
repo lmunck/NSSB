@@ -146,10 +146,10 @@ struct CigaretteView: View {
             #endif
             
         }
-        .onChange(of: data.breakStarted, perform: { _ in
+        .onChange(of: data.breakStarted) { _, _ in
             updateSmokebreak()
-        })
-        .onChange(of: litByStranger, perform: { arrived in
+        }
+        .onChange(of: litByStranger) { _, arrived in
             // Only ever lights, never puts out: a gift cannot stub out a
             // cigarette you had already lit yourself.
             //
@@ -159,7 +159,7 @@ struct CigaretteView: View {
             // which may be a fraction of a second ago - and using it rather
             // than `now` is what makes the two of them go out together.
             if let arrived = arrived, data.breakStarted == nil { lightUp(at: arrived) }
-        })
+        }
         .onReceive(timer, perform: { _ in
            updateSmokebreak()
         })

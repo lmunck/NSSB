@@ -46,7 +46,7 @@ struct NSSBApp: App {
                 }
             
             // Save status if app moves to background
-                .onChange(of: scenePhase) { newPhase in
+                .onChange(of: scenePhase) { _, newPhase in
                     if newPhase == .active {
                         model.load()
                         
@@ -72,7 +72,7 @@ struct NSSBApp: App {
             
             // A break began or ended. Everything ends when the cigarette
             // does: the document goes and the listener detaches.
-                .onChange(of: model.data.breakStarted) { newValue in
+                .onChange(of: model.data.breakStarted) { _, newValue in
                     Task {
                         if let startedAt = newValue, startedAt.breakIsActive {
                             await presence.breakStarted(at: startedAt, design: model.data.cigDesign)

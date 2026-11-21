@@ -25,7 +25,7 @@ struct HueSliderView: View {
                 Slider(value: $hueValue, in: (0...1), step: 0.01) { _ in
                     updateColor()
                 }
-                    .onChange(of: hueValue) { value in
+                    .onChange(of: hueValue) { _, value in
                         updateColorPreview(value)
                     }
                 
@@ -34,7 +34,7 @@ struct HueSliderView: View {
                 
             }
         }
-        .onChange(of: self.color) { _ in
+        .onChange(of: self.color) { _, _ in
             initSlider()
         }
         .onAppear() {

@@ -31,11 +31,7 @@ struct ScoreView: View {
                     VStack(alignment: .leading, spacing: -5) {
                         Text("\(breaks.savingsToday(costPer20: costPer20), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
-                        if #available(watchOS 9, *) {
-                            Text("\(Locale.current.currency?.identifier ?? "")")
-                        } else {
-                            Text("")
-                        }
+                        Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     .transition(.move(edge: .leading).combined(with: .opacity))
                 }
@@ -64,11 +60,7 @@ struct ScoreView: View {
                     VStack(alignment: .trailing, spacing: -5) {
                         Text("\(breaks.savingsTotal(costPer20: costPer20), specifier: "%.0f")")
                             .font(.largeTitle).foregroundColor(.white)
-                        if #available(watchOS 9, *) {
-                            Text("\(Locale.current.currency?.identifier ?? "")")
-                        } else {
-                            Text("")
-                        }
+                        Text("\(Locale.current.currency?.identifier ?? "")")
                     }
                     .transition(.move(edge: .trailing).combined(with: .opacity))
                 }
