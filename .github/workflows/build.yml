@@ -58,6 +58,13 @@ jobs:
             | tee build.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
           grep -q "BUILD SUCCEEDED" build.log
 
+      - name: Check the complication is embedded in the watch app
+        if: matrix.scheme == 'NSSB WatchKit App'
+        run: |
+          APPEX=$(find ~/Library/Developer/Xcode/DerivedData -maxdepth 8 -type d -path "*watchsimulator/NSSB.app/PlugIns/NSSBComplications.appex" | head -1)
+          test -n "$APPEX" || { echo "NSSBComplications.appex not found in the watch app"; exit 1; }
+          echo "Found $APPEX"
+
       - name: Upload log
         if: always()
         uses: actions/upload-artifact@v4
