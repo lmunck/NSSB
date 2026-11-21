@@ -206,21 +206,31 @@ it, for the same reason `BreakAsk.window` is a var. The film test sets it to
 inside it.
 
 Measured on this machine by widening the gap between frames to stand in for a
-slower renderer:
+slower renderer, with the runner's own figures read off the `test-log`
+artifact of a green run:
 
 | seconds per frame | frames in the walk | caught part way in | verdict |
 |---|---|---|---|
-| 0.18 (this machine) | 23 | 10 | passes |
+| 0.17 (this machine) | 23 | 10 | passes |
+| 0.24 (the CI runner) | 19 | 6 | passes |
 | 0.64 | 5 | 3 | passes |
 | 0.91 | 4 | 2 | passes |
 | 1.16 | 3 | 2 | fails, and says why |
 
-The test needs two frames caught part way in. It holds to about five times
-slower than this machine, and the runner is about twice. Past that it fails
-on a separate check — "the film is too sparse to tell a walk from a jump" —
-so a machine too slow to answer the question says so instead of blaming the
-view. If that ever fires, raise `pace`. Do not lower the counts: they are the
-difference between somebody walking and somebody teleporting.
+The test needs two frames caught part way in. The runner turns out to be
+only about a third slower than this machine rather than the several times
+the old failures suggested — 0.78s was simply too short for either of them
+to photograph reliably, and the runner lost the toss about half the time.
+With the journey stretched, the test holds to roughly five times slower than
+this machine. Past that it fails on a separate check — "the film is too
+sparse to tell a walk from a jump" — so a machine too slow to answer the
+question says so instead of blaming the view. If that ever fires, raise
+`pace`. Do not lower the counts: they are the difference between somebody
+walking and somebody teleporting.
+
+The runner's numbers are not on the console: the workflow pipes test output
+through a `grep`, so the lines the film prints are in the uploaded
+`test-log` artifact rather than in the job log.
 
 The film also runs until the arrival is over rather than for a fixed number
 of frames, because a fixed count is a fixed amount of the machine's time and
