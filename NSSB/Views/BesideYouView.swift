@@ -196,6 +196,21 @@ struct BesideYouView: View {
 /// One person, the whole way: out there, coming over, and standing with you.
 struct VisitorCigaretteView: View {
 
+    /// How much longer the journey takes than the durations below say.
+    ///
+    /// A var only so the film test can stretch the walk without changing
+    /// its shape, which is the same reason `BreakAsk.window` and
+    /// `Date.breakLength` are vars. Nothing in the app assigns to it.
+    ///
+    /// The test photographs this journey rather than inferring it, and its
+    /// phases are tenths of a second: on a slow machine one frame can land
+    /// before a phase and the next one after it, and a walk nobody caught
+    /// in the middle reads exactly like the teleport the test exists to
+    /// catch. Stretching the journey decides how many frames fall inside
+    /// it, so the test stops depending on how fast the machine filming it
+    /// happens to be.
+    static var pace: Double = 1
+
     let visitor: Visitor
 
     /// Your own cigarette's height. Theirs is drawn at the same height,
@@ -409,13 +424,15 @@ struct VisitorCigaretteView: View {
     /// Slower than it needs to be to convey the information, which is the
     /// point: this is the one moment in the app worth watching.
     private var curve: Animation {
+        let pace = Self.pace
         switch phase {
-        case .away:     return .easeOut(duration: 0.3)
-        case .leaning:  return .easeInOut(duration: 0.78)
-        case .touching: return .easeOut(duration: 0.24)
-        case .caught:   return .easeOut(duration: 0.3)
-        case .leaving:  return .easeInOut(duration: 0.9)
-        case .standing: return ceremony ? .easeInOut(duration: 0.9) : .easeOut(duration: 1.1)
+        case .away:     return .easeOut(duration: 0.3 * pace)
+        case .leaning:  return .easeInOut(duration: 0.78 * pace)
+        case .touching: return .easeOut(duration: 0.24 * pace)
+        case .caught:   return .easeOut(duration: 0.3 * pace)
+        case .leaving:  return .easeInOut(duration: 0.9 * pace)
+        case .standing: return ceremony ? .easeInOut(duration: 0.9 * pace)
+                                        : .easeOut(duration: 1.1 * pace)
         }
     }
 
@@ -448,7 +465,7 @@ struct VisitorCigaretteView: View {
         }
         .frame(width: width, height: height)
         .animation(curve, value: phase)
-        .animation(.easeOut(duration: 0.28), value: lit)
+        .animation(.easeOut(duration: 0.28 * Self.pace), value: lit)
         .onReceive(clock) { now = $0 }
         .task { await walk() }
     }
@@ -608,7 +625,7 @@ struct VisitorCigaretteView: View {
     }
 
     private func pause(_ seconds: Double) async {
-        try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+        try? await Task.sleep(nanoseconds: UInt64(seconds * Self.pace * 1_000_000_000))
     }
 }
 

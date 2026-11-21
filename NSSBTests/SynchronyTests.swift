@@ -991,6 +991,9 @@ final class LiveViewTests: XCTestCase {
     override func tearDown() async throws {
         window?.isHidden = true
         window = nil
+        // Whatever a test stretched the journey to, the next one starts at
+        // the app's own speed.
+        VisitorCigaretteView.pace = 1
     }
 
     private func show(_ view: some View, size: CGSize) {
@@ -1202,6 +1205,19 @@ final class LiveViewTests: XCTestCase {
         let journey = Journey()
         let size = CGSize(width: 402, height: 874)
 
+        // The journey is stretched for the film, and only for the film.
+        //
+        // Its phases are tenths of a second. Rendering one frame costs
+        // whatever the machine costs, so on a slow one a frame lands before
+        // a phase and the next one after it, and a walk nobody caught in
+        // the middle reads exactly like the teleport this test exists to
+        // catch. That is the whole of why this used to fail about half the
+        // time on the CI runner and never locally. Stretching decides how
+        // many frames fall inside the walk; it does not change what the
+        // walk does, which is still the app's own phases and curves.
+        let pace = 3.0
+        VisitorCigaretteView.pace = pace
+
         show(JourneyStageView(journey: journey, size: size), size: size)
         try await settle(0.3)
 
@@ -1239,11 +1255,22 @@ final class LiveViewTests: XCTestCase {
         // Timed rather than assumed, and captured before it is measured:
         // working out where somebody is costs about a second a frame here,
         // which is slower than the journey it is trying to film.
+        //
+        // Filmed until they have arrived and finished growing, rather than
+        // for a fixed number of frames: a fixed count is a fixed amount of
+        // the machine's time, not a fixed amount of the journey, and on a
+        // slow machine it ran out partway over. The cap only keeps a
+        // journey that never ends from filming for ever - that fails on the
+        // assertions below instead.
         let began = Date.now
         var shots: [(at: Double, image: UIImage)] = []
-        for _ in 1...40 {
+        var arrived: Date?
+        while shots.count < 200 {
             shots.append((Date.now.timeIntervalSince(began), try frame()))
-            try await settle(0.05)
+            if beats.settled, arrived == nil { arrived = .now }
+            if let arrived = arrived,
+               Date.now.timeIntervalSince(arrived) > 1.3 * pace { break }
+            try await settle(0.02)
         }
 
         var film: [Whereabouts] = shots.map { shot in
@@ -1311,14 +1338,30 @@ final class LiveViewTests: XCTestCase {
                 && $0.reach > nearest.reach + span * 0.15
         }
 
+        // A wider band than the way in, because the way back is `easeOut`:
+        // most of the growing happens in the first part of it, so a band
+        // measured in brightness is crossed quicker than one measured in
+        // time, and a narrow one came down to a single frame on a slow
+        // machine. Still the middle of the return, not either end of it.
         let grew = last.light - nearest.light
         let steppingBack = film.filter {
             $0.at > nearest.at
-                && $0.light > nearest.light + grew * 0.2
-                && $0.light < last.light - grew * 0.2
+                && $0.light > nearest.light + grew * 0.1
+                && $0.light < last.light - grew * 0.1
         }
 
         print("  caught part way in: \(walkingIn.count), part way back out: \(steppingBack.count)")
+
+        // Whether the film could answer the question at all, asked before
+        // the question itself. A machine too slow to photograph the walk
+        // used to fail as though the walk had never happened, which sent
+        // two sessions looking for a bug in the view. If this one fails,
+        // raise `pace` rather than lowering the two counts below.
+        let duringWalkIn = film.filter { $0.at > first.at && $0.at < nearest.at }.count
+        print(String(format: "  %d frames over %.2fs, %d of them during the walk in, pace %.0fx",
+                     film.count, last.at, duringWalkIn, pace))
+        XCTAssertGreaterThanOrEqual(duringWalkIn, 4,
+                                    "the film is too sparse to tell a walk from a jump")
 
         XCTAssertGreaterThanOrEqual(walkingIn.count, 2,
                                     "they reached your cigarette without crossing the gap")

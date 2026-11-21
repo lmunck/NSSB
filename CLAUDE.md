@@ -32,7 +32,7 @@ Several sessions may be open on this repo at once, and in November 2026 two of t
 - **The complication compiles a subset of `/Shared`** (see `docs/ARCHITECTURE.md`). If one of those files starts referencing something new, add that file to `NSSBComplications` too, or the extension stops building.
 - **Logging:** `Log.<channel>.debug/error` (`Shared/Logic/Log.swift`), not `print`, in app code. Tests may print.
 - **Firestore:** never conclude a write worked because the app looked happy. Read back from the server (`DEVELOPMENT.md`). The live checks run only with `TEST_RUNNER_NSSB_LIVE=1`, and CI never sets it.
-- **Don't skip or loosen a test to get green.** See `docs/KNOWN_ISSUES.md` #1 for the one test that is intermittent on CI.
+- **Don't skip or loosen a test to get green.** A test that passes locally and fails on CI is usually telling you something true about timing. The film test failed about half of all CI runs until `VisitorCigaretteView.pace` let it stretch the journey it photographs, rather than its thresholds being lowered to match the runner (`DEVELOPMENT.md` → "A journey has to outlast the camera").
 
 ## Where things are
 

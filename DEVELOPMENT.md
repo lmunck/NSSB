@@ -51,9 +51,12 @@ builds the `NSSBComplications` extension it embeds.
 simulator destinations), checks that `NSSBComplications.appex` is inside the
 watch app, and runs `NSSBTests` on the first available iPhone simulator, on
 every pull request and every push to `main`. It never sets
-`TEST_RUNNER_NSSB_LIVE`, so the live checks stay skipped there. The film test
-`testTheWalkOverNeverBlinks` is frame-rate sensitive and intermittent on the
-runner; see `docs/KNOWN_ISSUES.md`.
+`TEST_RUNNER_NSSB_LIVE`, so the live checks stay skipped there.
+
+The runner renders several times slower than this machine, which used to
+fail the film test about half the time. It no longer does; see "A journey
+has to outlast the camera" below before changing anything that times out
+there.
 
 The project builds with no warnings of its own. If you add one, it is yours.
 
@@ -150,7 +153,7 @@ Puts the view in a real `UIWindow` with a real runloop, lets time pass, and
 photographs it. This is the only way to see an arrival actually arrive, or to
 catch something that appears correctly and then vanishes.
 
-Four things about it are easy to get wrong, and the first two cost an evening
+Five things about it are easy to get wrong, and the first two cost an evening
 each:
 
 - **Capture.** `drawHierarchy(in:afterScreenUpdates:)` comes back black in a
@@ -166,6 +169,8 @@ each:
 - **Measure afterwards.** Working out where somebody is costs about another
   second a frame in a debug build. Capture the whole film into `[UIImage]`
   first and measure it once it is over, or the measuring sets the frame rate.
+- **A journey has to outlast the camera.** See below; this one cost a week of
+  CI going red about half the time.
 
 With those, a film runs at roughly four frames a second — enough to catch a
 cigarette part of the way over, which is the only thing that distinguishes one
@@ -178,6 +183,48 @@ subtracts the frame with nobody in it and reports where what is left sits, how
 far across it reaches, and how much of it there is — your own cigarette is in
 the middle of the screen and outweighs everybody, so it has to be taken away
 rather than worked around.
+
+### A journey has to outlast the camera
+
+How fast the film runs is the machine's business. How long the journey takes
+is ours, and only the ratio of the two decides whether the walk can be
+photographed at all.
+
+The journey's phases are tenths of a second: leaning over takes 0.78s. Film
+that at four frames a second and three or four frames land inside it. Film it
+on a runner that renders half as fast and one does — and one frame in the
+middle of a walk is indistinguishable from a walk that never happened, which
+is the exact bug `testTheWalkOverNeverBlinks` exists to catch. So it failed
+about half of all CI runs, on code that was correct, including on a commit
+that changed only Markdown.
+
+The fix is `VisitorCigaretteView.pace`, which multiplies every duration in
+the journey — the animation curves and the pauses between phases together,
+or the two drift apart. It is 1 in the app and nothing in the app assigns to
+it, for the same reason `BreakAsk.window` is a var. The film test sets it to
+3, so leaning over takes 2.34s and a slow machine still gets several frames
+inside it.
+
+Measured on this machine by widening the gap between frames to stand in for a
+slower renderer:
+
+| seconds per frame | frames in the walk | caught part way in | verdict |
+|---|---|---|---|
+| 0.18 (this machine) | 23 | 10 | passes |
+| 0.64 | 5 | 3 | passes |
+| 0.91 | 4 | 2 | passes |
+| 1.16 | 3 | 2 | fails, and says why |
+
+The test needs two frames caught part way in. It holds to about five times
+slower than this machine, and the runner is about twice. Past that it fails
+on a separate check — "the film is too sparse to tell a walk from a jump" —
+so a machine too slow to answer the question says so instead of blaming the
+view. If that ever fires, raise `pace`. Do not lower the counts: they are the
+difference between somebody walking and somebody teleporting.
+
+The film also runs until the arrival is over rather than for a fixed number
+of frames, because a fixed count is a fixed amount of the machine's time and
+not a fixed amount of the journey.
 
 ### One view per person
 
