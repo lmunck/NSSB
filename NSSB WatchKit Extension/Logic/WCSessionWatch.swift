@@ -67,6 +67,31 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
         if let error = error { Log.sync.error("Session - ActivationDidComplete - \(error.localizedDescription)") }
         connectionUpdate(session.isReachable)
+        
+        guard activationState == .activated else { return }
+        
+        // Anything the phone sent while this app wasn't running arrives as the
+        // latest application context. Merge it first, then offer our own state.
+        let pending = session.receivedApplicationContext
+        if pending.isEmpty == false { receivedContext(pending) }
+        DispatchQueue.main.async { self.sendUpdate() }
+    }
+    
+    /// The background channel: the system keeps only the latest context and
+    /// delivers it when this app next runs, so nothing is lost while the phone
+    /// is out of reach. No reply is possible, so it goes through the same merge
+    /// as a live message and the confirmation is simply dropped.
+    func session(_ session: WCSession, didReceiveApplicationContext applicationContext: [String : Any]) {
+        Log.sync.debug("Session - didReceiveApplicationContext")
+        receivedContext(applicationContext)
+    }
+    
+    private func receivedContext(_ context: [String: Any]) {
+        guard let contextData = context[CodingFunctions.contextKey] as? Data else {
+            Log.sync.debug("receivedContext() - no data in context")
+            return
+        }
+        receivedUpdate(contextData) { _ in }
     }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
@@ -127,7 +152,24 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
         // this was changed, and sending it is not changing it.
         let sendObject = self.data
         
-        // Check if watch is connected
+        guard session.activationState == .activated else {
+            Log.sync.debug("sendUpdate() - session not activated")
+            return
+        }
+        
+        // Background delivery, whether or not the phone is reachable now: the
+        // latest state replaces any earlier one and arrives when the phone app
+        // next runs. A copy of what we just received is not sent back.
+        if self.lastReceived != sendObject, session.isCompanionAppInstalled,
+           let contextData = functions.encodeData(from: sendObject) {
+            do {
+                try session.updateApplicationContext([CodingFunctions.contextKey: contextData])
+            } catch {
+                Log.sync.error("sendUpdate() - updateApplicationContext failed: \(error.localizedDescription)")
+            }
+        }
+        
+        // Live delivery if the phone is reachable right now
         if session.isReachable {
             
             if self.lastReceived != sendObject {
