@@ -52,7 +52,7 @@ simulator destinations), checks that `NSSBComplications.appex` is inside the
 watch app, and runs `NSSBTests` on the first available iPhone simulator, on
 every pull request and every push to `main`. It never sets
 `TEST_RUNNER_NSSB_LIVE`, so the live checks stay skipped there. The film test
-`testTheWalkOverNeverBlinks` is frame-rate sensitive and currently fails on the
+`testTheWalkOverNeverBlinks` is frame-rate sensitive and intermittent on the
 runner; see `docs/KNOWN_ISSUES.md`.
 
 The project builds with no warnings of its own. If you add one, it is yours.

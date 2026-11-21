@@ -20,7 +20,7 @@ Rules for AI agents (and humans) working on NSSB. Read `README.md` for what the 
 - **The complication compiles a subset of `/Shared`** (see `docs/ARCHITECTURE.md`). If one of those files starts referencing something new, add that file to `NSSBComplications` too, or the extension stops building.
 - **Logging:** `Log.<channel>.debug/error` (`Shared/Logic/Log.swift`), not `print`, in app code. Tests may print.
 - **Firestore:** never conclude a write worked because the app looked happy. Read back from the server (`DEVELOPMENT.md`). The live checks run only with `TEST_RUNNER_NSSB_LIVE=1`, and CI never sets it.
-- **Don't skip or loosen a test to get green.** See `docs/KNOWN_ISSUES.md` #1 for the one test that currently fails on CI.
+- **Don't skip or loosen a test to get green.** See `docs/KNOWN_ISSUES.md` #1 for the one test that is intermittent on CI.
 
 ## Where things are
 
