@@ -60,11 +60,15 @@ struct InfoView: View {
                     
                     VStack(alignment: .leading, spacing: 10) {
                         
-                        Text("v1.2 Update").font(.headline)
+                        Text("v1.3 Update").font(.headline)
                         
                         Text("Thankyouthankyouthankyou for all your downloads and great feedback!")
                         
-                        Text("New features include creating custom non-smokes and sharing them with friends, but I've also gotten rid of a few pesky bugs and hopefully made everything just a bit cooler.")
+                        Text("You are no longer out there alone: the courtyard shows who else is on a non-smoking break right now, and you can ask for a light or give one.")
+                        
+                        Text("Your iPhone and Apple Watch now actually agree with each other. Breaks and settings sync even when one of them is asleep.")
+                        
+                        Text("New watch complication: today's breaks, or how far into a break you are, right on your watch face. And a few pesky bugs have been sent outside for a long, smoke-free break.")
                         
                         Text("If you want to support, support a good cause, learn to code and give me a hand, or just scratch a dog behind the ear. I can be reached at nssb@nulkommafire.com.")
                         
