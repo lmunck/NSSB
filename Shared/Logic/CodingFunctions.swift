@@ -16,7 +16,7 @@ class CodingFunctions {
                 let data = try JSONEncoder().encode(saveData)
                 try data.write(to: fileURL)
             } catch {
-                print("LocalRepository.save() - \(error)")
+                Log.storage.error("LocalRepository.save() - \(error)")
             }
         }
     }
@@ -31,7 +31,7 @@ class CodingFunctions {
                 let save = try JSONDecoder().decode(NonSmokingData.self, from: data)
                 return save
             } catch {
-                print("LocalRepository.load() - \(error)")
+                Log.storage.error("LocalRepository.load() - \(error)")
                 return legacyLoad()
             }
             
@@ -41,15 +41,15 @@ class CodingFunctions {
         
         func legacyLoad() -> NonSmokingData? {
             
-            print("Legacy load")
+            Log.storage.debug("Legacy load")
             
             if let loadData = UserDefaults.standard.data(forKey: "smokeData") {
                 
-                print("legacyLoad() - Found save data")
+                Log.storage.debug("legacyLoad() - Found save data")
                 
                 if let object = decodeLegacy(from: loadData) {
                     
-                    print("legacyLoad() - Decoded successfully")
+                    Log.storage.debug("legacyLoad() - Decoded successfully")
                     
                     var newData = NonSmokingData(lastUpdate: Date.distantPast)
                     newData.breaks = object.cigDates
@@ -58,13 +58,13 @@ class CodingFunctions {
                     return newData
                 } else {
                     
-                    print("legacyLoad() - Decode failed")
+                    Log.storage.error("legacyLoad() - Decode failed")
                     return nil
                 }
                 
             } else {
                 
-                print("legacyLoad() - Save not found")
+                Log.storage.debug("legacyLoad() - Save not found")
                 
                 return nil
             }
@@ -95,7 +95,7 @@ class CodingFunctions {
             
         } catch {
             
-            print("Unable to Decode Data (\(error))")
+            Log.storage.error("Unable to Decode Data (\(error))")
             return nil
         }
     }
@@ -113,7 +113,7 @@ class CodingFunctions {
             
         } catch {
             
-            print("Unable to Decode Legacy Data (\(error))")
+            Log.storage.error("Unable to Decode Legacy Data (\(error))")
             return nil
         }
         
@@ -133,7 +133,7 @@ class CodingFunctions {
 
         } catch {
             
-            print("Unable to Encode Array (\(error))")
+            Log.storage.error("Unable to Encode Array (\(error))")
             return nil
         }
         

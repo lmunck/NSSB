@@ -132,34 +132,34 @@ struct CigDesign:Codable, Equatable, Hashable {
 extension CigDesign {
     
     func compare(to other: CigDesign) {
-        print("COMPARE.cigDesign")
+        Log.sharing.debug("COMPARE.cigDesign")
         let local = self
         if local.title != other.title {
-            print(".title \(local.title) -> \(other.title)")
+            Log.sharing.debug(".title \(local.title) -> \(other.title)")
         }
         if local.widthPercentage != other.widthPercentage {
-            print(".widthPercentage \(local.widthPercentage) -> \(other.widthPercentage)")
+            Log.sharing.debug(".widthPercentage \(local.widthPercentage) -> \(other.widthPercentage)")
         }
         if local.glowPercentage != other.glowPercentage {
-            print(".glowPercentage \(local.glowPercentage) -> \(other.glowPercentage)")
+            Log.sharing.debug(".glowPercentage \(local.glowPercentage) -> \(other.glowPercentage)")
         }
         if local.filterPercentage != other.filterPercentage {
-            print(".filterPercentage \(local.filterPercentage) -> \(other.filterPercentage)")
+            Log.sharing.debug(".filterPercentage \(local.filterPercentage) -> \(other.filterPercentage)")
         }
         if local.filter != other.filter {
-            print(".filter \(local.filter) -> \(other.filter)")
+            Log.sharing.debug(".filter \(local.filter) -> \(other.filter)")
         }
         if local.body != other.body {
-            print(".body \(local.body) -> \(other.body)")
+            Log.sharing.debug(".body \(local.body) -> \(other.body)")
         }
         if local.ash != other.ash {
-            print(".ash \(local.ash) -> \(other.ash)")
+            Log.sharing.debug(".ash \(local.ash) -> \(other.ash)")
         }
         if local.glow != other.glow {
-            print(".glow \(local.glow) -> \(other.glow)")
+            Log.sharing.debug(".glow \(local.glow) -> \(other.glow)")
         }
         if local.background != other.background {
-            print(".background \(local.background) -> \(other.background)")
+            Log.sharing.debug(".background \(local.background) -> \(other.background)")
         }
     }
     
@@ -185,7 +185,7 @@ extension CigDesign {
                 let new:CigDesign = try JSONDecoder().decode(CigDesign.self, from: decodedData)
                 return new
             } catch {
-                print(error.localizedDescription)
+                Log.sharing.error(error.localizedDescription)
                 return nil
             }
             
@@ -202,7 +202,7 @@ extension CigDesign {
             let json:Data = try JSONEncoder().encode(self)
             dataString = json.base64EncodedString()
         } catch {
-            print(error.localizedDescription)
+            Log.sharing.error(error.localizedDescription)
         }
         
         // Split base64-data into Query Item chunks in URL to avoid it being split in iMessage

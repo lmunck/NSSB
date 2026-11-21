@@ -63,10 +63,10 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     
     func load() {
         if let loadedData = functions.load() {
-            print("Loaded data \(loadedData.breaks.count)")
+            Log.sync.debug("Loaded data \(loadedData.breaks.count)")
             self.data = loadedData
         } else {
-            print("Load failed")
+            Log.sync.error("Load failed")
         }
     }
     
@@ -77,12 +77,12 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     // MARK: Session
 
     func session(_ session: WCSession, activationDidCompleteWith activationState: WCSessionActivationState, error: Error?) {
-        if let error = error { print("Session - ActivationDidComplete - \(error.localizedDescription)") }
+        if let error = error { Log.sync.error("Session - ActivationDidComplete - \(error.localizedDescription)") }
         connectionUpdate(session.isReachable)
     }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
-        print("Session - sessionReachabilityDidChange  \(session.isReachable ? "ACTIVE" : "INACTIVE")")
+        Log.sync.debug("Session - sessionReachabilityDidChange  \(session.isReachable ? "ACTIVE" : "INACTIVE")")
         self.connectionUpdate(session.isReachable)
         if session.isReachable {
             sendUpdate()
@@ -91,9 +91,9 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     
     func session(_ session: WCSession, didReceiveMessageData messageData: Data, replyHandler: @escaping (Data) -> Void) {
         
-        print("Session - didReceiveMessageData")
+        Log.sync.debug("Session - didReceiveMessageData")
         self.receivedUpdate(messageData) { replyData in
-            print("Session - replyHandler")
+            Log.sync.debug("Session - replyHandler")
             replyHandler(replyData)
         }
         
@@ -114,7 +114,7 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
     func tellWatchYouWereLit() {
         
         guard session.isReachable else {
-            print("Session - watch not reachable, no haptic")
+            Log.sync.debug("Session - watch not reachable, no haptic")
             return
         }
         
@@ -122,7 +122,7 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
             [WatchEvent.key: WatchEvent.litByStranger],
             replyHandler: nil,
             errorHandler: { error in
-                print("Session - haptic not delivered: \(error.localizedDescription)")
+                Log.sync.error("Session - haptic not delivered: \(error.localizedDescription)")
             }
         )
     }
@@ -174,87 +174,87 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
                 
                 // Encode data
                 if let sendData:Data = functions.encodeData(from: sendObject) {
-                    print("sendUpdate() - Data encoded - SUCCESS")
+                    Log.sync.debug("sendUpdate() - Data encoded - SUCCESS")
                     
                     // Send data
                     session.sendMessageData(sendData, replyHandler: { confirmationData in
-                        print("sendUpdate() - Confirmation received")
+                        Log.sync.debug("sendUpdate() - Confirmation received")
                         
                         if let confirmationObject = self.functions.decodeData(from: confirmationData) {
-                            print("sendUpdate() - Confirmation decoded")
+                            Log.sync.debug("sendUpdate() - Confirmation decoded")
                             
                             if confirmationObject == sendObject {
-                                print("sendUpdate() - Confirmation checks out")
+                                Log.sync.debug("sendUpdate() - Confirmation checks out")
                             } else {
-                                print("sendUpdate() - Confirmation failed:")
+                                Log.sync.error("sendUpdate() - Confirmation failed:")
                                 confirmationObject.compare(to: sendObject)
                             }
                         } else {
-                            print("sendUpdate() - Confirmation not decoded")
+                            Log.sync.debug("sendUpdate() - Confirmation not decoded")
                         }
                         
                     })
                       
                 } else {
-                    print("sendUpdate() - Data encoded - FAIL")
+                    Log.sync.error("sendUpdate() - Data encoded - FAIL")
                 }
                 
             } else {
-                print("sendUpdate() - New data is the same as last received. Not sending")
+                Log.sync.debug("sendUpdate() - New data is the same as last received. Not sending")
             }
             
         } else {
-            print("sendUpdate() - Session.isReachable = FALSE")
+            Log.sync.debug("sendUpdate() - Session.isReachable = FALSE")
         }
          
     }
     
     func receivedUpdate(_ updateRaw:Data, completion: @escaping (Data) -> Void) {
         
-        print("receivedUpdate()")
+        Log.sync.debug("receivedUpdate()")
         
         // Decode update
         if let receivedObject:NonSmokingData = functions.decodeData(from: updateRaw) {
             
-            print("receivedUpdate() - update decoded, lastReceived updated")
+            Log.sync.debug("receivedUpdate() - update decoded, lastReceived updated")
             self.lastReceived = receivedObject
             
             if receivedObject != self.data {
                 
-                print("receivedUpdate() - change detected")
+                Log.sync.debug("receivedUpdate() - change detected")
                 self.data.compare(to: receivedObject)
                 
                 // Merge received object with local object
                 if let mergedObject = self.data.merge(from: receivedObject) {
                     
-                    print("receivedUpdate() - update merged")
+                    Log.sync.debug("receivedUpdate() - update merged")
                     
                     self.updateData(to: mergedObject) {
                         
-                        print("receivedUpdate() - update updated")
+                        Log.sync.debug("receivedUpdate() - update updated")
                         
                         // Confirm delivery
                         if let confirmationData = self.functions.encodeData(from: mergedObject) {
-                            print("receivedUpdate() - confirmation encoded")
+                            Log.sync.debug("receivedUpdate() - confirmation encoded")
                             completion(confirmationData)
                         } else {
-                            print("receivedUpdate() - confirmation encoding FAIL")
+                            Log.sync.error("receivedUpdate() - confirmation encoding FAIL")
                             completion(updateRaw)
                         }
                         
                     }
                     
                 } else {
-                    print("receivedUpdate() - update merge no change detected")
+                    Log.sync.debug("receivedUpdate() - update merge no change detected")
                     completion(updateRaw)
                 }
             } else {
-                print("receivedUpdate() - no change detected")
+                Log.sync.debug("receivedUpdate() - no change detected")
                 completion(updateRaw)
             }
             
         } else {
-            print("receivedUpdate() - update decoded FAIL")
+            Log.sync.error("receivedUpdate() - update decoded FAIL")
             completion(updateRaw)
         }
         

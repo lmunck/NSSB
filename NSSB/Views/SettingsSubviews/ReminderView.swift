@@ -61,9 +61,9 @@ struct ReminderView: View {
             if newPhase == .active {
                 checkPermissions()
             } else if newPhase == .inactive {
-                print("Inactive")
+                Log.notifications.debug("Inactive")
             } else if newPhase == .background {
-                print("Background")
+                Log.notifications.debug("Background")
             }
         }
     }
@@ -132,7 +132,7 @@ struct ReminderView: View {
             
             UNUserNotificationCenter.current().requestAuthorization(options: [.alert, .badge, .sound]) { success, error in
                 
-                if let error = error { print(error.localizedDescription) }
+                if let error = error { Log.notifications.error(error.localizedDescription) }
                 
                 // Exactly one call - calling it twice used to overwrite a
                 // granted permission with nil, which cancelled the reminders

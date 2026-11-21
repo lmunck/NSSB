@@ -36,7 +36,7 @@ struct NSSBApp: App {
             
             // Receive custom cigarette design from other user
                 .onOpenURL { url in
-                   print("URL received: \(url)")
+                   Log.sharing.debug("URL received: \(url)")
                     if let design:CigDesign = CigDesign().decodeURL(url) {
                         self.model.data.cigDesign.widthPercentage = 0
                         withAnimation(.easeInOut(duration: 2)) {

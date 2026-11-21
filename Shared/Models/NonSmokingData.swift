@@ -109,9 +109,9 @@ extension NonSmokingData {
         
         let local = self
         
-        print("COMPARE:")
+        Log.sync.debug("COMPARE:")
         if local.breaks != other.breaks {
-            print(".breaks")
+            Log.sync.debug(".breaks")
             var receivedDif:[Date] = []
             for receivedBreak in other.breaks {
                 if local.breaks.contains(receivedBreak) == false {
@@ -124,28 +124,28 @@ extension NonSmokingData {
                     localDif.append(lcocalBreak)
                 }
             }
-            print("loc: \(localDif) .count(\(self.breaks.count))")
-            print("rem: \(receivedDif) .count(\(other.breaks.count))")
+            Log.sync.debug("loc: \(localDif) .count(\(self.breaks.count))")
+            Log.sync.debug("rem: \(receivedDif) .count(\(other.breaks.count))")
         }
         if self.breakStarted != other.breakStarted {
-            print(".breakStarted")
-            print("loc: \(String(describing: local.breakStarted?.description))")
-            print("rem: \(String(describing: other.breakStarted?.description))")
+            Log.sync.debug(".breakStarted")
+            Log.sync.debug("loc: \(String(describing: local.breakStarted?.description))")
+            Log.sync.debug("rem: \(String(describing: other.breakStarted?.description))")
         }
         if local.costPer20 != other.costPer20 {
-            print(".costPer20")
-            print("loc: \(local.costPer20)")
-            print("rem: \n \(other.costPer20)")
+            Log.sync.debug(".costPer20")
+            Log.sync.debug("loc: \(local.costPer20)")
+            Log.sync.debug("rem: \n \(other.costPer20)")
         }
         if local.accentHue != other.accentHue {
-            print(".accentHue")
-            print("loc: \(local.accentHue ?? -1)")
-            print("rem: \n \(other.accentHue ?? -1)")
+            Log.sync.debug(".accentHue")
+            Log.sync.debug("loc: \(local.accentHue ?? -1)")
+            Log.sync.debug("rem: \n \(other.accentHue ?? -1)")
         }
         if self.cigDesign != other.cigDesign {
             local.cigDesign.compare(to: other.cigDesign)
         }
-        print("")
+        
     }
     
     
@@ -192,19 +192,19 @@ extension NonSmokingData {
         
         if self != receivedObject {
             
-            print("MERGE")
+            Log.sync.debug("MERGE")
             var selfObject = self
             var wasUpdated = false
             
             let isOlder:Bool = selfObject.older(than: receivedObject)
-            print("merge() should check for updates: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
+            Log.sync.debug("merge() should check for updates: \(isOlder) - \(selfObject.lastUpdate) -> \(receivedObject.lastUpdate)")
             
             if selfObject.breaks != receivedObject.breaks {
-                print("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
+                Log.sync.debug("merge().breaks: \(selfObject.breaks.count) -> \(receivedObject.breaks.count)")
                 for receivedBreak in receivedObject.breaks {
-                    print("merge().receivedBreak:\(receivedBreak) - contains?\(selfObject.breaks.contains(receivedBreak)) - selfObject.breaks:\(selfObject.breaks)")
+                    Log.sync.debug("merge().receivedBreak:\(receivedBreak) - contains?\(selfObject.breaks.contains(receivedBreak)) - selfObject.breaks:\(selfObject.breaks)")
                     if selfObject.breaks.contains(receivedBreak) == false {
-                        print("merge().breaks: Added \(receivedBreak)")
+                        Log.sync.debug("merge().breaks: Added \(receivedBreak)")
                         selfObject.breaks.append(receivedBreak)
                         if wasUpdated != true { wasUpdated = true }
                     }
@@ -215,7 +215,7 @@ extension NonSmokingData {
             
             if selfObject.breakStarted != receivedObject.breakStarted {
                 if isOlder {
-                    print("merge().breakStarted: \(String(describing: selfObject.breakStarted?.description)) -> \(String(describing: receivedObject.breakStarted?.description))")
+                    Log.sync.debug("merge().breakStarted: \(String(describing: selfObject.breakStarted?.description)) -> \(String(describing: receivedObject.breakStarted?.description))")
                     if wasUpdated != true { wasUpdated = true }
                     selfObject.breakStarted = receivedObject.breakStarted
                 }
@@ -223,7 +223,7 @@ extension NonSmokingData {
             
             if selfObject.costPer20 != receivedObject.costPer20 {
                 if isOlder {
-                    print("merge().costPer20: \(selfObject.costPer20) -> \(receivedObject.costPer20)")
+                    Log.sync.debug("merge().costPer20: \(selfObject.costPer20) -> \(receivedObject.costPer20)")
                     if wasUpdated != true { wasUpdated = true }
                     selfObject.costPer20 = receivedObject.costPer20
                 }
@@ -231,7 +231,7 @@ extension NonSmokingData {
             
             if selfObject.accentHue != receivedObject.accentHue {
                 if isOlder {
-                    print("merge().accentHue: \(String(describing: selfObject.accentHue)) -> \(String(describing: receivedObject.accentHue))")
+                    Log.sync.debug("merge().accentHue: \(String(describing: selfObject.accentHue)) -> \(String(describing: receivedObject.accentHue))")
                     if wasUpdated != true { wasUpdated = true }
                     selfObject.accentHue = receivedObject.accentHue
                 }
@@ -239,7 +239,7 @@ extension NonSmokingData {
             
             if selfObject.cigDesign != receivedObject.cigDesign {
                 if isOlder {
-                    print("merge().cigDesign: \(selfObject.cigDesign.title) -> \(receivedObject.cigDesign.title)")
+                    Log.sync.debug("merge().cigDesign: \(selfObject.cigDesign.title) -> \(receivedObject.cigDesign.title)")
                     if wasUpdated != true { wasUpdated = true }
                     selfObject.cigDesign = receivedObject.cigDesign
                 }
@@ -251,13 +251,13 @@ extension NonSmokingData {
                 return selfObject
             } else {
                 
-                print("merge() No updates")
+                Log.sync.debug("merge() No updates")
                 return nil
             }
             
         } else {
             
-            print("merge() No updates")
+            Log.sync.debug("merge() No updates")
             return nil
         }
         

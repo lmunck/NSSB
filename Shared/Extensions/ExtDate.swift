@@ -25,7 +25,6 @@ extension Date {
     
     func breakProgress() -> Double { /// 0 = just started, 1 = ended
         if self.breakIsActive {
-            print("TimeIntervalSinceNow: \(self.timeIntervalSinceNow)")
             return self.elapsedTime/Date.breakLength
         } else {
             return 1

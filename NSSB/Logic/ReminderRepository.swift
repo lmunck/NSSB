@@ -19,7 +19,7 @@ class ReminderRepository: ObservableObject {
     
     func setReminders(_ perDay: Int) {
         
-        print("per day \(perDay)")
+        Log.notifications.debug("per day \(perDay)")
         
         // Always clear the previously scheduled reminders first. Only our own
         // reminder identifiers are removed, so an ongoing break notification
@@ -28,7 +28,7 @@ class ReminderRepository: ObservableObject {
         UNUserNotificationCenter.current().removePendingNotificationRequests(withIdentifiers: staleIDs)
         
         guard perDay != 0 else {
-            print("Removed reminders")
+            Log.notifications.debug("Removed reminders")
             return
         }
         
@@ -47,19 +47,19 @@ class ReminderRepository: ObservableObject {
         }
         
         // Time-interval is 8am to 8pm = 12 hours * 60 mins * 60 secs
-        let secondsPerDay:Int = 12 * 60 * 60 ; print("\(secondsPerDay)")
+        let secondsPerDay:Int = 12 * 60 * 60 ; Log.notifications.debug("\(secondsPerDay)")
         let secondsInterval = Int(secondsPerDay/remindersPerDay)
         
         
-        print("secondsDelta: \(secondsInterval)")
-        print("-----")
+        Log.notifications.debug("secondsDelta: \(secondsInterval)")
+        
         
         var triggers:[UNNotificationTrigger] = []
         
         // Get delta from 8am in seconds
         for n in (0...remindersPerDay - 1) {
             
-            print("Reminder: \(n)")
+            Log.notifications.debug("Reminder: \(n)")
             
             // Calculate delta from start time (8 am)
             var secondsDelta = n * secondsInterval
@@ -76,9 +76,9 @@ class ReminderRepository: ObservableObject {
             secondsDelta = secondsDelta + randomMax + randomDelta
             
             // Get date values
-            let hours:Int = 8 + (secondsDelta % 86400) / 3600 ; print("Hour \(hours)")
-            let minutes:Int = (secondsDelta % 3600) / 60; print("Mins \(minutes)")
-            let seconds:Int = (secondsDelta % 3600) % 60 ; print("Secs \(seconds)")
+            let hours:Int = 8 + (secondsDelta % 86400) / 3600 ; Log.notifications.debug("Hour \(hours)")
+            let minutes:Int = (secondsDelta % 3600) / 60; Log.notifications.debug("Mins \(minutes)")
+            let seconds:Int = (secondsDelta % 3600) % 60 ; Log.notifications.debug("Secs \(seconds)")
             
             var components = DateComponents()
             components.hour = hours

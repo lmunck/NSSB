@@ -144,15 +144,15 @@ final class PresenceRepository: ObservableObject {
         #if canImport(FirebaseFirestore)
         if hasPlist {
             let project = FirebaseApp.app()?.options.projectID ?? "unknown"
-            print("Presence - using Firestore, project \(project)")
+            Log.presence.debug("Presence - using Firestore, project \(project)")
             return FirestorePresenceService()
         }
-        print("Presence - the Firebase SDK is linked, but GoogleService-Info.plist is not in the NSSB target. Falling back to the simulated service. See firebase/README.md step 1.")
+        Log.presence.debug("Presence - the Firebase SDK is linked, but GoogleService-Info.plist is not in the NSSB target. Falling back to the simulated service. See firebase/README.md step 1.")
         #else
         if hasPlist {
-            print("Presence - GoogleService-Info.plist is present, but the Firebase SDK is not linked. Falling back to the simulated service. See firebase/README.md step 2.")
+            Log.presence.debug("Presence - GoogleService-Info.plist is present, but the Firebase SDK is not linked. Falling back to the simulated service. See firebase/README.md step 2.")
         } else {
-            print("Presence - no Firebase project configured yet, using the simulated service.")
+            Log.presence.debug("Presence - no Firebase project configured yet, using the simulated service.")
         }
         #endif
         
@@ -167,7 +167,7 @@ final class PresenceRepository: ObservableObject {
         do {
             self.liveCount = try await service.liveCount()
         } catch {
-            print("Presence - count failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - count failed: \(error.localizedDescription)")
         }
     }
     
@@ -209,18 +209,18 @@ final class PresenceRepository: ObservableObject {
         do {
             self.echoes = try await service.recentEchoes(limit: echoLimit, within: echoWindow)
             if echoes.isEmpty == false {
-                print("Presence - \(echoes.count) ember(s) still warm")
+                Log.presence.debug("Presence - \(echoes.count) ember(s) still warm")
             }
         } catch {
-            print("Presence - echoes failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - echoes failed: \(error.localizedDescription)")
         }
         
         // Take a few bins out while we are here. Nothing else will.
         do {
             let swept = try await service.sweepStale(olderThan: echoWindow + 60, limit: 5)
-            if swept > 0 { print("Presence - swept \(swept) stale document(s)") }
+            if swept > 0 { Log.presence.debug("Presence - swept \(swept) stale document(s)") }
         } catch {
-            print("Presence - sweep failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - sweep failed: \(error.localizedDescription)")
         }
         
         // And the asks, which the asker normally deletes itself. What is left
@@ -229,9 +229,9 @@ final class PresenceRepository: ObservableObject {
         // TTL policy, very little that is never cleared still adds up.
         do {
             let swept = try await service.sweepStaleAsks(olderThan: askLitter, limit: 5)
-            if swept > 0 { print("Presence - swept \(swept) stale ask(s)") }
+            if swept > 0 { Log.presence.debug("Presence - swept \(swept) stale ask(s)") }
         } catch {
-            print("Presence - ask sweep failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - ask sweep failed: \(error.localizedDescription)")
         }
         
         // And the waits, for the same reason: a waiter who was killed in the
@@ -239,9 +239,9 @@ final class PresenceRepository: ObservableObject {
         // else will ever clear.
         do {
             let swept = try await service.sweepStaleWaits(olderThan: waitLitter, limit: 5)
-            if swept > 0 { print("Presence - swept \(swept) stale wait(s)") }
+            if swept > 0 { Log.presence.debug("Presence - swept \(swept) stale wait(s)") }
         } catch {
-            print("Presence - wait sweep failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - wait sweep failed: \(error.localizedDescription)")
         }
     }
     
@@ -251,16 +251,16 @@ final class PresenceRepository: ObservableObject {
     func start() async {
         do {
             self.uid = try await service.signIn()
-            print("Presence - signed in anonymously")
+            Log.presence.debug("Presence - signed in anonymously")
             await refreshCount()
         } catch {
             // Firebase's own message for most auth failures is "An internal
             // error has occurred, print and inspect the error details" - the
             // actual reason is buried in the userInfo, so print it.
             let ns = error as NSError
-            print("Presence - sign-in failed: \(ns.domain) code \(ns.code) - \(ns.localizedDescription)")
+            Log.presence.error("Presence - sign-in failed: \(ns.domain) code \(ns.code) - \(ns.localizedDescription)")
             for (key, value) in ns.userInfo {
-                print("Presence -   \(key): \(value)")
+                Log.presence.debug("Presence -   \(key): \(value)")
             }
         }
     }
@@ -292,7 +292,7 @@ final class PresenceRepository: ObservableObject {
         if company.isWaiting { await cancelWait() }
         
         guard let uid = self.uid else {
-            print("Presence - not signed in yet, break not published")
+            Log.presence.debug("Presence - not signed in yet, break not published")
             return
         }
         
@@ -315,7 +315,7 @@ final class PresenceRepository: ObservableObject {
             self.storedBreakStart = startedAt.timeIntervalSince1970
             
             if isSameBreak {
-                print("Presence - resumed \(presence.name) at its real burn position")
+                Log.presence.debug("Presence - resumed \(presence.name) at its real burn position")
             }
             
             await refreshCount()
@@ -327,12 +327,12 @@ final class PresenceRepository: ObservableObject {
                     self?.courtyardSeen = true
                     
                     if others.isEmpty {
-                        print("Presence - courtyard: nobody else out there")
+                        Log.presence.debug("Presence - courtyard: nobody else out there")
                     } else {
                         let who = others.map {
                             "\($0.name) (\($0.country ?? "--"), \($0.daylight().rawValue), \(Int($0.progress() * 100))% burnt)"
                         }
-                        print("Presence - courtyard: \(others.count) other(s) - \(who.joined(separator: ", "))")
+                        Log.presence.debug("Presence - courtyard: \(others.count) other(s) - \(who.joined(separator: ", "))")
                     }
                 }
             }
@@ -345,7 +345,7 @@ final class PresenceRepository: ObservableObject {
             }
             
         } catch {
-            print("Presence - publish failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - publish failed: \(error.localizedDescription)")
         }
     }
     
@@ -421,11 +421,11 @@ final class PresenceRepository: ObservableObject {
             self.storedBreakStart = 0
             
             if wasOrphan {
-                print("Presence - cleaned up a break left behind by an earlier launch")
+                Log.presence.debug("Presence - cleaned up a break left behind by an earlier launch")
             }
             
         } catch {
-            print("Presence - withdraw failed, will retry next launch: \(error.localizedDescription)")
+            Log.presence.error("Presence - withdraw failed, will retry next launch: \(error.localizedDescription)")
         }
     }
     
@@ -512,7 +512,7 @@ final class PresenceRepository: ObservableObject {
         guard case .idle = ask else { return }
         
         guard let uid = self.uid else {
-            print("Presence - not signed in yet, cannot ask")
+            Log.presence.debug("Presence - not signed in yet, cannot ask")
             // Without a backend there is nobody to ask, so fall through to
             // the same place eight seconds of silence would have led.
             askEndedUnanswered()
@@ -535,13 +535,13 @@ final class PresenceRepository: ObservableObject {
         do {
             try await service.openAsk(outgoing)
         } catch {
-            print("Presence - ask failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - ask failed: \(error.localizedDescription)")
             askEndedUnanswered()
             return
         }
         
         self.ask = .asking(outgoing)
-        print("Presence - asked the courtyard for a light")
+        Log.presence.debug("Presence - asked the courtyard for a light")
         
         service.observeOwnAsk(id: outgoing.id) { [weak self] incoming in
             Task { @MainActor in
@@ -570,7 +570,7 @@ final class PresenceRepository: ObservableObject {
         askTimeout = nil
         service.stopObservingOwnAsk()
         
-        print("Presence - \(giver.name) gave you a light")
+        Log.presence.debug("Presence - \(giver.name) gave you a light")
         self.ask = .lit(by: giver)
         armHandoffNet(giver: giver)
 
@@ -594,9 +594,9 @@ final class PresenceRepository: ObservableObject {
         askTimeout = nil
         
         if reaching {
-            print("Presence - nobody lit was out there, still waiting")
+            Log.presence.debug("Presence - nobody lit was out there, still waiting")
         } else {
-            print("Presence - nobody answered, lighting your own")
+            Log.presence.debug("Presence - nobody answered, lighting your own")
         }
         askEndedUnanswered()
 
@@ -649,7 +649,7 @@ final class PresenceRepository: ObservableObject {
         // be worse than not drawing them at all.
         guard companion.hasGone(at: met) == false else { return }
 
-        print("Presence - \(companion.name) is staying for the rest of theirs")
+        Log.presence.debug("Presence - \(companion.name) is staying for the rest of theirs")
         stand(with: companion, since: met)
     }
     
@@ -658,7 +658,7 @@ final class PresenceRepository: ObservableObject {
     private func companionLeft(_ id: String) {
         companionTimers[id] = nil
         guard let gone = company.companions.first(where: { $0.id == id }) else { return }
-        print("Presence - \(gone.name) has gone back in")
+        Log.presence.debug("Presence - \(gone.name) has gone back in")
         self.company = company.without(id)
     }
     
@@ -673,7 +673,7 @@ final class PresenceRepository: ObservableObject {
     
     private func forceHandoffFinished(giver: AskGiver) {
         guard case .lit = ask else { return }
-        print("Presence - the handoff never finished, moving on without it")
+        Log.presence.debug("Presence - the handoff never finished, moving on without it")
         self.ask = .done(givenBy: giver)
         stayWith(giver)
     }
@@ -691,7 +691,7 @@ final class PresenceRepository: ObservableObject {
         } catch {
             // The sweep will get it. The rules let anyone clear an ask five
             // minutes after it expired, precisely for this.
-            print("Presence - could not remove the ask, leaving it to the sweep: \(error.localizedDescription)")
+            Log.presence.debug("Presence - could not remove the ask, leaving it to the sweep: \(error.localizedDescription)")
         }
     }
     
@@ -712,7 +712,7 @@ final class PresenceRepository: ObservableObject {
         guard giving == nil else { return }
         
         guard let mine = publishedBreak, mine.isLive() else {
-            print("Presence - nothing lit to give a light with")
+            Log.presence.debug("Presence - nothing lit to give a light with")
             return
         }
         
@@ -728,7 +728,7 @@ final class PresenceRepository: ObservableObject {
                 giverTzOffset: mine.tzOffset
             )
             
-            print("Presence - gave \(wanted.name) a light")
+            Log.presence.debug("Presence - gave \(wanted.name) a light")
             self.giving = wanted
             
             // Same net as the asking side: an interrupted animation must not
@@ -743,7 +743,7 @@ final class PresenceRepository: ObservableObject {
         } catch {
             // Somebody was quicker, or the ask expired between the tap and
             // the write. Either way it is no longer there to answer.
-            print("Presence - too late to give \(wanted.name) a light: \(error.localizedDescription)")
+            Log.presence.debug("Presence - too late to give \(wanted.name) a light: \(error.localizedDescription)")
             self.offers.removeAll { $0.id == wanted.id }
         }
     }
@@ -794,7 +794,7 @@ final class PresenceRepository: ObservableObject {
         guard case .idle = company else { return }
         
         guard let uid = self.uid else {
-            print("Presence - not signed in yet, cannot wait")
+            Log.presence.debug("Presence - not signed in yet, cannot wait")
             // Nobody to wait for, so land where thirty seconds of silence
             // would have landed anyway.
             self.company = .alone
@@ -815,13 +815,13 @@ final class PresenceRepository: ObservableObject {
         do {
             try await service.openWait(outgoing)
         } catch {
-            print("Presence - wait failed: \(error.localizedDescription)")
+            Log.presence.error("Presence - wait failed: \(error.localizedDescription)")
             self.company = .alone
             return
         }
         
         self.company = .waiting(outgoing)
-        print("Presence - waiting for company")
+        Log.presence.debug("Presence - waiting for company")
         
         service.observeOwnWait(id: outgoing.id) { [weak self] incoming in
             Task { @MainActor in
@@ -857,7 +857,7 @@ final class PresenceRepository: ObservableObject {
               let litAt = incoming.litAt
         else { return }
         
-        print("Presence - \(companion.name) is smoking with you")
+        Log.presence.debug("Presence - \(companion.name) is smoking with you")
         enterTogether(companion, since: litAt)
         
         // Paired means finished waiting. The document is ours, so clearing it
@@ -897,12 +897,12 @@ final class PresenceRepository: ObservableObject {
                 litAt: litAt
             )
         } catch {
-            print("Presence - too late to stand with \(other.name): \(error.localizedDescription)")
+            Log.presence.debug("Presence - too late to stand with \(other.name): \(error.localizedDescription)")
             self.waiting.removeAll { $0.id == other.id }
             return
         }
         
-        print("Presence - standing with \(other.name)")
+        Log.presence.debug("Presence - standing with \(other.name)")
         
         // Read before the state moves on, not after: entering `.together` is
         // what ends the waiting, so by then `company.openWait` is nil and
@@ -952,7 +952,7 @@ final class PresenceRepository: ObservableObject {
         self.company = company.standing(with: companion, since: since)
         
         guard company.companions.count > before else {
-            print("Presence - no room beside you for \(companion.name)")
+            Log.presence.debug("Presence - no room beside you for \(companion.name)")
             return
         }
         
@@ -984,7 +984,7 @@ final class PresenceRepository: ObservableObject {
         waitTimeout = nil
         self.waiting = []
         
-        print("Presence - nobody came out, lighting your own")
+        Log.presence.debug("Presence - nobody came out, lighting your own")
         reaching = false
         self.company = .alone
         
@@ -1023,7 +1023,7 @@ final class PresenceRepository: ObservableObject {
         } catch {
             // The sweep will get it. The rules let anyone clear a wait five
             // minutes after it expired, precisely for this.
-            print("Presence - could not remove the wait, leaving it to the sweep: \(error.localizedDescription)")
+            Log.presence.debug("Presence - could not remove the wait, leaving it to the sweep: \(error.localizedDescription)")
         }
     }
 }
