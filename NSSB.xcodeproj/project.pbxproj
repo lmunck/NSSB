@@ -97,7 +97,6 @@
 		68D2FD01284361EC00529BB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD00284361EC00529BB1 /* ContentView.swift */; };
 		68D2FD03284361EC00529BB1 /* NotificationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD02284361EC00529BB1 /* NotificationController.swift */; };
 		68D2FD05284361EC00529BB1 /* NotificationView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD04284361EC00529BB1 /* NotificationView.swift */; };
-		68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD06284361EC00529BB1 /* ComplicationController.swift */; };
 		68D2FD09284361EF00529BB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FD08284361EF00529BB1 /* Assets.xcassets */; };
 		68D2FD0C284361EF00529BB1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FD0B284361EF00529BB1 /* Preview Assets.xcassets */; };
 		68D2FD1E2843657E00529BB1 /* CigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1D2843657E00529BB1 /* CigaretteView.swift */; };
@@ -107,6 +106,20 @@
 		CD0FACE00000000000000006 /* PresenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE00000000000000002 /* PresenceService.swift */; };
 		CD0FACE00000000000000007 /* FirestorePresenceService.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE00000000000000003 /* FirestorePresenceService.swift */; };
 		CD0FACE00000000000000008 /* PresenceRepository.swift in Sources */ = {isa = PBXBuildFile; fileRef = CD0FACE00000000000000004 /* PresenceRepository.swift */; };
+		5CA7C0DE3F00000000000060 /* NonSmokingData.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68372CB3284BE66E00607600 /* NonSmokingData.swift */; };
+		5CA7C0DE3F00000000000061 /* CigDesign.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C26B0EA2C28AE21000036D5 /* CigDesign.swift */; };
+		5CA7C0DE3F00000000000062 /* ColorCodable.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9C25372C161E9F0025191E /* ColorCodable.swift */; };
+		5CA7C0DE3F00000000000063 /* ExtColor.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C9F18822C2C713600F96C32 /* ExtColor.swift */; };
+		5CA7C0DE3F00000000000064 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A802860F21F00154D84 /* Colors.swift */; };
+		5CA7C0DE3F00000000000065 /* ExtDate.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6F92C5554B40038574B /* ExtDate.swift */; };
+		5CA7C0DE3F00000000000066 /* ExtCalendar.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C35E6FB2C5589BB0038574B /* ExtCalendar.swift */; };
+		5CA7C0DE3F00000000000067 /* ExtSequence.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5C5F75FE2C958DC900DBD113 /* ExtSequence.swift */; };
+		5CA7C0DE3F00000000000068 /* ExtString.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CBF16782C45A4130011FC18 /* ExtString.swift */; };
+		5CA7C0DE3F00000000000069 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000001 /* Log.swift */; };
+		5CA7C0DE3F00000000000041 /* SharedContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000040 /* SharedContainer.swift */; };
+		5CA7C0DE3F00000000000042 /* SharedContainer.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000040 /* SharedContainer.swift */; };
+		5CA7C0DE3F0000000000004F /* NSSBComplications.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000043 /* NSSBComplications.swift */; };
+		5CA7C0DE3F00000000000051 /* NSSBComplications.appex in Embed Foundation Extensions */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000046 /* NSSBComplications.appex */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 /* End PBXBuildFile section */
 
 /* Begin PBXContainerItemProxy section */
@@ -124,6 +137,13 @@
 			remoteGlobalIDString = 68D2FCED284361E900529BB1;
 			remoteInfo = "NSSB WatchKit App";
 		};
+		5CA7C0DE3F00000000000052 /* PBXContainerItemProxy */ = {
+			isa = PBXContainerItemProxy;
+			containerPortal = 68D2FCD8284361E100529BB1 /* Project object */;
+			proxyType = 1;
+			remoteGlobalIDString = 5CA7C0DE3F00000000000048;
+			remoteInfo = NSSBComplications;
+		};
 /* End PBXContainerItemProxy section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -136,6 +156,17 @@
 				68D2FCEF284361E900529BB1 /* NSSB.app in Embed Watch Content */,
 			);
 			name = "Embed Watch Content";
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5CA7C0DE3F00000000000050 /* Embed Foundation Extensions */ = {
+			isa = PBXCopyFilesBuildPhase;
+			buildActionMask = 2147483647;
+			dstPath = "";
+			dstSubfolderSpec = 13;
+			files = (
+				5CA7C0DE3F00000000000051 /* NSSBComplications.appex in Embed Foundation Extensions */,
+			);
+			name = "Embed Foundation Extensions";
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 /* End PBXCopyFilesBuildPhase section */
@@ -210,7 +241,6 @@
 		68D2FD00284361EC00529BB1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		68D2FD02284361EC00529BB1 /* NotificationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationController.swift; sourceTree = "<group>"; };
 		68D2FD04284361EC00529BB1 /* NotificationView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NotificationView.swift; sourceTree = "<group>"; };
-		68D2FD06284361EC00529BB1 /* ComplicationController.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ComplicationController.swift; sourceTree = "<group>"; };
 		68D2FD08284361EF00529BB1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		68D2FD0B284361EF00529BB1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		68D2FD0D284361EF00529BB1 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
@@ -222,6 +252,12 @@
 		CD0FACE00000000000000002 /* PresenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceService.swift; sourceTree = "<group>"; };
 		CD0FACE00000000000000003 /* FirestorePresenceService.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = FirestorePresenceService.swift; sourceTree = "<group>"; };
 		CD0FACE00000000000000004 /* PresenceRepository.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = PresenceRepository.swift; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000040 /* SharedContainer.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SharedContainer.swift; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000043 /* NSSBComplications.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSSBComplications.swift; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000044 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000045 /* NSSBComplications.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = NSSBComplications.entitlements; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000054 /* NSSB WatchKit App.entitlements */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = "NSSB WatchKit App.entitlements"; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000046 /* NSSBComplications.appex */ = {isa = PBXFileReference; explicitFileType = "wrapper.app-extension"; includeInIndex = 0; path = NSSBComplications.appex; sourceTree = BUILT_PRODUCTS_DIR; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -243,6 +279,13 @@
 			runOnlyForDeploymentPostprocessing = 0;
 		};
 		68D2FCF6284361EC00529BB1 /* Frameworks */ = {
+			isa = PBXFrameworksBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5CA7C0DE3F0000000000004A /* Frameworks */ = {
 			isa = PBXFrameworksBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
@@ -368,6 +411,7 @@
 			children = (
 				68A14A6D2854AA3000154D84 /* CodingFunctions.swift */,
 				5CA7C0DE3F00000000000001 /* Log.swift */,
+				5CA7C0DE3F00000000000040 /* SharedContainer.swift */,
 				5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */,
 				68A14A802860F21F00154D84 /* Colors.swift */,
 			);
@@ -393,6 +437,7 @@
 				68A14A6B2854AA0C00154D84 /* Shared */,
 				68D2FCE2284361E200529BB1 /* NSSB */,
 				DEC0DE000000000000000009 /* NSSBTests */,
+				5CA7C0DE3F00000000000047 /* NSSBComplications */,
 				68D2FCF2284361E900529BB1 /* NSSB WatchKit App */,
 				68D2FCFD284361EC00529BB1 /* NSSB WatchKit Extension */,
 				68D2FCE1284361E200529BB1 /* Products */,
@@ -403,6 +448,7 @@
 			isa = PBXGroup;
 			children = (
 				DEC0DE00000000000000000A /* NSSBTests.xctest */,
+				5CA7C0DE3F00000000000046 /* NSSBComplications.appex */,
 				68D2FCE0284361E200529BB1 /* NSSB.app */,
 				68D2FCEE284361E900529BB1 /* NSSB.app */,
 			);
@@ -451,8 +497,8 @@
 				5C12DEF52C6FD6C900090A71 /* MenuView.swift */,
 				68D2FD02284361EC00529BB1 /* NotificationController.swift */,
 				68D2FD04284361EC00529BB1 /* NotificationView.swift */,
-				68D2FD06284361EC00529BB1 /* ComplicationController.swift */,
 				68D2FD08284361EF00529BB1 /* Assets.xcassets */,
+				5CA7C0DE3F00000000000054 /* NSSB WatchKit App.entitlements */,
 				68D2FD0D284361EF00529BB1 /* Info.plist */,
 				68D2FD0E284361EF00529BB1 /* PushNotificationPayload.apns */,
 				68D2FD0A284361EF00529BB1 /* Preview Content */,
@@ -497,6 +543,16 @@
 				CD0FACE00000000000000004 /* PresenceRepository.swift */,
 			);
 			path = Presence;
+			sourceTree = "<group>";
+		};
+		5CA7C0DE3F00000000000047 /* NSSBComplications */ = {
+			isa = PBXGroup;
+			children = (
+				5CA7C0DE3F00000000000043 /* NSSBComplications.swift */,
+				5CA7C0DE3F00000000000044 /* Info.plist */,
+				5CA7C0DE3F00000000000045 /* NSSBComplications.entitlements */,
+			);
+			path = NSSBComplications;
 			sourceTree = "<group>";
 		};
 /* End PBXGroup section */
@@ -551,15 +607,34 @@
 				68D2FCEC284361E900529BB1 /* Resources */,
 				68D2FCF5284361EC00529BB1 /* Sources */,
 				68D2FCF6284361EC00529BB1 /* Frameworks */,
+				5CA7C0DE3F00000000000050 /* Embed Foundation Extensions */,
 			);
 			buildRules = (
 			);
 			dependencies = (
+				5CA7C0DE3F00000000000053 /* PBXTargetDependency */,
 			);
 			name = "NSSB WatchKit App";
 			productName = "NSSB WatchKit App";
 			productReference = 68D2FCEE284361E900529BB1 /* NSSB.app */;
 			productType = "com.apple.product-type.application";
+		};
+		5CA7C0DE3F00000000000048 /* NSSBComplications */ = {
+			isa = PBXNativeTarget;
+			buildConfigurationList = 5CA7C0DE3F0000000000004C /* Build configuration list for PBXNativeTarget "NSSBComplications" */;
+			buildPhases = (
+				5CA7C0DE3F00000000000049 /* Sources */,
+				5CA7C0DE3F0000000000004A /* Frameworks */,
+				5CA7C0DE3F0000000000004B /* Resources */,
+			);
+			buildRules = (
+			);
+			dependencies = (
+			);
+			name = NSSBComplications;
+			productName = NSSBComplications;
+			productReference = 5CA7C0DE3F00000000000046 /* NSSBComplications.appex */;
+			productType = "com.apple.product-type.app-extension";
 		};
 /* End PBXNativeTarget section */
 
@@ -579,6 +654,9 @@
 					};
 					68D2FCED284361E900529BB1 = {
 						CreatedOnToolsVersion = 13.3;
+					};
+					5CA7C0DE3F00000000000048 = {
+						CreatedOnToolsVersion = 15.4;
 					};
 				};
 			};
@@ -601,6 +679,7 @@
 				68D2FCDF284361E200529BB1 /* NSSB */,
 				DEC0DE00000000000000000B /* NSSBTests */,
 				68D2FCED284361E900529BB1 /* NSSB WatchKit App */,
+				5CA7C0DE3F00000000000048 /* NSSBComplications */,
 			);
 		};
 /* End PBXProject section */
@@ -632,6 +711,13 @@
 				68D2FD0C284361EF00529BB1 /* Preview Assets.xcassets in Resources */,
 				68D2FD09284361EF00529BB1 /* Assets.xcassets in Resources */,
 				68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5CA7C0DE3F0000000000004B /* Resources */ = {
+			isa = PBXResourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -736,14 +822,33 @@
 				5C9C25392C16252F0025191E /* ColorCodable.swift in Sources */,
 				68A14A6628537EE100154D84 /* Focus.swift in Sources */,
 				5C12DEF62C6FDBD900090A71 /* MenuView.swift in Sources */,
-				68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */,
 				5C5F76002C958DC900DBD113 /* ExtSequence.swift in Sources */,
 				68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */,
 				5CA7C0DE3F00000000000003 /* Log.swift in Sources */,
+				5CA7C0DE3F00000000000041 /* SharedContainer.swift in Sources */,
 				68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */,
 				5C8ACD572C31675600CCD6E0 /* CaptainIconView.swift in Sources */,
 				5CEC10F42C2B38A000EAD79C /* CigaretteAshView.swift in Sources */,
 				68D2FD05284361EC00529BB1 /* NotificationView.swift in Sources */,
+			);
+			runOnlyForDeploymentPostprocessing = 0;
+		};
+		5CA7C0DE3F00000000000049 /* Sources */ = {
+			isa = PBXSourcesBuildPhase;
+			buildActionMask = 2147483647;
+			files = (
+				5CA7C0DE3F0000000000004F /* NSSBComplications.swift in Sources */,
+				5CA7C0DE3F00000000000042 /* SharedContainer.swift in Sources */,
+				5CA7C0DE3F00000000000060 /* NonSmokingData.swift in Sources */,
+				5CA7C0DE3F00000000000061 /* CigDesign.swift in Sources */,
+				5CA7C0DE3F00000000000062 /* ColorCodable.swift in Sources */,
+				5CA7C0DE3F00000000000063 /* ExtColor.swift in Sources */,
+				5CA7C0DE3F00000000000064 /* Colors.swift in Sources */,
+				5CA7C0DE3F00000000000065 /* ExtDate.swift in Sources */,
+				5CA7C0DE3F00000000000066 /* ExtCalendar.swift in Sources */,
+				5CA7C0DE3F00000000000067 /* ExtSequence.swift in Sources */,
+				5CA7C0DE3F00000000000068 /* ExtString.swift in Sources */,
+				5CA7C0DE3F00000000000069 /* Log.swift in Sources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -759,6 +864,11 @@
 			isa = PBXTargetDependency;
 			target = 68D2FCED284361E900529BB1 /* NSSB WatchKit App */;
 			targetProxy = 68D2FCF0284361E900529BB1 /* PBXContainerItemProxy */;
+		};
+		5CA7C0DE3F00000000000053 /* PBXTargetDependency */ = {
+			isa = PBXTargetDependency;
+			target = 5CA7C0DE3F00000000000048 /* NSSBComplications */;
+			targetProxy = 5CA7C0DE3F00000000000052 /* PBXContainerItemProxy */;
 		};
 /* End PBXTargetDependency section */
 
@@ -921,15 +1031,14 @@
 		68D2FD16284361EF00529BB1 /* Debug */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "NSSB WatchKit Extension/NSSB WatchKit App.entitlements";
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3JMZLMZVTS;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = NSSB_WatchKit_App.ComplicationController;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.lmunck.NSSB;
@@ -953,15 +1062,14 @@
 		68D2FD17284361EF00529BB1 /* Release */ = {
 			isa = XCBuildConfiguration;
 			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = "NSSB WatchKit Extension/NSSB WatchKit App.entitlements";
 				ALWAYS_EMBED_SWIFT_STANDARD_LIBRARIES = YES;
 				ASSETCATALOG_COMPILER_APPICON_NAME = AppIcon;
-				ASSETCATALOG_COMPILER_COMPLICATION_NAME = Complication;
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
 				DEVELOPMENT_TEAM = 3JMZLMZVTS;
 				GENERATE_INFOPLIST_FILE = YES;
-				INFOPLIST_KEY_CLKComplicationPrincipalClass = NSSB_WatchKit_App.ComplicationController;
 				INFOPLIST_KEY_NSHumanReadableCopyright = "";
 				INFOPLIST_KEY_UISupportedInterfaceOrientations = "UIInterfaceOrientationPortrait UIInterfaceOrientationPortraitUpsideDown";
 				INFOPLIST_KEY_WKCompanionAppBundleIdentifier = com.lmunck.NSSB;
@@ -1056,6 +1164,62 @@
 			};
 			name = Release;
 		};
+		5CA7C0DE3F0000000000004D /* Debug */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NSSBComplications/NSSBComplications.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3JMZLMZVTS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NSSBComplications/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NSSB;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp.complications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Debug;
+		};
+		5CA7C0DE3F0000000000004E /* Release */ = {
+			isa = XCBuildConfiguration;
+			buildSettings = {
+				CODE_SIGN_ENTITLEMENTS = NSSBComplications/NSSBComplications.entitlements;
+				CODE_SIGN_STYLE = Automatic;
+				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = 3JMZLMZVTS;
+				GENERATE_INFOPLIST_FILE = YES;
+				INFOPLIST_FILE = NSSBComplications/Info.plist;
+				INFOPLIST_KEY_CFBundleDisplayName = NSSB;
+				INFOPLIST_KEY_NSHumanReadableCopyright = "";
+				LD_RUNPATH_SEARCH_PATHS = (
+					"$(inherited)",
+					"@executable_path/Frameworks",
+					"@executable_path/../../Frameworks",
+				);
+				MARKETING_VERSION = 1.3;
+				PRODUCT_BUNDLE_IDENTIFIER = com.lmunck.NSSB.watchkitapp.complications;
+				PRODUCT_NAME = "$(TARGET_NAME)";
+				SDKROOT = watchos;
+				SKIP_INSTALL = YES;
+				SWIFT_EMIT_LOC_STRINGS = YES;
+				SWIFT_VERSION = 5.0;
+				TARGETED_DEVICE_FAMILY = 4;
+				WATCHOS_DEPLOYMENT_TARGET = 10.0;
+			};
+			name = Release;
+		};
 /* End XCBuildConfiguration section */
 
 /* Begin XCConfigurationList section */
@@ -1091,6 +1255,15 @@
 			buildConfigurations = (
 				68D2FD1A284361EF00529BB1 /* Debug */,
 				68D2FD1B284361EF00529BB1 /* Release */,
+			);
+			defaultConfigurationIsVisible = 0;
+			defaultConfigurationName = Release;
+		};
+		5CA7C0DE3F0000000000004C /* Build configuration list for PBXNativeTarget "NSSBComplications" */ = {
+			isa = XCConfigurationList;
+			buildConfigurations = (
+				5CA7C0DE3F0000000000004D /* Debug */,
+				5CA7C0DE3F0000000000004E /* Release */,
 			);
 			defaultConfigurationIsVisible = 0;
 			defaultConfigurationName = Release;

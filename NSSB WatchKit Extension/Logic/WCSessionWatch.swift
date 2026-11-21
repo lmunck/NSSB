@@ -21,6 +21,9 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
             data.touch(ifChangedFrom: oldValue)
             stamping = false
             save()
+            // Keep the complication current. Reloads only when something it
+            // shows changed - the system budgets timeline reloads.
+            SharedContainer.write(data)
             sendUpdate()
         }
     }
