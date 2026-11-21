@@ -108,3 +108,47 @@ final class CigDesignCodableTests: XCTestCase {
         XCTAssertTrue((0...1).contains(c.blue))
     }
 }
+
+/// NonSmokingData is the saved file and the watch payload. A field that is
+/// missing or unreadable must not cost the user their whole break history.
+final class NonSmokingDataCodableTests: XCTestCase {
+    
+    func testAnEmptyObjectDecodesToDefaults() throws {
+        let data = try JSONDecoder().decode(NonSmokingData.self, from: Data("{}".utf8))
+        XCTAssertTrue(data.breaks.isEmpty)
+        XCTAssertNil(data.breakStarted)
+        XCTAssertEqual(data.costPer20, 0)
+        XCTAssertEqual(data.lastUpdate, .distantPast)
+    }
+    
+    func testAMissingFieldKeepsTheRest() throws {
+        let json = #"{"breaks": [100, 200], "costPer20": 42.5}"#
+        let data = try JSONDecoder().decode(NonSmokingData.self, from: Data(json.utf8))
+        XCTAssertEqual(data.breaks.count, 2)
+        XCTAssertEqual(data.costPer20, 42.5)
+        XCTAssertEqual(data.lastUpdate, .distantPast, "no stamp means older than anything")
+    }
+    
+    func testAnUnreadableFieldKeepsTheHistory() throws {
+        let json = #"{"breaks": [100, 200], "costPer20": "expensive", "lastUpdate": 300}"#
+        let data = try JSONDecoder().decode(NonSmokingData.self, from: Data(json.utf8))
+        XCTAssertEqual(data.breaks.count, 2, "the break history survived")
+        XCTAssertEqual(data.costPer20, 0)
+        XCTAssertEqual(data.lastUpdate, Date(timeIntervalSinceReferenceDate: 300))
+    }
+    
+    func testRoundTrip() throws {
+        var original = NonSmokingData(lastUpdate: Date(timeIntervalSinceReferenceDate: 1_000))
+        original.breaks = [Date(timeIntervalSinceReferenceDate: 500)]
+        original.breakStarted = Date(timeIntervalSinceReferenceDate: 900)
+        original.costPer20 = 12
+        original.accentHue = 100
+        let decoded = try JSONDecoder().decode(NonSmokingData.self, from: JSONEncoder().encode(original))
+        XCTAssertEqual(decoded.breaks, original.breaks)
+        XCTAssertEqual(decoded.breakStarted, original.breakStarted)
+        XCTAssertEqual(decoded.costPer20, original.costPer20)
+        XCTAssertEqual(decoded.accentHue, original.accentHue)
+        XCTAssertEqual(decoded.lastUpdate, original.lastUpdate)
+        XCTAssertEqual(decoded.cigDesign.title, original.cigDesign.title)
+    }
+}
