@@ -9,6 +9,9 @@ import Foundation
 
 class CodingFunctions {
     
+    /// Key for the encoded NonSmokingData in WatchConnectivity application context
+    static let contextKey = "nonSmokingData"
+    
     func save(_ saveData: NonSmokingData) {
         
         if let fileURL = getURL() {
