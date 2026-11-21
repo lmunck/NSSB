@@ -1,0 +1,107 @@
+# Builds both apps (unsigned) and runs NSSBTests on every PR and push to main.
+# Runs on macOS because Xcode is required; agent/cloud sessions run on Linux and
+# rely on this workflow to verify that changes compile.
+#
+# The live Firestore checks (LiveSynchronyTests) stay skipped: they only run when
+# TEST_RUNNER_NSSB_LIVE=1 is set, which this workflow never does.
+name: Build
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+  workflow_dispatch:
+
+concurrency:
+  group: build-${{ github.ref }}
+  cancel-in-progress: true
+
+env:
+  PACKAGES: ${{ github.workspace }}/.spm
+
+jobs:
+  build:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - scheme: NSSB
+            destination: generic/platform=iOS Simulator
+          - scheme: NSSB WatchKit App
+            destination: generic/platform=watchOS Simulator
+    name: ${{ matrix.scheme }}
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: .spm
+          key: spm-${{ hashFiles('NSSB.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Xcode version
+        run: xcodebuild -version
+
+      - name: Build
+        run: |
+          set -o pipefail
+          xcodebuild build \
+            -project NSSB.xcodeproj \
+            -scheme "${{ matrix.scheme }}" \
+            -destination "${{ matrix.destination }}" \
+            -configuration Debug \
+            -clonedSourcePackagesDirPath "$PACKAGES" \
+            -skipPackagePluginValidation -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee build.log | grep -E "error:|warning:|BUILD (SUCCEEDED|FAILED)" || true
+          grep -q "BUILD SUCCEEDED" build.log
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: build-log-${{ strategy.job-index }}
+          path: build.log
+
+  test:
+    runs-on: macos-latest
+    timeout-minutes: 45
+    name: Unit tests
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Cache Swift packages
+        uses: actions/cache@v4
+        with:
+          path: .spm
+          key: spm-${{ hashFiles('NSSB.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
+
+      - name: Pick an iPhone simulator
+        id: sim
+        run: |
+          UDID=$(xcrun simctl list devices available -j \
+            | python3 -c 'import json,sys; d=json.load(sys.stdin)["devices"]; print(next(x["udid"] for r,l in d.items() if "iOS" in r for x in l if x["name"].startswith("iPhone")))')
+          echo "udid=$UDID" >> "$GITHUB_OUTPUT"
+          echo "Using simulator $UDID"
+
+      - name: Test
+        run: |
+          set -o pipefail
+          xcodebuild test \
+            -project NSSB.xcodeproj \
+            -scheme NSSB \
+            -destination "id=${{ steps.sim.outputs.udid }}" \
+            -clonedSourcePackagesDirPath "$PACKAGES" \
+            -skipPackagePluginValidation -skipMacroValidation \
+            CODE_SIGNING_ALLOWED=NO \
+            | tee test.log | grep -E "error:|Test Case .* failed|Executed|TEST (SUCCEEDED|FAILED)" || true
+          grep -q "TEST SUCCEEDED" test.log
+
+      - name: Upload log
+        if: always()
+        uses: actions/upload-artifact@v4
+        with:
+          name: test-log
+          path: test.log
