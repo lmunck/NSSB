@@ -190,12 +190,12 @@ final class SimulatedPresenceService: PresenceService {
     
     func publish(_ presence: BreakPresence) async throws {
         published[presence.id] = presence
-        print("Presence - published \(presence.name), ends \(presence.endsAt)")
+        Log.presence.debug("Presence - published \(presence.name), ends \(presence.endsAt)")
     }
     
     func withdraw(id: String) async throws {
         published[id] = nil
-        print("Presence - withdrew \(id)")
+        Log.presence.debug("Presence - withdrew \(id)")
     }
     
     func observeCourtyard(limit: Int, onChange: @escaping ([BreakPresence]) -> Void) {
@@ -257,7 +257,7 @@ final class SimulatedPresenceService: PresenceService {
     
     func openAsk(_ ask: BreakAsk) async throws {
         asks[ask.id] = ask
-        print("Presence - asked the courtyard for a light (\(ask.name))")
+        Log.presence.debug("Presence - asked the courtyard for a light (\(ask.name))")
         emitAsks()
         emitOwnAsk()
     }
@@ -351,7 +351,7 @@ final class SimulatedPresenceService: PresenceService {
     
     func openWait(_ wait: BreakWait) async throws {
         waits[wait.id] = wait
-        print("Presence - waiting for company (\(wait.name))")
+        Log.presence.debug("Presence - waiting for company (\(wait.name))")
         emitWaits()
         emitOwnWait()
     }

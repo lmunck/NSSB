@@ -99,18 +99,18 @@ final class FirestorePresenceService: PresenceService {
             .addSnapshotListener { snapshot, error in
                 
                 if let error = error {
-                    print("Presence - listener error: \(error.localizedDescription)")
+                    Log.presence.error("Presence - listener error: \(error.localizedDescription)")
                     return
                 }
                 
                 guard let documents = snapshot?.documents else { return }
                 
-                print("Presence - query returned \(documents.count) live break(s)")
+                Log.presence.debug("Presence - query returned \(documents.count) live break(s)")
                 
                 let others: [BreakPresence] = documents.compactMap { document in
                     
                     guard let presence = try? document.data(as: BreakPresence.self) else {
-                        print("Presence - could not decode \(document.documentID)")
+                        Log.presence.debug("Presence - could not decode \(document.documentID)")
                         return nil
                     }
                     
@@ -236,7 +236,7 @@ final class FirestorePresenceService: PresenceService {
             .addSnapshotListener { snapshot, error in
                 
                 if let error = error {
-                    print("Presence - own ask listener error: \(error.localizedDescription)")
+                    Log.presence.error("Presence - own ask listener error: \(error.localizedDescription)")
                     return
                 }
                 
@@ -273,7 +273,7 @@ final class FirestorePresenceService: PresenceService {
             .addSnapshotListener { snapshot, error in
                 
                 if let error = error {
-                    print("Presence - asks listener error: \(error.localizedDescription)")
+                    Log.presence.error("Presence - asks listener error: \(error.localizedDescription)")
                     return
                 }
                 
@@ -295,7 +295,7 @@ final class FirestorePresenceService: PresenceService {
                 }
                 
                 if open.isEmpty == false {
-                    print("Presence - \(open.count) open ask(s) in the courtyard")
+                    Log.presence.debug("Presence - \(open.count) open ask(s) in the courtyard")
                 }
                 
                 onChange(open)
@@ -399,7 +399,7 @@ final class FirestorePresenceService: PresenceService {
             .addSnapshotListener { snapshot, error in
                 
                 if let error = error {
-                    print("Presence - own wait listener error: \(error.localizedDescription)")
+                    Log.presence.error("Presence - own wait listener error: \(error.localizedDescription)")
                     return
                 }
                 
@@ -434,7 +434,7 @@ final class FirestorePresenceService: PresenceService {
             .addSnapshotListener { snapshot, error in
                 
                 if let error = error {
-                    print("Presence - waits listener error: \(error.localizedDescription)")
+                    Log.presence.error("Presence - waits listener error: \(error.localizedDescription)")
                     return
                 }
                 
@@ -456,7 +456,7 @@ final class FirestorePresenceService: PresenceService {
                 }
                 
                 if open.isEmpty == false {
-                    print("Presence - \(open.count) other(s) waiting for company")
+                    Log.presence.debug("Presence - \(open.count) other(s) waiting for company")
                 }
                 
                 onChange(open)

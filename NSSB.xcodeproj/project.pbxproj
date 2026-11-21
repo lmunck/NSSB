@@ -76,7 +76,9 @@
 		68A14A6628537EE100154D84 /* Focus.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6428537E7C00154D84 /* Focus.swift */; };
 		68A14A672853844000154D84 /* CigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1D2843657E00529BB1 /* CigaretteView.swift */; };
 		68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
+		5CA7C0DE3F00000000000002 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000001 /* Log.swift */; };
 		68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A6D2854AA3000154D84 /* CodingFunctions.swift */; };
+		5CA7C0DE3F00000000000003 /* Log.swift in Sources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F00000000000001 /* Log.swift */; };
 		68A14A7B285CF5FB00154D84 /* SavingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7A285CF5FB00154D84 /* SavingsView.swift */; };
 		68A14A7D285CFE8500154D84 /* KeyboardPublisher.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */; };
 		68A14A812860F21F00154D84 /* Colors.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68A14A802860F21F00154D84 /* Colors.swift */; };
@@ -191,6 +193,7 @@
 		68A14A60285215BA00154D84 /* WCSessionWatch.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = WCSessionWatch.swift; sourceTree = "<group>"; };
 		68A14A6428537E7C00154D84 /* Focus.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Focus.swift; sourceTree = "<group>"; };
 		68A14A6D2854AA3000154D84 /* CodingFunctions.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CodingFunctions.swift; sourceTree = "<group>"; };
+		5CA7C0DE3F00000000000001 /* Log.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = Log.swift; sourceTree = "<group>"; };
 		68A14A75285A5FD500154D84 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		68A14A7A285CF5FB00154D84 /* SavingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SavingsView.swift; sourceTree = "<group>"; };
 		68A14A7C285CFE8500154D84 /* KeyboardPublisher.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = KeyboardPublisher.swift; sourceTree = "<group>"; };
@@ -364,6 +367,7 @@
 			isa = PBXGroup;
 			children = (
 				68A14A6D2854AA3000154D84 /* CodingFunctions.swift */,
+				5CA7C0DE3F00000000000001 /* Log.swift */,
 				5C6A3A5D2C3EFC2B0060C4C4 /* CigNamer.swift */,
 				68A14A802860F21F00154D84 /* Colors.swift */,
 			);
@@ -700,6 +704,7 @@
 				5C3941E72C3C6D6D001E828D /* ShareCigaretteView.swift in Sources */,
 				5C35E6FA2C5554B40038574B /* ExtDate.swift in Sources */,
 				68A14A6E2854AA3000154D84 /* CodingFunctions.swift in Sources */,
+				5CA7C0DE3F00000000000002 /* Log.swift in Sources */,
 				68EE927928474A7500E90BDB /* InfoView.swift in Sources */,
 				5C70C76A2C2F4E75002A5201 /* HueSliderView.swift in Sources */,
 				68372CB4284BE66E00607600 /* NonSmokingData.swift in Sources */,
@@ -734,6 +739,7 @@
 				68D2FD07284361EC00529BB1 /* ComplicationController.swift in Sources */,
 				5C5F76002C958DC900DBD113 /* ExtSequence.swift in Sources */,
 				68A14A712854AA8700154D84 /* CodingFunctions.swift in Sources */,
+				5CA7C0DE3F00000000000003 /* Log.swift in Sources */,
 				68D2FCFF284361EC00529BB1 /* NSSBApp.swift in Sources */,
 				5C8ACD572C31675600CCD6E0 /* CaptainIconView.swift in Sources */,
 				5CEC10F42C2B38A000EAD79C /* CigaretteAshView.swift in Sources */,
