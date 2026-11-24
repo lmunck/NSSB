@@ -29,7 +29,7 @@ enum SharedContainer {
     ///
     /// If this fires, the App Groups capability is missing from the target
     /// or from the provisioning profile it was signed with - not from the
-    /// code. `DEVELOPMENT.md` and `docs/KNOWN_ISSUES.md` both cover it.
+    /// code. `docs/KNOWN_ISSUES.md` covers the setup under "Setup: the App Group".
     private static var defaults: UserDefaults? {
         guard let shared = UserDefaults(suiteName: appGroup) else {
             if !complained {
