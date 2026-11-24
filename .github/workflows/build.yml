@@ -33,10 +33,10 @@ jobs:
             destination: generic/platform=watchOS Simulator
     name: ${{ matrix.scheme }}
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Cache Swift packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .spm
           key: spm-${{ hashFiles('NSSB.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
@@ -67,7 +67,7 @@ jobs:
 
       - name: Upload log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: build-log-${{ strategy.job-index }}
           path: build.log
@@ -77,10 +77,10 @@ jobs:
     timeout-minutes: 45
     name: Unit tests
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
 
       - name: Cache Swift packages
-        uses: actions/cache@v4
+        uses: actions/cache@v6
         with:
           path: .spm
           key: spm-${{ hashFiles('NSSB.xcodeproj/project.xcworkspace/xcshareddata/swiftpm/Package.resolved') }}
@@ -108,7 +108,7 @@ jobs:
 
       - name: Upload log
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: test-log
           path: test.log
