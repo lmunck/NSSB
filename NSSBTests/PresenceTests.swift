@@ -182,4 +182,162 @@ final class PresenceTests: XCTestCase {
                        back.endsAt.timeIntervalSince1970, accuracy: 0.001)
         XCTAssertEqual(original.design.title, back.design.title)
     }
+    
+    // MARK: What the watch is told
+    
+    // BreakCompany is a wire format, which puts it in the same bracket as
+    // CigDesign: a phone and a watch on different builds have to go on
+    // understanding each other, and nothing here can be renamed or retyped.
+    // It is also the one payload with no merge behind it - the watch takes
+    // the phone's word for who is out here - so the filtering that stands in
+    // for a merge is what these cover.
+    
+    private func beside(_ id: String, startedAt: Date, onLeft: Bool = true) -> BreakCompany.Companion {
+        BreakCompany.Companion(
+            id: id,
+            name: "Hollow Lantern",
+            design: CigDesign(title: "Hollow Lantern"),
+            startedAt: startedAt,
+            onLeft: onLeft
+        )
+    }
+    
+    func testACompanionBurnsOnTheirOwnClock() {
+        let lit = Date(timeIntervalSince1970: 1_000_000)
+        let them = beside("one", startedAt: lit)
+        
+        XCTAssertEqual(them.progress(at: lit), 0, accuracy: 0.001)
+        XCTAssertEqual(them.progress(at: lit.addingTimeInterval(Date.breakLength / 2)), 0.5, accuracy: 0.001)
+        XCTAssertEqual(them.progress(at: lit.addingTimeInterval(Date.breakLength)), 1, accuracy: 0.001)
+        
+        // Clamped at both ends, the way a presence document is: somebody
+        // whose payload arrived early is not drawn burning backwards.
+        XCTAssertEqual(them.progress(at: lit.addingTimeInterval(-60)), 0, accuracy: 0.001)
+        XCTAssertEqual(them.progress(at: lit.addingTimeInterval(Date.breakLength * 3)), 1, accuracy: 0.001)
+    }
+    
+    func testACompanionStopsBeingLiveWhenTheirOwnCigaretteGoesOut() {
+        let lit = Date(timeIntervalSince1970: 1_000_000)
+        let them = beside("one", startedAt: lit)
+        
+        XCTAssertTrue(them.isLive(at: lit))
+        XCTAssertTrue(them.isLive(at: lit.addingTimeInterval(Date.breakLength - 1)))
+        XCTAssertFalse(them.isLive(at: lit.addingTimeInterval(Date.breakLength)))
+    }
+    
+    /// The whole reason this payload can be queued. An application context
+    /// is delivered when the watch next runs, which may be a long time, and
+    /// what stops it drawing somebody who left an hour ago is this.
+    func testALatePayloadDrawsNobody() {
+        let lit = Date(timeIntervalSince1970: 1_000_000)
+        let company = BreakCompany(beside: [
+            beside("one", startedAt: lit),
+            beside("two", startedAt: lit.addingTimeInterval(60), onLeft: false)
+        ])
+        
+        XCTAssertEqual(company.standing(at: lit.addingTimeInterval(30)).count, 2)
+        
+        // The first one's cigarette is out, the second one's is not.
+        XCTAssertEqual(company.standing(at: lit.addingTimeInterval(Date.breakLength + 1)).map(\.id), ["two"])
+        
+        XCTAssertTrue(company.standing(at: lit.addingTimeInterval(3600)).isEmpty)
+    }
+    
+    func testCompanySurvivesEncodingAndDecoding() throws {
+        let lit = Date(timeIntervalSince1970: 1_000_000)
+        let original = BreakCompany(beside: [
+            BreakCompany.Companion(
+                id: "wait-id",
+                name: "Paper Kestrel",
+                design: CigDesign(title: "Paper Kestrel",
+                                  glow: Color(red: 1, green: 0.2, blue: 0)),
+                startedAt: lit,
+                onLeft: true
+            )
+        ])
+        
+        let payload = try XCTUnwrap(original.payload())
+        let back = try XCTUnwrap(BreakCompany(payload: payload))
+        
+        // Field by field, and colours through `codable`, for the reason
+        // CigDesignCodableTests does the same: a Color that has been through
+        // JSON holds the same three numbers as the one it came from without
+        // being `==` to it, so comparing whole designs would fail on a
+        // payload that is perfectly correct.
+        XCTAssertEqual(back.beside.count, 1)
+        
+        let them = try XCTUnwrap(back.beside.first)
+        XCTAssertEqual(them.id, "wait-id")
+        XCTAssertEqual(them.name, "Paper Kestrel")
+        XCTAssertEqual(them.onLeft, true)
+        XCTAssertEqual(them.startedAt.timeIntervalSince1970, lit.timeIntervalSince1970, accuracy: 0.001)
+        XCTAssertEqual(them.design.title, "Paper Kestrel")
+        
+        let glow = them.design.glow.codable
+        let sent = original.beside[0].design.glow.codable
+        XCTAssertEqual(glow.red, sent.red, accuracy: 0.0001)
+        XCTAssertEqual(glow.green, sent.green, accuracy: 0.0001)
+        XCTAssertEqual(glow.blue, sent.blue, accuracy: 0.0001)
+    }
+    
+    /// The keys are the contract. A watch on an older build reads these
+    /// names and nothing else, so renaming one is the same as sending it
+    /// nothing.
+    func testTheCompanyKeysHaveNotDrifted() throws {
+        let payload = try XCTUnwrap(BreakCompany(beside: [
+            beside("one", startedAt: Date(timeIntervalSince1970: 1_000_000))
+        ]).payload())
+        
+        let json = try XCTUnwrap(
+            JSONSerialization.jsonObject(with: payload) as? [String: Any]
+        )
+        XCTAssertEqual(Array(json.keys), ["beside"])
+        
+        let first = try XCTUnwrap((json["beside"] as? [[String: Any]])?.first)
+        XCTAssertEqual(Set(first.keys), ["id", "name", "design", "startedAt", "onLeft"])
+    }
+    
+    /// Decoded field by field, the way the saved file and CigDesign are: a
+    /// payload from a build that did not have one of these fields yet still
+    /// arrives, rather than the whole message failing.
+    func testAPayloadMissingFieldsStillArrives() throws {
+        let json = """
+        {"beside": [{"id": "wait-id"}]}
+        """
+        let back = try XCTUnwrap(BreakCompany(payload: Data(json.utf8)))
+        let them = try XCTUnwrap(back.beside.first)
+        
+        XCTAssertEqual(them.id, "wait-id")
+        XCTAssertEqual(them.name, "")
+        XCTAssertEqual(them.design, CigDesign())
+        XCTAssertFalse(them.onLeft)
+        
+        // No ignition instant means nothing can be drawn at a known
+        // position, so they are simply not out here.
+        XCTAssertFalse(them.isLive())
+        XCTAssertTrue(back.standing().isEmpty)
+    }
+    
+    /// Somebody with no id is not somebody: nothing can be keyed on them,
+    /// and the phone keys its own views on the same field.
+    func testACompanionWithNoIdIsDropped() throws {
+        let json = """
+        {"beside": [{"name": "Paper Kestrel"}, {"id": "real", "name": "Charcoal Gull"}]}
+        """
+        let back = try XCTUnwrap(BreakCompany(payload: Data(json.utf8)))
+        
+        XCTAssertEqual(back.beside.map(\.id), ["real"])
+    }
+    
+    func testAnEmptyCompanyIsNobody() throws {
+        XCTAssertTrue(BreakCompany.nobody.isEmpty)
+        XCTAssertTrue(BreakCompany.nobody.standing().isEmpty)
+        
+        let payload = try XCTUnwrap(BreakCompany.nobody.payload())
+        XCTAssertEqual(BreakCompany(payload: payload), BreakCompany.nobody)
+        
+        // Not a failure, just nobody: a payload that is not a company at all
+        // comes back nil, and both readers treat nil as nobody.
+        XCTAssertNil(BreakCompany(payload: Data("not json".utf8)))
+    }
 }

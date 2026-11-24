@@ -26,6 +26,8 @@ The two classes are deliberately parallel. A change to the sync logic in one alm
 | `cigDesign: CigDesign` | The cigarette, including its name |
 | `lastUpdate: Date` | When this last changed (see stamping above) |
 
+Who you are smoking with is deliberately *not* in here. See `BreakCompany` under phone ⇄ watch sync.
+
 **Wire formats.** `NonSmokingData` and `CigDesign` decode field by field with defaults, so a missing or unreadable field never fails the whole file. `CigDesign` is also the share-link payload and part of Firestore documents. Its colours go through `CodableColor`, which has exactly the shape the old `Color: Codable` produced. `CigDesignCodableTests` and `NonSmokingDataCodableTests` pin both formats. When you add a field, add it to `CodingKeys` and to `init(from:)`.
 
 ## Persistence
@@ -47,7 +49,16 @@ A copy that equals the last thing received is never sent back. Both channels end
 - `breaks`: union, de-duplicated and sorted. Deletions can't propagate, and today nothing deletes.
 - `breakStarted`, `costPer20`, `accentHue`, `cigDesign`: the remote value wins only if the local copy is older by `lastUpdate`.
 
-Separately, the phone sends one non-data event, `litByStranger`, as a plain `sendMessage`. It is deliberately not queued: a late tap on the wrist would be wrong. See `WCSessionPhone.tellWatchYouWereLit`.
+Separately, the phone sends two non-data events as plain `sendMessage`s.
+
+- **`litByStranger`** taps the wrist when somebody in the courtyard answered your ask. Deliberately not queued: a late tap on the wrist would be wrong. See `WCSessionPhone.tellWatchYouWereLit`.
+- **`company`** carries a `BreakCompany`: who is standing with you, their cigarette, when theirs was lit, and which side of you they are on. This one *is* queued — it also rides in the application context under `breakCompany` — because company is a state that lasts a whole cigarette rather than an event, and a watch raised mid-break should find the right people there. See `WCSessionPhone.tellWatchWhoIsWithYou`.
+
+`BreakCompany` (`Shared/Models/BreakCompany.swift`) is not part of `NonSmokingData` and never saved: company lasts exactly as long as the cigarettes do and nothing about it is kept. It is not stamped and not merged either — only the phone has a courtyard, so only the phone ever writes one, and the watch takes its word. What stands in for the merge is that every companion carries the instant their own cigarette was lit and both sides filter on it, exactly as the courtyard filters on `BreakPresence.endsAt`: a payload delivered an hour late draws nobody. The watch adds one filter the payload cannot carry — nobody is drawn unless its own break is running — which covers the round trip after a break is stubbed out on the wrist.
+
+The application context is built in one place (`WCSessionPhone.pushContext`) because the system keeps one dictionary: whatever a call leaves out is no longer waiting for the watch. So the data always goes in, even when only the company changed. Company goes in only when there is somebody out there; an absent key means nobody.
+
+The watch draws this in `CompanyView`, as the last frame of the phone's journey and nothing before it — the walk over and the two tips touching are the phone's, and by the time a payload could arrive they are over. The courtyard itself stays on the phone.
 
 ## Complication (`NSSBComplications/`)
 
