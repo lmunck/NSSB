@@ -32,6 +32,18 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     /// Stops the stamp from re-entering its own observer.
     private var stamping = false
     
+    /// Who is standing with you, for as long as they are.
+    ///
+    /// Not part of `data`, and deliberately so. Company is never saved, never
+    /// merged and never stamped: it lasts exactly as long as the cigarettes
+    /// do and nothing about it is kept, which is the first principle of the
+    /// layer it comes from. Putting it in the file that gets written to disk
+    /// and ordered by `lastUpdate` would break that twice over.
+    ///
+    /// Only the phone ever writes one, because only the phone has a
+    /// courtyard. The watch receives it, draws it and forgets it.
+    @Published private(set) var company:BreakCompany = .nobody
+    
     // Session
     @Published var connected:Bool = false
     
@@ -90,11 +102,42 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     }
     
     private func receivedContext(_ context: [String: Any]) {
+        
+        // Whoever was standing with you when the phone last spoke. No key
+        // means nobody - the context is replaced whole, so an absent key is
+        // an answer rather than a gap.
+        //
+        // No tap on the wrist for this one. A context can be hours old by the
+        // time this app runs, and company that may have finished long ago is
+        // not something to buzz about. The live message is where that would
+        // belong, if it belonged anywhere.
+        received(company: context[WatchEventKeys.companyKey] as? Data)
+        
         guard let contextData = context[CodingFunctions.contextKey] as? Data else {
             Log.sync.debug("receivedContext() - no data in context")
             return
         }
         receivedUpdate(contextData) { _ in }
+    }
+    
+    /// Takes the phone's word for who is out here with you.
+    ///
+    /// Trusted as it stands rather than merged, because there is nothing to
+    /// merge: the watch has no opinion about the courtyard and can never have
+    /// formed one. What saves this from the staleness a merge would have
+    /// guarded against is that every companion carries the instant their own
+    /// cigarette was lit, and the view draws nobody whose cigarette has
+    /// burned out.
+    private func received(company payload: Data?) {
+        
+        let arriving = payload.flatMap { BreakCompany(payload: $0) } ?? .nobody
+        
+        guard arriving != company else { return }
+        Log.sync.debug("receivedCompany() - \(arriving.beside.count) beside you")
+        
+        DispatchQueue.main.async {
+            self.company = arriving
+        }
     }
     
     func sessionReachabilityDidChange(_ session: WCSession) {
@@ -121,14 +164,23 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
     /// cigarette is worth a tap on the wrist, so that is all that crosses.
     func session(_ session: WCSession, didReceiveMessage message: [String : Any]) {
         
-        guard message[WatchEventKeys.key] as? String == WatchEventKeys.litByStranger else {
+        switch message[WatchEventKeys.key] as? String {
+            
+        case WatchEventKeys.litByStranger:
+            Log.sync.debug("Session - somebody gave us a light")
+            DispatchQueue.main.async {
+                WKInterfaceDevice.current().play(.notification)
+            }
+            
+        case WatchEventKeys.company:
+            // Somebody arrived or somebody left. No haptic either way: the
+            // wrist has already been tapped for the light that started this,
+            // and buzzing again a second later for the same encounter would
+            // read as two things happening rather than one.
+            received(company: message[WatchEventKeys.companyKey] as? Data)
+            
+        default:
             Log.sync.debug("Session - unknown message, ignored")
-            return
-        }
-        
-        Log.sync.debug("Session - somebody gave us a light")
-        DispatchQueue.main.async {
-            WKInterfaceDevice.current().play(.notification)
         }
     }
     
@@ -273,4 +325,6 @@ class WCSessionWatch : NSObject,  WCSessionDelegate, ObservableObject{
 enum WatchEventKeys {
     static let key = "event"
     static let litByStranger = "litByStranger"
+    static let company = "company"
+    static let companyKey = "breakCompany"
 }

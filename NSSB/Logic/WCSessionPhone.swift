@@ -37,9 +37,22 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         }
     }
     var lastReceived:NonSmokingData? = nil
-    
+
     /// Stops the stamp from re-entering its own observer.
     private var stamping = false
+
+    /// Who is standing with you, as the watch was last told.
+    ///
+    /// Held here rather than passed through, because
+    /// `updateApplicationContext` replaces the whole dictionary: a company
+    /// push carrying only company would throw away a data update the watch
+    /// has not woken up for yet, and a data push carrying no company would
+    /// quietly empty the courtyard on the wrist.
+    ///
+    /// Not inside `data`. Company is not saved, not merged and not stamped,
+    /// and the one thing it must never do is take part in the merge that
+    /// decides whether a break is running.
+    private var company = BreakCompany.nobody
     
     // Session
     @Published var connected:Bool = false
@@ -152,10 +165,72 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         )
     }
     
-    /// The one thing the phone ever says to the watch that is not data.
+
+    // MARK: Who is out here with you
+
+    /// Tells the watch who is standing with you, and takes them away again
+    /// when they go.
+    ///
+    /// Queued, unlike the haptic above, and for the opposite reason. A tap on
+    /// the wrist is an event: ten minutes late it is a stranger tapping you
+    /// for no reason. Company is a state that lasts a whole cigarette, so a
+    /// watch raised in the middle of a break should find the right people
+    /// standing there - which means the background channel as well as the
+    /// live one.
+    ///
+    /// Arriving late is safe because every companion carries the instant
+    /// their own cigarette was lit, and both readers filter on it. A payload
+    /// delivered an hour afterwards draws nobody rather than somebody who
+    /// left an hour ago.
+    ///
+    /// The handoff is not in here. Two tips touching is a phone animation in
+    /// a phone's courtyard, and by the time a watch could draw it, it is over
+    /// - so what crosses is the people left standing afterwards, which is
+    /// exactly `presence.company`.
+    func tellWatchWhoIsWithYou(_ standing: [Companion]) {
+
+        let update = BreakCompany(beside: standing.map {
+            BreakCompany.Companion(
+                id: $0.id,
+                name: $0.name,
+                design: $0.design,
+                startedAt: $0.startedAt,
+                onLeft: $0.side == .left
+            )
+        })
+
+        guard update != company else { return }
+        self.company = update
+
+        Log.sync.debug("Session - company is now \(update.beside.count) beside you")
+
+        // Background first, so the state is waiting whether or not the live
+        // message gets through.
+        pushContext(self.data)
+
+        guard session.activationState == .activated, session.isReachable,
+              let payload = update.payload()
+        else { return }
+
+        session.sendMessage(
+            [WatchEvent.key: WatchEvent.company, WatchEvent.companyKey: payload],
+            replyHandler: nil,
+            errorHandler: { error in
+                Log.sync.error("Session - company not delivered: \(error.localizedDescription)")
+            }
+        )
+    }
+
+    /// The two things the phone ever says to the watch that are not data.
     enum WatchEvent {
         static let key = "event"
         static let litByStranger = "litByStranger"
+        static let company = "company"
+
+        /// The encoded `BreakCompany`: the payload that rides with a
+        /// `company` message, and the key it takes in the application
+        /// context, where there is no event name to go with it.
+        static let companyKey = "breakCompany"
     }
     
     // MARK: Only Phone
@@ -185,6 +260,39 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         }
     }
     
+    /// The background channel, both things at once.
+    ///
+    /// One dictionary, because the system keeps one: whatever is not in this
+    /// call is not waiting for the watch any more. So the data always goes in,
+    /// even when only the company changed, or a company push would wipe out a
+    /// break the watch has not woken up to hear about.
+    ///
+    /// Company only goes in when there is somebody out here. An absent key
+    /// means nobody, which is the answer for almost every break ever taken,
+    /// and the wire should say nothing when there is nothing to say.
+    private func pushContext(_ sendObject: NonSmokingData) {
+
+        guard session.activationState == .activated,
+              session.isPaired, session.isWatchAppInstalled
+        else { return }
+
+        var context: [String: Any] = [:]
+        if let contextData = functions.encodeData(from: sendObject) {
+            context[CodingFunctions.contextKey] = contextData
+        }
+        if company.isEmpty == false, let payload = company.payload() {
+            context[WatchEvent.companyKey] = payload
+        }
+
+        guard context.isEmpty == false else { return }
+
+        do {
+            try session.updateApplicationContext(context)
+        } catch {
+            Log.sync.error("pushContext() - updateApplicationContext failed: \(error.localizedDescription)")
+        }
+    }
+
     // Send new total to watch
     func sendUpdate() {
         
@@ -200,13 +308,8 @@ class WCSessionPhone : NSObject,  WCSessionDelegate, ObservableObject {
         // Background delivery, whether or not the watch is reachable now: the
         // latest state replaces any earlier one and arrives when the watch app
         // next runs. A copy of what we just received is not sent back.
-        if self.lastReceived != sendObject, session.isPaired && session.isWatchAppInstalled,
-           let contextData = functions.encodeData(from: sendObject) {
-            do {
-                try session.updateApplicationContext([CodingFunctions.contextKey: contextData])
-            } catch {
-                Log.sync.error("sendUpdate() - updateApplicationContext failed: \(error.localizedDescription)")
-            }
+        if self.lastReceived != sendObject {
+            pushContext(sendObject)
         }
         
         // Live delivery if the watch is reachable right now

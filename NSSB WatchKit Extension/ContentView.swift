@@ -27,6 +27,16 @@ struct ContentView: View {
                     data: $model.data
                 )
                 
+                // Whoever is out here with you, standing beside your own
+                // cigarette. Nobody, unless the phone has said otherwise
+                // and your own break is still running.
+                CompanyView(
+                    company: model.company,
+                    mine: model.data.cigDesign,
+                    yourBreak: model.data.breakStarted,
+                    height: geo.size.height
+                )
+                
                 ScoreView(breaks: model.data.breaks, costPer20: model.data.costPer20)
                 
                 MenuView(data: $model.data)

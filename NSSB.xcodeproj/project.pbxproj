@@ -99,6 +99,9 @@
 		68D2FD1E2843657E00529BB1 /* CigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1D2843657E00529BB1 /* CigaretteView.swift */; };
 		68D2FD202843659600529BB1 /* SettingsView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FD1F2843659600529BB1 /* SettingsView.swift */; };
 		68EE927928474A7500E90BDB /* InfoView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68EE927828474A7500E90BDB /* InfoView.swift */; };
+		C0FFEE000000000000000002 /* BreakCompany.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000001 /* BreakCompany.swift */; };
+		C0FFEE000000000000000003 /* BreakCompany.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000001 /* BreakCompany.swift */; };
+		C0FFEE000000000000000005 /* CompanyView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0FFEE000000000000000004 /* CompanyView.swift */; };
 		C0117A000000000000000002 /* DistantCigaretteView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A000000000000000001 /* DistantCigaretteView.swift */; };
 		C0117A000000000000000004 /* CourtyardView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A000000000000000003 /* CourtyardView.swift */; };
 		C0117A00000000000000000B /* AskForALightView.swift in Sources */ = {isa = PBXBuildFile; fileRef = C0117A00000000000000000A /* AskForALightView.swift */; };
@@ -237,6 +240,8 @@
 		68D2FD1F2843659600529BB1 /* SettingsView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = SettingsView.swift; sourceTree = "<group>"; };
 		68EE927828474A7500E90BDB /* InfoView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = InfoView.swift; sourceTree = "<group>"; };
 		C0117A000000000000000001 /* DistantCigaretteView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = DistantCigaretteView.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000001 /* BreakCompany.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BreakCompany.swift; sourceTree = "<group>"; };
+		C0FFEE000000000000000004 /* CompanyView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CompanyView.swift; sourceTree = "<group>"; };
 		C0117A000000000000000003 /* CourtyardView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = CourtyardView.swift; sourceTree = "<group>"; };
 		C0117A00000000000000000A /* AskForALightView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AskForALightView.swift; sourceTree = "<group>"; };
 		C0117A00000000000000000C /* BesideYouView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = BesideYouView.swift; sourceTree = "<group>"; };
@@ -355,6 +360,7 @@
 				68372CB3284BE66E00607600 /* NonSmokingData.swift */,
 				5C9C83462C73CA1D0055A1CA /* NonSmokingData_v1.swift */,
 				5C26B0EA2C28AE21000036D5 /* CigDesign.swift */,
+				C0FFEE000000000000000001 /* BreakCompany.swift */,
 			);
 			path = Models;
 			sourceTree = "<group>";
@@ -478,6 +484,7 @@
 				68D2FD00284361EC00529BB1 /* ContentView.swift */,
 				5C419BBB2C61233400B2AEE6 /* ScoreView.swift */,
 				5C12DEF52C6FD6C900090A71 /* MenuView.swift */,
+				C0FFEE000000000000000004 /* CompanyView.swift */,
 				68D2FD02284361EC00529BB1 /* NotificationController.swift */,
 				68D2FD04284361EC00529BB1 /* NotificationView.swift */,
 				68D2FD08284361EF00529BB1 /* Assets.xcassets */,
@@ -748,6 +755,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				C0117A00000000000000000D /* BesideYouView.swift in Sources */,
+				C0FFEE000000000000000002 /* BreakCompany.swift in Sources */,
 				C0117A00000000000000000B /* AskForALightView.swift in Sources */,
 				DA17WA17000000000000000B /* WaitForCompanyView.swift in Sources */,
 				DA17WA1T000000000000000B /* BreakWait.swift in Sources */,
@@ -810,6 +818,8 @@
 				5C419BBC2C61233400B2AEE6 /* ScoreView.swift in Sources */,
 				5C12DEF32C6FCF5800090A71 /* CigNamer.swift in Sources */,
 				68A14A61285215BA00154D84 /* WCSessionWatch.swift in Sources */,
+				C0FFEE000000000000000003 /* BreakCompany.swift in Sources */,
+				C0FFEE000000000000000005 /* CompanyView.swift in Sources */,
 				5CEC10F32C2B388B00EAD79C /* CigaretteGlowDots.swift in Sources */,
 				68A14A672853844000154D84 /* CigaretteView.swift in Sources */,
 				5C26B0EC2C28AF17000036D5 /* CigDesign.swift in Sources */,

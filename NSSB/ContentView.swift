@@ -214,6 +214,13 @@ struct ContentView: View {
             }
             .onChange(of: presence.company) { _, state in
                 
+                // The wrist is told who is out here, however they got here
+                // and whether or not anything else about this break is
+                // changing. Somebody arriving, somebody going back in and
+                // the break ending all come through here, and the watch
+                // needs all three - the last one is what empties it.
+                model.tellWatchWhoIsWithYou(state.companions)
+                
                 // The wait is over, one way or the other, and either way the
                 // cigarette gets lit - the same contract as the ask.
                 //
