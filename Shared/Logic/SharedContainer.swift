@@ -41,14 +41,23 @@ enum SharedContainer {
         return shared
     }
     
-    /// What the complication needs: the running break, recent breaks and the price.
-    /// Older breaks are dropped to keep the payload small (the complication only shows "today").
+    /// What the complication needs: the running break, recent breaks, the price
+    /// and the cigarette's design.
+    ///
+    /// Older breaks are dropped to keep the payload small (the complication only
+    /// shows "today"). The design goes along because the complication draws the
+    /// cigarette rather than a plain bar, and a cigarette the user coloured
+    /// themselves should look the same on the wrist as in the app. It is a
+    /// handful of colours and three proportions, so it costs almost nothing, and
+    /// it only changes when the design does - the write below still skips the
+    /// reload when the encoded snapshot is unchanged.
     private static func snapshot(of data: NonSmokingData) -> NonSmokingData {
         let cutoff = Date.now.addingTimeInterval(-2 * 86_400)
         return NonSmokingData(
             breaks: data.breaks.filter { $0 > cutoff },
             breakStarted: data.breakStarted,
             costPer20: data.costPer20,
+            cigDesign: data.cigDesign,
             lastUpdate: .distantPast
         )
     }
