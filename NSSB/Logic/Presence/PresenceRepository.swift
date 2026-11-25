@@ -970,7 +970,7 @@ final class PresenceRepository: ObservableObject {
                 try? await Task.sleep(nanoseconds: UInt64(left * 1_000_000_000))
             }
             guard Task.isCancelled == false else { return }
-            await self?.companionLeft(companion.id)
+            self?.companionLeft(companion.id)
         }
     }
     
