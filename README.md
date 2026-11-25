@@ -25,6 +25,13 @@ An iPhone + Apple Watch app for taking a 5-minute "smoke break" **without the ci
 
 See **[`DEVELOPMENT.md`](DEVELOPMENT.md)** for build and test commands, simulator pairing, the render/film test harnesses and the live Firestore checks. See **[`firebase/README.md`](firebase/README.md)** for the backend. Without Firebase configured, the app runs on `SimulatedPresenceService`.
 
+**Forking:** the committed `GoogleService-Info.plist` points at this project's own
+Firebase instance. It is not a secret - it is bundle-id restricted and ships inside
+every App Store build - but it does mean a fork built as-is signs in to *this*
+project and writes real documents into *this* courtyard. Replace it with the plist
+from your own Firebase project before you run a fork against the live backend, or
+leave Firebase unconfigured and let `SimulatedPresenceService` stand in.
+
 Signing uses team `3JMZLMZVTS`. The watch app and `NSSBComplications` need the **App Groups** capability with `group.com.lmunck.NSSB`. It's already in their entitlements files, and automatic signing registers it on the first device build.
 
 **CI:** `.github/workflows/build.yml` builds both apps for the simulator (unsigned), checks that the complication is embedded, and runs `NSSBTests` on every PR and every push to `main`.
@@ -58,3 +65,19 @@ docs/                        Architecture notes and known issues
 - [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md): data model, persistence, sync, complication, logging
 - [`docs/KNOWN_ISSUES.md`](docs/KNOWN_ISSUES.md): open issues and what needs a device test
 - [`CLAUDE.md`](CLAUDE.md): rules for AI agents and contributors working in this repo
+
+## License
+
+[MIT](LICENSE). Use it, change it, ship it; just keep the copyright notice, and
+it comes with no warranty.
+
+The licence covers everything in the repository, artwork included, so two notes
+rather than two restrictions. The app icons and the cigarette artwork are here
+because the project needs them to build; they are the app's face rather than its
+code, and I would rather you drew your own. And a copyright licence grants no
+trademark rights, so "NSSB" and "Non-Smoking Smoke Breaks" come with none - name
+your own build something else before you publish it.
+
+Dependencies keep their own licences: the Firebase iOS SDK and its Google
+components are Apache-2.0, `leveldb` is BSD-3-Clause and `nanopb` is zlib. All of
+them are fetched by SwiftPM rather than vendored here.
