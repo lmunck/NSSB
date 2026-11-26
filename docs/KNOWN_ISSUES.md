@@ -14,7 +14,7 @@ has the record if it is ever wanted.
 | 1 | Two complication families never drawn | a glance |
 | 2 | Phone edits reach the complication late | nothing |
 | 3 | `breaks` can only grow | nothing |
-| 4 | Two warnings on CI | nothing |
+| 4 | One warning on CI, not ours | nothing |
 | 5 | Watch sync between simulators | a check |
 | 6 | Firestore rules untested | a test suite |
 
@@ -24,12 +24,30 @@ has the record if it is ever wanted.
 
 ### 1. Two of the four complication families have never been drawn
 
-Two were tested on a watch face through a real break and behaved. The other two
-have only ever been rendered by SwiftUI previews.
+`accessoryCircular` and `accessoryRectangular` were tested on a watch face
+through a real break and behaved. `accessoryInline` and `accessoryCorner` have
+not been on a face at all; until 2026-11-26 `accessoryInline` had not even had a
+preview.
 
 What is left is layout, not mechanism: all four share the `timerInterval` views
 and the same `getTimeline` schedule, and those are the parts that were in doubt.
 Worst case is a clipped label in `accessoryInline` or `accessoryCorner`.
+
+All four now have a `#Preview` in `NSSBComplications.swift`, each including
+`BreakEntry.placeholderCrowded` — twelve breaks and a savings figure with
+decimals, the state with the most to fit. **Look at the inline one first.** Its
+unlit label is `"12 non-smoking breaks"` plus an icon, by some distance the
+longest string the extension asks a family to hold, and `accessoryInline` is one
+short line that gets narrower the smaller the watch. It has deliberately not
+been shortened: nobody has seen it truncate, and shortening it now would answer
+a guess and leave the glance with nothing to compare against.
+
+**This cannot be settled from a session on this machine.** The complication
+installs and registers on a watch simulator (`pluginkit` confirms it, and the
+watch app builds and installs clean), but nothing can put it on a face:
+`DEVELOPMENT.md` → "Looking at the views" has what was tried. It needs Xcode
+previews or a watch, both of which are a minute's work for whoever has one in
+front of them.
 
 ---
 
@@ -45,17 +63,18 @@ Application context reaches the watch when the watch app next runs. A phone-side
 Merging two devices is a union, so a break can never be removed. Fine while
 nothing deletes breaks. A future reset feature needs a tombstone or a reset epoch.
 
-### 4. Two warnings on CI
+### 4. One warning on CI, and it is not ours
 
-Confirmed on the green run of 2026-11-24:
+"Metadata extraction skipped. No AppIntents.framework dependency found." Not the
+project's code — Xcode's AppIntents metadata step, which the app does not use.
 
-- `PresenceRepository.swift:973` — "no 'async' operations occur within 'await'
-  expression". The project's own code. `DEVELOPMENT.md` says the project builds
-  clean, so this is probably a difference between the runner's Xcode and the
-  local one. Still unverified locally.
-- "Metadata extraction skipped. No AppIntents.framework dependency found." Not
-  the project's code — Xcode's AppIntents metadata step, which the app does not
-  use.
+This entry used to list two. The other was `PresenceRepository.swift:973`, "no
+'async' operations occur within 'await' expression", and it was the project's
+own: the departure timer's `Task` already ran on the main actor, so the `await`
+marked a hop that never happened. Dropped in 81de278, and the warning went with
+it. Checked on the green `main` run of 2026-11-25, where the AppIntents line is
+the only `warning:` left, so `DEVELOPMENT.md`'s claim that the project builds
+without warnings of its own is now true rather than nearly true.
 
 ---
 

@@ -121,6 +121,31 @@ simulator into `Xcode.app/Contents/Applications/DeviceHub.app` and dropped
 the app from a session and watch what happens. `xcrun simctl` still boots,
 installs, launches and screenshots; it just cannot tap.
 
+And `DeviceHub.app` itself opens no window here: it runs as an agent process
+with no window and no menu bar, so there is nothing to click. A watch simulator
+boots, takes an app and answers `pluginkit` perfectly well without it — what
+cannot be done is the one thing a watch face needs, which is tapping through
+Edit to put a complication in a slot. So the complication's four layouts cannot
+be checked from a session on this machine at all, only in Xcode previews or on a
+watch (`docs/KNOWN_ISSUES.md` → issue 1).
+
+The watch face's own store looks like a way round it and is not. The selected
+face is plain JSON at
+
+```
+~/Library/Developer/CoreSimulator/Devices/<watch-udid>/data/Library/NanoTimeKit/
+  CollectionStores/GlobalStores/LibraryFaces/Faces/<face-uuid>/face.json
+```
+
+and a face with complications in it would name them there. But the key names for
+slots are undocumented, the face bundle ids are internal codenames, and
+NanoTimeKit drops a complication descriptor it does not recognise — which leaves
+an empty slot, which is indistinguishable from a complication that drew nothing.
+That is the same trap as "don't trust the watch face picker" in
+`docs/KNOWN_ISSUES.md`, one layer down: a guess that half works cannot be told
+from a view that is broken, so the answer it gives is worth nothing. Don't spend
+the afternoon.
+
 Several drawing bugs were fixed blind before this was addressed, including a
 companion that was correctly placed and completely invisible. Two harnesses
 in `NSSBTests` close most of that gap. Neither replaces using the app.

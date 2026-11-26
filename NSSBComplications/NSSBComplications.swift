@@ -63,6 +63,11 @@ struct BreakEntry: TimelineEntry {
         BreakEntry(date: .now, breaksToday: 2, savedToday: 3, showSavings: true,
                    breakStarted: .now.addingTimeInterval(-Date.breakLength * burnt), design: CigDesign())
     }
+    /// The longest thing each family can be asked to draw: two digits of breaks,
+    /// a savings figure with a fractional part, and no break running, which is
+    /// the state with the most words in it. A preview of a typical day tells you
+    /// nothing about whether a label fits; this is the one to look at.
+    static let placeholderCrowded = BreakEntry(date: .now, breaksToday: 12, savedToday: 18.75, showSavings: true, breakStarted: nil, design: CigDesign())
 }
 
 // MARK: - Provider
@@ -395,6 +400,7 @@ struct NSSBComplications: Widget {
     NSSBComplications()
 } timeline: {
     BreakEntry.placeholder
+    BreakEntry.placeholderCrowded
     BreakEntry.placeholderOnBreak(burnt: 0)
     BreakEntry.placeholderOnBreak(burnt: 0.45)
     BreakEntry.placeholderOnBreak(burnt: 0.9)
@@ -404,6 +410,7 @@ struct NSSBComplications: Widget {
     NSSBComplications()
 } timeline: {
     BreakEntry.placeholder
+    BreakEntry.placeholderCrowded
     BreakEntry.placeholderOnBreak(burnt: 0)
     BreakEntry.placeholderOnBreak(burnt: 0.45)
     BreakEntry.placeholderOnBreak(burnt: 0.9)
@@ -413,5 +420,14 @@ struct NSSBComplications: Widget {
     NSSBComplications()
 } timeline: {
     BreakEntry.placeholder
+    BreakEntry.placeholderCrowded
+    BreakEntry.placeholderOnBreak(burnt: 0.45)
+}
+
+#Preview("Inline", as: .accessoryInline) {
+    NSSBComplications()
+} timeline: {
+    BreakEntry.placeholder
+    BreakEntry.placeholderCrowded
     BreakEntry.placeholderOnBreak(burnt: 0.45)
 }
