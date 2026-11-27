@@ -11,7 +11,7 @@ has the record if it is ever wanted.
 
 | # | Issue | Needs |
 |---|---|---|
-| 1 | Two complication families never drawn | a glance |
+| 1 | Inline at two digits, and the new tinted cigarette | a glance |
 | 2 | Phone edits reach the complication late | nothing |
 | 3 | `breaks` can only grow | nothing |
 | 4 | One warning on CI, not ours | nothing |
@@ -22,32 +22,28 @@ has the record if it is ever wanted.
 
 ## Worth a glance
 
-### 1. Two of the four complication families have never been drawn
+### 1. Two things the glance did not settle
 
-`accessoryCircular` and `accessoryRectangular` were tested on a watch face
-through a real break and behaved. `accessoryInline` and `accessoryCorner` have
-not been on a face at all; until 2026-11-26 `accessoryInline` had not even had a
-preview.
+All four families were looked at on an Apple Watch Ultra 3 through a live
+break on 2026-11-27, which closes the old entry here: `accessoryInline` and
+`accessoryCorner` lay out correctly, nothing clipped, and the corner gauge
+curves where it should. What that glance could not cover, and what is left:
 
-What is left is layout, not mechanism: all four share the `timerInterval` views
-and the same `getTimeline` schedule, and those are the parts that were in doubt.
-Worst case is a clipped label in `accessoryInline` or `accessoryCorner`.
+**The inline label at two digits.** `"12 non-smoking breaks"` plus an icon is
+the longest string the extension asks a family to hold, and
+`accessoryInline` is one short line that gets narrower the smaller the watch.
+The wrist it was looked at on had a single-digit count, which proves nothing
+about the long one, and nobody is going to smoke ten cigarettes to find out.
+`BreakEntry.placeholderCrowded` is in every `#Preview` for exactly this; an
+Xcode preview on the smallest watch settles it in a minute. It has
+deliberately not been shortened — shortening it now would answer a guess.
 
-All four now have a `#Preview` in `NSSBComplications.swift`, each including
-`BreakEntry.placeholderCrowded` — twelve breaks and a savings figure with
-decimals, the state with the most to fit. **Look at the inline one first.** Its
-unlit label is `"12 non-smoking breaks"` plus an icon, by some distance the
-longest string the extension asks a family to hold, and `accessoryInline` is one
-short line that gets narrower the smaller the watch. It has deliberately not
-been shortened: nobody has seen it truncate, and shortening it now would answer
-a guess and leave the glance with nothing to compare against.
-
-**This cannot be settled from a session on this machine.** The complication
-installs and registers on a watch simulator (`pluginkit` confirms it, and the
-watch app builds and installs clean), but nothing can put it on a face:
-`DEVELOPMENT.md` → "Looking at the views" has what was tried. It needs Xcode
-previews or a watch, both of which are a minute's work for whoever has one in
-front of them.
+**The tinted cigarette, as redrawn.** The glance turned up that the thing on
+the face did not read as a cigarette at all: a complication is always tinted,
+which takes `CigDesign` out of it, and what was left was a flat capsule at
+under four to one. It has been reproportioned and redrawn
+(`docs/ARCHITECTURE.md` → "Drawing it without colour") but that fix has itself
+only been seen flat on a screen, not on a face. Same one-minute check.
 
 ---
 

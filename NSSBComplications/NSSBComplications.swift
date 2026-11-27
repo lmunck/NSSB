@@ -170,20 +170,41 @@ struct CigaretteBar: View {
 
             let length = geo.size.width
             let thickness = geo.size.height
-            let radius = thickness * 0.22
+            let trackRadius = thickness * 0.22
+
+            // A complication on a watch face is always tinted, so everything
+            // below that depends on colour is only ever seen in the Smart
+            // Stack. On a face this has to be a cigarette drawn in one flat
+            // tone, and three things carry it: two hairlines of nothing, one
+            // for the cork band and one for the burn line, and a tobacco that
+            // sits a step below the ember's brightness. Without them the lit
+            // cigarette is a single capsule in a single colour, which is a
+            // progress bar - and that is exactly what it looked like.
+            //
+            // None of it works at the wrong proportions, which was the larger
+            // half of the problem: see UprightCigarette.
+            let corkGap = inColour ? 0 : max(0.75, thickness * 0.16)
+            let burnGap = inColour ? 0 : max(0.5, thickness * 0.12)
+            let radius = thickness * 0.30
 
             // Same split as CigaretteView: the filter keeps its share, the ember
             // sits at the burning end, and the tobacco between them is what the
             // break has been eating into.
             let filterLength = length * design.filterPercentage
-            let emberLength = progress == nil ? 0 : length * design.glowPercentage
-            let tobaccoLength = max(0, length - filterLength - emberLength)
+            // The ember is a tenth of the cigarette, which on a short one is
+            // half a point of nothing. Tinted, it is the only part that says
+            // the thing is alight, so it never gets smaller than it is thick.
+            let emberLength = progress == nil ? 0
+                : (inColour ? length * design.glowPercentage
+                            : max(length * design.glowPercentage, thickness * 0.9))
+            let tobaccoLength = max(0, length - filterLength - emberLength - corkGap - burnGap)
             let bodyLength = tobaccoLength * (1 - (progress ?? 0))
+            let emberCentre = filterLength + corkGap + bodyLength + burnGap + emberLength / 2
 
             ZStack(alignment: .leading) {
 
                 if showTrack {
-                    RoundedRectangle(cornerRadius: radius)
+                    RoundedRectangle(cornerRadius: trackRadius)
                         .fill((inColour ? design.body : .white).opacity(0.14))
                 }
 
@@ -207,27 +228,38 @@ struct CigaretteBar: View {
                     }
                     .frame(width: filterLength)
 
+                    if corkGap > 0 { Color.clear.frame(width: corkGap) }
+
                     // BODY - rounded off at the end only when nothing is burning there
                     UnevenRoundedRectangle(bottomTrailingRadius: progress == nil ? radius : 0,
                                            topTrailingRadius: progress == nil ? radius : 0)
                         .fill(inColour
                               ? AnyShapeStyle(LinearGradient(colors: design.bodyArray, startPoint: .top, endPoint: .bottom))
-                              : AnyShapeStyle(Color.white))
+                              : AnyShapeStyle(Color.white.opacity(0.7)))
                         .frame(width: bodyLength)
 
                     // EMBER - hot where it meets the tobacco, ash at the tip
                     if emberLength > 0 {
-                        UnevenRoundedRectangle(bottomTrailingRadius: radius, topTrailingRadius: radius)
-                            .fill(inColour
-                                  ? AnyShapeStyle(LinearGradient(stops: [
+                        if burnGap > 0 { Color.clear.frame(width: burnGap) }
+                        Group {
+                            if inColour {
+                                UnevenRoundedRectangle(bottomTrailingRadius: radius, topTrailingRadius: radius)
+                                    .fill(LinearGradient(stops: [
                                         .init(color: design.glow, location: 0),
                                         .init(color: design.glow.opacity(0.85), location: 0.4),
                                         .init(color: design.ash, location: 0.75),
                                         .init(color: design.ashDark, location: 1)
                                     ], startPoint: .leading, endPoint: .trailing))
-                                  : AnyShapeStyle(Color.white))
-                            .frame(width: emberLength)
-                            .widgetAccentable()
+                            } else {
+                                // Cut loose from the paper by the burn line, so it
+                                // reads as the lit end rather than as more of the
+                                // same bar: rounded at both ends, and the brightest
+                                // thing on the cigarette.
+                                Capsule().fill(Color.white)
+                            }
+                        }
+                        .frame(width: emberLength)
+                        .widgetAccentable()
                     }
                 }
             }
@@ -239,7 +271,7 @@ struct CigaretteBar: View {
                     RadialGradient(colors: [design.glow.opacity(0.55), design.glow.opacity(0)],
                                    center: .center, startRadius: 0, endRadius: thickness * 1.9)
                         .frame(width: thickness * 3.8, height: thickness * 3.8)
-                        .offset(x: filterLength + bodyLength + emberLength / 2 - thickness * 1.9)
+                        .offset(x: emberCentre - thickness * 1.9)
                 }
             }
         }
@@ -251,7 +283,14 @@ struct UprightCigarette: View {
     let design: CigDesign
     let progress: Double?
     var length: CGFloat = 24
-    var thickness: CGFloat = 6
+    /// Thin, because that is most of what makes it a cigarette.
+    ///
+    /// It was 6 against a length of 22, which is under four to one - the
+    /// proportions of a battery indicator, and that is what it looked like on
+    /// a face once the tint had taken the colour out of it. A real cigarette
+    /// is nearer ten to one. There is a floor on how thin is still legible at
+    /// arm's length on a watch, so this does not go all the way there.
+    var thickness: CGFloat = 3.5
 
     var body: some View {
         CigaretteBar(design: design, progress: progress, showTrack: false)
@@ -363,7 +402,7 @@ struct CornerView: View {
             // The bezel gauge is the system's to draw - only Text, ProgressView
             // and Gauge are allowed in a widget label - so the cigarette goes in
             // the corner itself and the gauge takes the ember's colour.
-            UprightCigarette(design: entry.design, progress: entry.burn, length: 22, thickness: 6)
+            UprightCigarette(design: entry.design, progress: entry.burn, length: 22, thickness: 3.5)
                 .widgetAccentable()
                 .widgetLabel {
                     ProgressView(timerInterval: interval, countsDown: true)
