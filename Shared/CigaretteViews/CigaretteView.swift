@@ -256,15 +256,22 @@ struct CigaretteView: View {
         setNotification()
     }
     
+    /// The tap on the shoulder at the end of the break, and the only place the
+    /// app asks whether it may give you one.
+    ///
+    /// It used to schedule into a void. The single `requestAuthorization` in
+    /// the project was in Settings -> Reminders, behind a guard that only
+    /// fires once a reminder frequency has been chosen, so anyone who
+    /// installed the app, took a break and never went looking for the reminder
+    /// screen got nothing at the end of it - silently, because adding a
+    /// request without permission fails without telling anybody. The
+    /// notification at the end of a break is the feature; the random daily
+    /// reminders are the optional extra, and permission was only ever asked
+    /// for the extra.
+    ///
+    /// Lighting up is also the one moment where the question explains itself:
+    /// the answer to it arrives in five minutes.
     func setNotification() {
-        
-        if let secondsLeft:Int = self.data.breakStarted?.breakSecondsLeft() {
-            
-            let interval:TimeInterval = Double(secondsLeft)
-            let trigger = UNTimeIntervalNotificationTrigger(timeInterval: interval, repeats: false)
-            addNotification(at: trigger)
-            
-        }
         
         func addNotification(at trigger: UNNotificationTrigger) {
             
@@ -273,12 +280,42 @@ struct CigaretteView: View {
             content.subtitle = "Time to get back to the grind."
             content.sound = UNNotificationSound.default
 
-            // choose a random identifier
             let request = UNNotificationRequest(identifier: "smokeBreakOngoing", content: content, trigger: trigger)
-
-            // add our notification request
             UNUserNotificationCenter.current().add(request)
             
+        }
+        
+        guard let secondsLeft:Int = self.data.breakStarted?.breakSecondsLeft() else { return }
+        
+        let trigger = UNTimeIntervalNotificationTrigger(timeInterval: Double(secondsLeft), repeats: false)
+        let centre = UNUserNotificationCenter.current()
+        
+        centre.getNotificationSettings { settings in
+            
+            switch settings.authorizationStatus {
+                
+            case .notDetermined:
+                // The same options ReminderView asks for, so whichever screen
+                // gets there first, the other finds what it needs. Asked once:
+                // after this the status is authorized or denied, never
+                // notDetermined again, so a second break does not re-prompt.
+                centre.requestAuthorization(options: [.alert, .badge, .sound]) { granted, error in
+                    if let error = error { Log.notifications.error("setNotification() - \(error.localizedDescription)") }
+                    guard granted else { return }
+                    addNotification(at: trigger)
+                }
+                
+            case .authorized, .provisional, .ephemeral:
+                addNotification(at: trigger)
+                
+            case .denied:
+                // Nothing to schedule and nothing to ask: iOS only shows the
+                // prompt once, and after a no it is the user's Settings app.
+                Log.notifications.debug("setNotification() - notifications are off, nothing scheduled")
+                
+            @unknown default:
+                Log.notifications.debug("setNotification() - unknown authorization status")
+            }
         }
     }
     
