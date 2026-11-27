@@ -7,6 +7,23 @@
 
 import SwiftUI
 
+private extension View {
+
+    /// One score cell: the figure said in a single breath, and the tap that
+    /// swaps the whole row between breaks and money.
+    ///
+    /// That tap lives on the grid, behind these cells. Once each cell is an
+    /// accessibility element of its own there is nothing left for VoiceOver
+    /// to land on that would reach it, so each cell carries it instead.
+    func scoreCell(_ label: String, toggle: @escaping () -> Void) -> some View {
+        self.accessibilityElement(children: .ignore)
+            .accessibilityLabel(label)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityHint("Switches between breaks and money saved")
+            .accessibilityAction(.default, toggle)
+    }
+}
+
 struct ScoreView: View, KeyboardReadable {
     
     let breaks: [Date]
@@ -42,33 +59,21 @@ struct ScoreView: View, KeyboardReadable {
                             .font(.largeTitle)
                         Text("Breaks")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Today, \(breaks.breaksToday()) breaks")
+                    .scoreCell("Today, \(breaks.breaksToday()) breaks") { showAlternate.toggle() }
                     
                     VStack(spacing: -3) {
                         Text("\(breaks.breaksDailyAvg(), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Daily average, \(String(format: "%.1f", breaks.breaksDailyAvg())) breaks")
+                    .scoreCell("Daily average, \(String(format: "%.1f", breaks.breaksDailyAvg())) breaks") { showAlternate.toggle() }
                     
                     VStack(spacing: -3) {
                         Text("\(breaks.breaksTotal())").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("Breaks")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("All time, \(breaks.breaksTotal()) breaks")
+                    .scoreCell("All time, \(breaks.breaksTotal()) breaks") { showAlternate.toggle() }
                     
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))
@@ -83,33 +88,21 @@ struct ScoreView: View, KeyboardReadable {
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Today, \(String(format: "%.1f", breaks.savingsToday(costPer20: costPer20))) \(currency) saved")
+                    .scoreCell("Today, \(String(format: "%.1f", breaks.savingsToday(costPer20: costPer20))) \(currency) saved") { showAlternate.toggle() }
                     
                     VStack(spacing: -3) {
                         Text("\(breaks.savingsDailyAvg(costPer20: costPer20), specifier: "%.1f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("Daily average, \(String(format: "%.1f", breaks.savingsDailyAvg(costPer20: costPer20))) \(currency) saved")
+                    .scoreCell("Daily average, \(String(format: "%.1f", breaks.savingsDailyAvg(costPer20: costPer20))) \(currency) saved") { showAlternate.toggle() }
                     
                     VStack(spacing: -3) {
                         Text("\(breaks.savingsTotal(costPer20: costPer20), specifier: "%.0f")").foregroundColor(.white)
                             .font(.largeTitle)
                         Text("\(Locale.current.currency?.identifier ?? "")")
                     }
-                    // A figure and a unit in one breath, with the column
-                    // it belongs to, because the heading above it is not
-                    // read alongside it.
-                    .accessibilityElement(children: .ignore)
-                    .accessibilityLabel("All time, \(String(format: "%.0f", breaks.savingsTotal(costPer20: costPer20))) \(currency) saved")
+                    .scoreCell("All time, \(String(format: "%.0f", breaks.savingsTotal(costPer20: costPer20))) \(currency) saved") { showAlternate.toggle() }
                     
                 }
                 .transition(.move(edge: .bottom).combined(with: .opacity))

@@ -124,6 +124,15 @@ driven by a drag has to become something that can be nudged up and down.
 the two are read apart. They want grouping, which means deciding what one
 person in the courtyard *is* to VoiceOver.
 
+**Twelve tap targets still have no button trait.** `grep -rn onTapGesture`
+finds them: three in `CourtyardView`, four in `SettingsDesignView`, two in
+`ReminderView`, one each in `InfoView`, `SavingsView` and the watch's
+`MenuView`. Three of those — the `returnAction()` taps in `ReminderView` and
+`SavingsView` — only dismiss the keyboard and may well be right to stay
+silent; the other nine are controls reading as plain text. The
+`SettingsDesignView` ones overlap with the hue controls above and are best
+done in the same sitting.
+
 **Dynamic Type and contrast have not been looked at** at all. The pass was
 about whether VoiceOver has anything to say, not about whether the text
 survives being made larger.
