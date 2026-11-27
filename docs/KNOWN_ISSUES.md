@@ -1,7 +1,9 @@
 # Known issues
 
-Six, and **none of them blocks anything**. One is worth a glance, three are
-limits to live with, two are corners nobody has checked.
+Ten. **Nothing here stops the app working**, but four of them stand between
+it and other people's phones: one is worth a glance, three are limits to live
+with, two are corners nobody has checked, and four came out of a readiness
+survey on 2026-11-27 and are about shipping rather than about the code.
 
 The watch path is no longer among them: background sync, the complication
 installing, rendering, counting down through a real break and rolling the count
@@ -17,6 +19,10 @@ has the record if it is ever wanted.
 | 4 | Two warnings on CI | nothing |
 | 5 | Watch sync between simulators | a check |
 | 6 | Firestore rules untested | a test suite |
+| 7 | Nothing explains the courtyard | an onboarding pass |
+| 8 | One accessibility label in the whole app | a VoiceOver pass |
+| 9 | No Firebase App Check | a config change |
+| 10 | The `stats` function is not in this repo | finding out |
 
 ---
 
@@ -69,6 +75,51 @@ simulator pair. Application context may still get through. Nobody has checked.
 ### 6. Firestore rules have no automated tests
 
 See `DEVELOPMENT.md` → "Rules tests (not set up)".
+
+---
+
+## Before other people have it
+
+Four things found by reading the project through on 2026-11-27 with the
+question "could this go to testers tomorrow". None of them is a bug.
+
+### 7. Nothing explains the courtyard
+
+There is no onboarding, no first-run anything. The courtyard — asking the
+whole yard for a light rather than a person, waiting for company, what the
+anonymity actually guarantees — is the most distinctive thing the app does
+and the least self-evident. Handed to a tester cold, it produces feedback
+about confusion instead of feedback about the idea.
+
+### 8. One accessibility label in the whole app
+
+`grep -rn accessibilityLabel` returns a single hit. The primary control is a
+drawn cigarette with no text anywhere near it, so VoiceOver has nothing to
+say about the main screen. Not a submission blocker; it is an exclusion.
+
+### 9. No Firebase App Check
+
+Auth is anonymous and the API key ships inside the binary, as it must, so
+anyone who pulls the key can mint a token and write to the courtyard. The
+rules in `firebase/firestore.rules` are what keeps that bounded — durations
+capped, impersonation blocked by a per-break `ownerHash`, races settled
+server side, litter collectable by anyone — so the worst case is junk
+documents and the bill for them rather than anything lost. App Check is the
+standard answer and is worth having before a public link exists.
+
+### 10. The `stats` function is not in this repo
+
+`firestore.rules` says `/stats/{document}` is "written by a scheduled
+function, never by a client", and `firebase/` has no `functions/`. Either it
+is deployed out of band and undocumented, or nothing writes the collection
+and whatever reads it gets nothing. Nobody has checked which.
+
+### Two small ones that are not worth an entry
+
+`ITSAppUsesNonExemptEncryption` is not set anywhere, so every upload stops to
+ask about export compliance; one key in `NSSB/Info.plist` ends that. And
+there is no string catalogue — the app is English, which is fine as a
+decision and less fine as an oversight.
 
 ---
 
