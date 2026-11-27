@@ -32,6 +32,12 @@ project and writes real documents into *this* courtyard. Replace it with the pli
 from your own Firebase project before you run a fork against the live backend, or
 leave Firebase unconfigured and let `SimulatedPresenceService` stand in.
 
+**Privacy manifest:** `Shared/PrivacyInfo.xcprivacy` is one file copied into all three
+bundles, because each bundle that touches a required-reason API needs its own at its
+root and the iOS app, the watch app and the complication all compile `SharedContainer`.
+It declares the `UserDefaults` access and the presence documents. It is not the App
+Store Connect privacy questionnaire, which is filled in by hand.
+
 Signing uses team `3JMZLMZVTS`. The watch app and `NSSBComplications` need the **App Groups** capability with `group.com.lmunck.NSSB`. It's already in their entitlements files, and automatic signing registers it on the first device build.
 
 **CI:** `.github/workflows/build.yml` builds both apps for the simulator (unsigned), checks that the complication is embedded, and runs `NSSBTests` on every PR and every push to `main`.

@@ -1,0 +1,68 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE plist PUBLIC "-//Apple//DTD PLIST 1.0//EN" "http://www.apple.com/DTDs/PropertyList-1.0.dtd">
+<!--
+  One file, three bundles. Each bundle that touches a required-reason API
+  needs its own copy at its root, and the iOS app, the watch app and the
+  complication all compile SharedContainer, so all three get this one.
+
+  What is declared, and why:
+
+  - UserDefaults. CA92.1 is the app's own defaults: the reminder frequency,
+    and the pre-2024 break data that CodingFunctions migrates out of on first
+    launch. 1C8F.1 is UserDefaults(suiteName:) on the App Group, which is how
+    the watch app hands the complication its snapshot. The complication only
+    needs the second of those; it carries both because this is one shared
+    file and declaring a reason you do not exercise costs nothing.
+
+  - Other data, not linked to the user. A presence document goes to Firestore
+    for the five minutes of a break and then deletes itself: a name rolled
+    from the curated pool, an optional country, a timezone offset, two
+    timestamps. It is deliberately unlinkable - ownerHash is
+    sha256(uid + breakId), so two breaks by the same person cannot be
+    connected to each other, and no uid is ever written down. None of it is
+    used for tracking.
+
+  Checked and deliberately absent: nothing in the project reads a file
+  timestamp, the system boot time, available disk space or the active
+  keyboard, and the country comes from Locale rather than from location
+  services, so none of those categories applies.
+
+  This file is not the App Store Connect privacy questionnaire. That is
+  filled in by hand, and the anonymous Firebase account is the item there
+  that wants a decision.
+-->
+<plist version="1.0">
+<dict>
+	<key>NSPrivacyTracking</key>
+	<false/>
+	<key>NSPrivacyTrackingDomains</key>
+	<array/>
+	<key>NSPrivacyCollectedDataTypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyCollectedDataType</key>
+			<string>NSPrivacyCollectedDataTypeOtherDataTypes</string>
+			<key>NSPrivacyCollectedDataTypeLinked</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypeTracking</key>
+			<false/>
+			<key>NSPrivacyCollectedDataTypePurposes</key>
+			<array>
+				<string>NSPrivacyCollectedDataTypePurposeAppFunctionality</string>
+			</array>
+		</dict>
+	</array>
+	<key>NSPrivacyAccessedAPITypes</key>
+	<array>
+		<dict>
+			<key>NSPrivacyAccessedAPIType</key>
+			<string>NSPrivacyAccessedAPICategoryUserDefaults</string>
+			<key>NSPrivacyAccessedAPITypeReasons</key>
+			<array>
+				<string>CA92.1</string>
+				<string>1C8F.1</string>
+			</array>
+		</dict>
+	</array>
+</dict>
+</plist>
