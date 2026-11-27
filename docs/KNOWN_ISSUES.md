@@ -11,10 +11,10 @@ has the record if it is ever wanted.
 
 | # | Issue | Needs |
 |---|---|---|
-| 1 | Two complication families never drawn | a glance |
+| 1 | The inline label at two digits | a glance |
 | 2 | Phone edits reach the complication late | nothing |
 | 3 | `breaks` can only grow | nothing |
-| 4 | Two warnings on CI | nothing |
+| 4 | One warning on CI, not ours | nothing |
 | 5 | Watch sync between simulators | a check |
 | 6 | Firestore rules untested | a test suite |
 
@@ -22,14 +22,25 @@ has the record if it is ever wanted.
 
 ## Worth a glance
 
-### 1. Two of the four complication families have never been drawn
+### 1. The inline label has never been seen at two digits
 
-Two were tested on a watch face through a real break and behaved. The other two
-have only ever been rendered by SwiftUI previews.
+All four families were looked at on an Apple Watch Ultra 3 through a live
+break on 2026-11-27, which closes the old entry here: `accessoryInline` and
+`accessoryCorner` lay out correctly, nothing clipped, and the corner gauge
+curves where it should.
 
-What is left is layout, not mechanism: all four share the `timerInterval` views
-and the same `getTimeline` schedule, and those are the parts that were in doubt.
-Worst case is a clipped label in `accessoryInline` or `accessoryCorner`.
+What that glance could not cover is the one string that needs two digits.
+`"12 non-smoking breaks"` plus an icon is the longest thing the extension asks
+a family to hold, and `accessoryInline` is one short line that gets narrower
+the smaller the watch. The wrist it was looked at on had a single-digit count,
+which proves nothing about the long one, and nobody is going to smoke ten
+cigarettes to find out. `BreakEntry.placeholderCrowded` is in every `#Preview`
+for exactly this; an Xcode preview on the smallest watch settles it in a
+minute. It has deliberately not been shortened — shortening it now would
+answer a guess.
+
+The same glance also killed the drawn cigarette, which read as a progress bar
+on a face: `docs/ARCHITECTURE.md` → "Why not a drawn cigarette" has that.
 
 ---
 
@@ -45,17 +56,18 @@ Application context reaches the watch when the watch app next runs. A phone-side
 Merging two devices is a union, so a break can never be removed. Fine while
 nothing deletes breaks. A future reset feature needs a tombstone or a reset epoch.
 
-### 4. Two warnings on CI
+### 4. One warning on CI, and it is not ours
 
-Confirmed on the green run of 2026-11-24:
+"Metadata extraction skipped. No AppIntents.framework dependency found." Not the
+project's code — Xcode's AppIntents metadata step, which the app does not use.
 
-- `PresenceRepository.swift:973` — "no 'async' operations occur within 'await'
-  expression". The project's own code. `DEVELOPMENT.md` says the project builds
-  clean, so this is probably a difference between the runner's Xcode and the
-  local one. Still unverified locally.
-- "Metadata extraction skipped. No AppIntents.framework dependency found." Not
-  the project's code — Xcode's AppIntents metadata step, which the app does not
-  use.
+This entry used to list two. The other was `PresenceRepository.swift:973`, "no
+'async' operations occur within 'await' expression", and it was the project's
+own: the departure timer's `Task` already ran on the main actor, so the `await`
+marked a hop that never happened. Dropped in 81de278, and the warning went with
+it. Checked on the green `main` run of 2026-11-25, where the AppIntents line is
+the only `warning:` left, so `DEVELOPMENT.md`'s claim that the project builds
+without warnings of its own is now true rather than nearly true.
 
 ---
 
