@@ -64,6 +64,9 @@ struct ReachOutView: View {
                         )
                         .contentShape(Capsule())
                         .onTapGesture(perform: reach)
+                        // Tappable text is still only text to VoiceOver.
+                        .accessibilityAddTraits(.isButton)
+                        .accessibilityHint("Asks the courtyard for a light")
                         .transition(.opacity)
                 }
 

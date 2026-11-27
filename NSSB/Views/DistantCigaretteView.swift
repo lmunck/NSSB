@@ -67,6 +67,11 @@ struct DistantCigaretteView: View {
                 .frame(width: width, height: filterHeight)
         }
         .frame(width: width, height: height)
+        // Four gradients and no words, which is silence. Whoever is holding
+        // this is named by the view that places it, so all this has to say is
+        // that somebody is standing out there and whether they are lit.
+        .accessibilityElement(children: .ignore)
+        .accessibilityLabel(lit ? "Somebody smoking" : "Somebody waiting, unlit")
     }
 }
 

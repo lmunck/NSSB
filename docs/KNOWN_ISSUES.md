@@ -20,7 +20,7 @@ has the record if it is ever wanted.
 | 5 | Watch sync between simulators | a check |
 | 6 | Firestore rules untested | a test suite |
 | 7 | Nothing explains the courtyard | an onboarding pass |
-| 8 | One accessibility label in the whole app | a VoiceOver pass |
+| 8 | The colour designer is still silent | a second pass |
 | 9 | No Firebase App Check | a config change |
 | 10 | The `stats` function is not in this repo | finding out |
 
@@ -103,11 +103,30 @@ anonymity actually guarantees — is the most distinctive thing the app does
 and the least self-evident. Handed to a tester cold, it produces feedback
 about confusion instead of feedback about the idea.
 
-### 8. One accessibility label in the whole app
+### 8. The colour designer is still silent
 
-`grep -rn accessibilityLabel` returns a single hit. The primary control is a
-drawn cigarette with no text anywhere near it, so VoiceOver has nothing to
-say about the main screen. Not a submission blocker; it is an exclusion.
+The main journey has been through a VoiceOver pass (2026-11-27): the
+cigarette is one button that says which cigarette it is, whether it is lit
+and how long is left; both score views read "Today, 3 breaks" rather than
+three loose scraps; the share control, the "got a light?" target and the
+strangers in the courtyard all say what they are.
+
+What is left, in the order it matters:
+
+**`HueSelectorView` and `HueSliderView`.** Custom drag controls with no
+text, no traits and no `accessibilityAdjustableAction`, so the cigarette
+designer cannot be operated without sight at all. This is the real remaining
+hole, and it is the one that needs thought rather than labels: a hue wheel
+driven by a drag has to become something that can be nudged up and down.
+
+**`CourtyardView` and `BesideYouView`.** Each stranger's cigarette now says
+"Somebody smoking", but it is a separate element from the name beside it, so
+the two are read apart. They want grouping, which means deciding what one
+person in the courtyard *is* to VoiceOver.
+
+**Dynamic Type and contrast have not been looked at** at all. The pass was
+about whether VoiceOver has anything to say, not about whether the text
+survives being made larger.
 
 ### 9. No Firebase App Check
 
