@@ -72,6 +72,22 @@ struct CigaretteView: View {
     }
     
     
+    /// What the cigarette would say if you asked it.
+    ///
+    /// `secondsLeft` is already kept current by the timer that drives the
+    /// countdown, so saying this out loud costs nothing that was not already
+    /// being worked out.
+    private var spokenState: String {
+        guard data.breakStarted != nil else { return "Not lit" }
+        let minutes = secondsLeft / 60
+        let seconds = secondsLeft % 60
+        func plural(_ n: Int, _ word: String) -> String { "\(n) \(word)\(n == 1 ? "" : "s")" }
+        if minutes > 0 {
+            return "Burning, \(plural(minutes, "minute")) \(plural(seconds, "second")) left"
+        }
+        return "Burning, \(plural(seconds, "second")) left"
+    }
+
     var body: some View {
         
         return ZStack {
@@ -111,6 +127,18 @@ struct CigaretteView: View {
             .onTapGesture {
                 toggleSmokebreak()
             }
+            // Without this VoiceOver finds a stack of gradients and a tap
+            // gesture, which is to say nothing at all: no name, no state, and
+            // no reason to believe it can be touched. The whole cigarette
+            // becomes one button that says which cigarette it is, how far
+            // through the break it has got, and what a tap would do.
+            .accessibilityElement(children: .ignore)
+            .accessibilityAddTraits(.isButton)
+            .accessibilityLabel(design.title.isEmpty ? "Cigarette" : design.title)
+            .accessibilityValue(spokenState)
+            .accessibilityHint(data.breakStarted == nil
+                               ? "Starts a five minute non-smoking break"
+                               : "Puts it out and cancels the break")
             .background {
                 
                 let wave:CGFloat = sin((breakProgress ?? 0) * Date.breakLength) * 0.5 + 0.5
@@ -136,6 +164,10 @@ struct CigaretteView: View {
                     .offset(x: -width / 2 - 10, y: 0)
                     .frame(width: width)
                     .opacity(cigOpacity)
+                    // Written up the side of the cigarette, and already the
+                    // first thing the cigarette itself says. Twice would be
+                    // twice.
+                    .accessibilityHidden(true)
             
                 ShareCigaretteView(cigarette: design)
                     .foregroundStyle(Color.accent)

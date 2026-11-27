@@ -25,6 +25,9 @@ struct ShareCigaretteView: View {
                     Text(Image(systemName: "square.and.arrow.up"))
                         .font(.title)
                 })
+                // An icon in a Text, which VoiceOver reads as the name of the
+                // glyph if it reads it at all.
+                .accessibilityLabel("Share this cigarette")
                 
                 
             }
