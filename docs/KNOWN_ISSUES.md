@@ -97,12 +97,33 @@ xcodebuild -showdestinations -scheme "NSSB WatchKit App" -project NSSB.xcodeproj
 
 ## Trap: installing on the watch
 
-**Every build of the watch app is `1.3 (1)`** — `CURRENT_PROJECT_VERSION` and
-`MARKETING_VERSION` are hardcoded in all eight configurations. iOS reads those to
-decide whether the copy on the watch is stale, so a watch app that gained a
+**The build number is hardcoded, so bump it when a build has to replace one.**
+`CURRENT_PROJECT_VERSION` and `MARKETING_VERSION` are literals in
+`project.pbxproj` — nothing derives them from the build. iOS reads them to decide
+whether the copy on the watch is stale, so two builds carrying the same numbers
+are the same build as far as it is concerned: a watch app that gained a
 complication looks identical to the one already installed and is never replaced.
 The old copy keeps working, which is what makes this so slow to spot. Restarting
 the watch does not help.
+
+It is `1.3 (2)` as of 2026-11-27, raised from `(1)` for the iOS app, the watch
+app and `NSSBComplications` together — App Store Connect wants the embedded watch
+app and its extension to agree, so they move as a set and `NSSBTests` keeps its
+own. Raise it again whenever a build is meant to land on a watch through the
+iPhone's Watch app.
+
+**What it looks like when it bites.** On 2026-11-27 the complication drew today's
+count on every family during a live break, with no cigarette and no countdown.
+That is exactly what the current code draws when `breakStarted` is nil in the
+snapshot, so it reads as a sync or App Group fault and sends you into the data
+path — where everything is fine, because the extension running on the watch is
+simply an older one. Before suspecting the data, check which build is installed.
+
+`devicectl` never asks the question, so a direct install is the way out:
+
+```
+xcrun devicectl device install app --device <watch-udid> <path-to>/NSSB.app
+```
 
 Pairing the watch as a development device avoids it, because Xcode installs
 directly. Get the UDID from `xcrun devicectl list devices`, then:
