@@ -87,6 +87,9 @@
 		68D2FCE4284361E200529BB1 /* NSSBApp.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FCE3284361E200529BB1 /* NSSBApp.swift */; };
 		68D2FCE6284361E200529BB1 /* ContentView.swift in Sources */ = {isa = PBXBuildFile; fileRef = 68D2FCE5284361E200529BB1 /* ContentView.swift */; };
 		68D2FCE8284361E900529BB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FCE7284361E900529BB1 /* Assets.xcassets */; };
+		5CA7C0DE3F000000000000A1 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F000000000000A0 /* PrivacyInfo.xcprivacy */; };
+		5CA7C0DE3F000000000000A2 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F000000000000A0 /* PrivacyInfo.xcprivacy */; };
+		5CA7C0DE3F000000000000A3 /* PrivacyInfo.xcprivacy in Resources */ = {isa = PBXBuildFile; fileRef = 5CA7C0DE3F000000000000A0 /* PrivacyInfo.xcprivacy */; };
 		68D2FCEB284361E900529BB1 /* Preview Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FCEA284361E900529BB1 /* Preview Assets.xcassets */; };
 		68D2FCEF284361E900529BB1 /* NSSB.app in Embed Watch Content */ = {isa = PBXBuildFile; fileRef = 68D2FCEE284361E900529BB1 /* NSSB.app */; settings = {ATTRIBUTES = (RemoveHeadersOnCopy, ); }; };
 		68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 68D2FCF3284361EC00529BB1 /* Assets.xcassets */; };
@@ -225,6 +228,7 @@
 		68D2FCE3284361E200529BB1 /* NSSBApp.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = NSSBApp.swift; sourceTree = "<group>"; };
 		68D2FCE5284361E200529BB1 /* ContentView.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = ContentView.swift; sourceTree = "<group>"; };
 		68D2FCE7284361E900529BB1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
+		5CA7C0DE3F000000000000A0 /* PrivacyInfo.xcprivacy */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = PrivacyInfo.xcprivacy; sourceTree = "<group>"; };
 		68D2FCEA284361E900529BB1 /* Preview Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = "Preview Assets.xcassets"; sourceTree = "<group>"; };
 		68D2FCEE284361E900529BB1 /* NSSB.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = NSSB.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		68D2FCF3284361EC00529BB1 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -391,6 +395,7 @@
 				5CCF0DB52C29F47500D433A3 /* CigaretteViews */,
 				68A14A6C2854AA1100154D84 /* Logic */,
 				68372CB2284BE5BA00607600 /* Models */,
+				5CA7C0DE3F000000000000A0 /* PrivacyInfo.xcprivacy */,
 			);
 			path = Shared;
 			sourceTree = "<group>";
@@ -696,6 +701,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				5CA7C0DE3F000000000000A3 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -707,6 +713,7 @@
 				68D1CE0230A9CD9B00FEA578 /* GoogleService-Info.plist in Resources */,
 				68D2FCE8284361E900529BB1 /* Assets.xcassets in Resources */,
 				5C8ACD532C3166C500CCD6E0 /* captainicon.ttf in Resources */,
+				5CA7C0DE3F000000000000A1 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
@@ -718,6 +725,7 @@
 				68D2FD0C284361EF00529BB1 /* Preview Assets.xcassets in Resources */,
 				68D2FD09284361EF00529BB1 /* Assets.xcassets in Resources */,
 				68D2FCF4284361EC00529BB1 /* Assets.xcassets in Resources */,
+				5CA7C0DE3F000000000000A2 /* PrivacyInfo.xcprivacy in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
